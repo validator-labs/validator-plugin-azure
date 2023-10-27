@@ -39,9 +39,6 @@ spec:
                   secretName:
                     description: 'Option 1: lookup Azure creds from a secret'
                     type: string
-                  serviceAccountName:
-                    description: 'Option 2: specify a service account (AKS)'
-                    type: string
                 type: object
               defaultRegion:
                 type: string

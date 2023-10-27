@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -53,6 +55,22 @@ type AzureValidatorReconciler struct {
 // Reconcile reconciles each rule found in each AzureValidator in the cluster and creates ValidationResults accordingly
 func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(0).Info("Reconciling AzureValidator", "name", req.Name, "namespace", req.Namespace)
+
+	// Preparing the Azure client. For now, this code is here.
+	// TODO: Set up getting Azure creds from credential chain (env vars via
+	// k8s secret) and subscription ID (or other config) from the chart config.
+	subscriptionID := "<tbd>"
+
+	var cred *azidentity.DefaultAzureCredential
+	var err error
+	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
+		// Stealing this approach from the AWS version for now. If an Azure
+		// client can't be prepared, this can't be fixed by an immediate
+		// requeue.
+		r.Log.Error(err, "failed to prepare default Azure credential")
+		return ctrl.Result{}, nil
+	}
+	fmt.Printf("Created default Azure cred: %v\n", cred)
 
 	// First we get the active validator out of k8s.
 	validator := &v1alpha1.AzureValidator{}
@@ -110,15 +128,18 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Helper to make the new validation result object. Modeled after helpers
 	// that I saw in the AWS version. Later, this should be moved to somewhere
-	// else in this codebase.
-	buildValidatorResult := func() *types.ValidationResult {
+	// else in this codebase. This function's role is to make a default
+	// validation result. If validation fails, the result will be modified to
+	// convey this. If validation does not fail, the result will remain the
+	// same.
+	buildValidationResult := func() *types.ValidationResult {
 		// Pick a validation state
 		state := v8or.ValidationSucceeded
 
 		// Make a validation condition
 		latestCondition := v8or.DefaultValidationCondition()
-		latestCondition.Message = "This is just a test. We're pretending it passed."
-		latestCondition.ValidationRule = fmt.Sprintf("%s-%s", v8orconstants.ValidationRulePrefix, "validator-testrule")
+		latestCondition.Message = "Validation passed because the Azure subscription details request was successful."
+		latestCondition.ValidationRule = fmt.Sprintf("%s-%s", v8orconstants.ValidationRulePrefix, "validator-subscription-details-rule")
 		latestCondition.ValidationType = constants.ValidationTypeTest
 
 		// Once both are built, put them into a validation result
@@ -128,13 +149,67 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 	}
 
+	// Breaking the pattern from the AWS version temporarily. Instead of
+	// modifying the default validation result to indicate failure, here we
+	// create an entire failed validation result from scratch. This is okay for
+	// now because we don't have a concept of validation failing because one
+	// "subvalidation" fails. It's all or nothing for this subscription details
+	// iteration.
+	buildFailedValidationResult := func() *types.ValidationResult {
+		// Pick a validation state
+		state := v8or.ValidationFailed
+
+		// Make a validation condition
+		latestCondition := v8or.DefaultValidationCondition()
+		latestCondition.Message = "Validation failed because the Azure subscription details request was unsuccessful."
+		latestCondition.ValidationRule = fmt.Sprintf("%s-%s", v8orconstants.ValidationRulePrefix, "validator-subscription-details-rule")
+		latestCondition.ValidationType = constants.ValidationTypeTest
+
+		// Once both are built, put them into a validation result
+		return &types.ValidationResult{
+			Condition: &latestCondition,
+			State:     &state,
+		}
+	}
+
+	// Actual validation logic here!
+
+	// Try to get details about the subscription used with the Azure account
+	r.Log.V(0).Info("Getting details of Azure subscription.", "subscription ID", subscriptionID)
+	var failed *types.MonotonicBool
+	var result *types.ValidationResult
+	client, err := armsubscriptions.NewClient(cred, nil)
+	if err != nil {
+		// Stealing this approach from the AWS version for now. If an Azure
+		// client can't be prepared, this can't be fixed by an immediate
+		// requeue.
+		r.Log.Error(err, "failed to prepare Azure subscriptions client")
+		return ctrl.Result{}, nil
+	}
+	// Creating an error variable just for being able to call safeUpdate func.
+	var validationError error
+	res, err := client.Get(context.TODO(), subscriptionID, nil)
+	if err != nil {
+		validationError = err
+		// TODO: Decide whether this Info should actually be an Error.
+		r.Log.V(0).Info("Failed to get subscription details.", "subscription ID", subscriptionID)
+		failed = &types.MonotonicBool{Ok: true}
+		result = buildFailedValidationResult()
+	} else {
+		r.Log.V(0).Info("Subscription display name retrieved.", "subscription ID", subscriptionID, "display name", *res.DisplayName)
+		failed = &types.MonotonicBool{Ok: false}
+		result = buildValidationResult()
+	}
+
+	// End of actual validation logic here!
+
 	// Save the updated validation result. The difference between this code and
 	// the code above is that the code above just saves a placeholder in k8s
 	// whereas this is more involved. It will eventually be the result of doing
 	// all the Azure validation stuff. Once the Azure validation stuff is
 	// implemented, it would have "conditions" added to it by now, which will be
 	// saved.
-	v8ores.SafeUpdateValidationResult(r.Client, nn, buildValidatorResult(), &types.MonotonicBool{}, nil, r.Log)
+	v8ores.SafeUpdateValidationResult(r.Client, nn, result, failed, validationError, r.Log)
 
 	r.Log.V(0).Info("Requeuing for re-validation in two minutes.", "name", req.Name, "namespace", req.Namespace)
 	return ctrl.Result{RequeueAfter: time.Second * 120}, nil

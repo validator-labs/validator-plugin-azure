@@ -33,8 +33,8 @@ type AzureValidatorSpec struct {
 type AzureAuth struct {
 	// Option 1: lookup Azure creds from a secret
 	SecretName string `json:"secretName,omitempty"`
-	// Option 2: specify a service account (AKS)
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
+	// TODO: Add more ways for Azure credentials to be provided, if relevant.
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator

@@ -3,5 +3,5 @@ package constants
 const (
 	PluginCode string = "Azure"
 
-	ValidationTypeTest string = "azure-test-validation-type"
+	ValidationTypeTest string = "azure-subscription-details"
 )
