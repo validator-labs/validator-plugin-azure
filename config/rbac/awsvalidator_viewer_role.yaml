@@ -1,0 +1,27 @@
+# permissions for end users to view azurevalidators.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: azurevalidator-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: validator-plugin-azure
+    app.kubernetes.io/part-of: validator-plugin-azure
+    app.kubernetes.io/managed-by: kustomize
+  name: azurevalidator-viewer-role
+rules:
+- apiGroups:
+  - validation.spectrocloud.labs
+  resources:
+  - azurevalidators
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - validation.spectrocloud.labs
+  resources:
+  - azurevalidators/status
+  verbs:
+  - get
