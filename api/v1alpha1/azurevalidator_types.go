@@ -28,6 +28,7 @@ type AzureValidatorSpec struct {
 
 	// TODO: Add Azure specific stuff to be validated (probably just the role
 	// at first).
+	SubscriptionID string `json:"subscriptionId"`
 }
 
 type AzureAuth struct {
