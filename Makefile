@@ -183,11 +183,12 @@ $(HELM): $(LOCALBIN)
 helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
-   
+
 .PHONY: helm-build
 helm-build: helm helmify manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG) && cd ../../
-	$(KUSTOMIZE) build config/default | $(HELMIFY) -crd-dir
+	mkdir chart
+	$(KUSTOMIZE) build config/default | $(HELMIFY) -crd-dir chart/validator-plugin-azure
 	cat hack/extra-values.yaml >> chart/validator-plugin-azure/values.yaml
 
 .PHONY: helm-package

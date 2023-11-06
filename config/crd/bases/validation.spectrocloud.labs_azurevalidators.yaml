@@ -35,9 +35,11 @@ spec:
             description: AzureValidatorSpec defines the desired state of AzureValidator
             properties:
               auth:
+                description: Allows the plugin user to override how the plugin is
+                  authed.
                 properties:
                   secretName:
-                    description: 'Option 1: lookup Azure creds from a secret'
+                    description: Look up Azure creds from a secret
                     type: string
                 type: object
               defaultRegion:

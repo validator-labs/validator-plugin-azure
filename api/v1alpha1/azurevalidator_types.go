@@ -26,7 +26,8 @@ import (
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	// Allows the plugin user to override how the plugin is authed.
+	// Describes the service principal to test when performing validations that
+	// involve checking what service principals can do.
 	Auth AzureAuth `json:"auth"`
 
 	DefaultRegion string `json:"defaultRegion"`
@@ -37,7 +38,9 @@ type AzureValidatorSpec struct {
 }
 
 type AzureAuth struct {
-	// Look up Azure creds from a secret
+	// Instead of having the details specified as part of the spec, allow the
+	// details to be specified in a secret, and allow the spec to control the
+	// name of the secret that the plugin looks in.
 	SecretName string `json:"secretName,omitempty"`
 }
 
