@@ -200,3 +200,11 @@ helm-package: generate manifests
 .PHONY: frigate
 frigate:
 	frigate gen chart/validator-plugin-azure --no-deps -o markdown > chart/validator-plugin-azure/README.md
+
+# dev has a cleanup step right now which deletes the old Docker image. Without
+# this step, DevSpace chooses to re-use the already built Docker image. We
+# should improve this later to speed things up.
+.PHONY: dev
+dev:
+	docker rmi $(docker images | grep validator-plugin-azure | tr -s ' ' | cut -d' ' -f3)
+	devspace dev -n validator-plugin-azure-system

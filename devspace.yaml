@@ -15,6 +15,11 @@ images:
     docker: {}
 
 deployments:
+  azure-creds-secret:
+    namespace: validator-plugin-azure-system
+    kubectl:
+      manifests:
+      - hack/azure-creds-secret--power-user-sp.yaml
   validator-plugin-azure:
     namespace: validator-plugin-azure-system
     kubectl:

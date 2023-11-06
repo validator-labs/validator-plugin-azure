@@ -28,7 +28,7 @@ type AzureValidatorSpec struct {
 
 	// TODO: Add Azure specific stuff to be validated (probably just the role
 	// at first).
-	SubscriptionID string `json:"subscriptionId"`
+	// SubscriptionID string `json:"subscriptionId"`
 }
 
 type AzureAuth struct {
@@ -62,7 +62,7 @@ type AzureValidator struct {
 
 // AzureValidatorList contains a list of AzureValidator
 type AzureValidatorList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta `json:",inline"  `
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []AzureValidator `json:"items"`
 }

@@ -56,11 +56,9 @@ type AzureValidatorReconciler struct {
 func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.V(0).Info("Reconciling AzureValidator", "name", req.Name, "namespace", req.Namespace)
 
-	// Preparing the Azure client. For now, this code is here.
-	// TODO: Set up getting Azure creds from credential chain (env vars via
-	// k8s secret) and subscription ID (or other config) from the chart config.
-	subscriptionID := "<tbd>"
-
+	// Preparing the Azure client. For now, this code is here. Assume that the
+	// wiring up of the secret with the Azure creds, mounted as env vars,
+	// enables the Azure SDK's chained authentication.
 	var cred *azidentity.DefaultAzureCredential
 	var err error
 	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
@@ -173,6 +171,10 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Actual validation logic here!
+
+	// TODO: Set up getting subscription ID (and later, config for the real
+	//       world use cases) from the config (maybe Helm chart config).
+	subscriptionID := "9b16dd0b-1bea-4c9a-a291-65e6f44c4745"
 
 	// Try to get details about the subscription used with the Azure account
 	r.Log.V(0).Info("Getting details of Azure subscription.", "subscription ID", subscriptionID)

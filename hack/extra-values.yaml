@@ -20,3 +20,5 @@ auth:
 #       their k8s cluster or AKS cluster created via Palette. We may end up
 #       allowing more than one subscription to be configured here.
 subscriptionId: ""
+# The ID of the "target" thing (e.g. "target subscription", "target service principal")
+theIDOfTheHighLevelAzureThingThatTheThingYouWantToCheckBelongsTo: ""

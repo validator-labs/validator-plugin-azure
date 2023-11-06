@@ -42,14 +42,9 @@ spec:
                 type: object
               defaultRegion:
                 type: string
-              subscriptionId:
-                description: 'TODO: Add Azure specific stuff to be validated (probably
-                  just the role at first).'
-                type: string
             required:
             - auth
             - defaultRegion
-            - subscriptionId
             type: object
           status:
             description: AzureValidatorStatus defines the observed state of AzureValidator
