@@ -21,10 +21,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	Auth          AzureAuth `json:"auth"`
-	DefaultRegion string    `json:"defaultRegion"`
+	// Allows the plugin user to override how the plugin is authed.
+	Auth AzureAuth `json:"auth"`
+
+	DefaultRegion string `json:"defaultRegion"`
 
 	// TODO: Add Azure specific stuff to be validated (probably just the role
 	// at first).
@@ -32,10 +37,8 @@ type AzureValidatorSpec struct {
 }
 
 type AzureAuth struct {
-	// Option 1: lookup Azure creds from a secret
+	// Look up Azure creds from a secret
 	SecretName string `json:"secretName,omitempty"`
-
-	// TODO: Add more ways for Azure credentials to be provided, if relevant.
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator
