@@ -34,19 +34,44 @@ spec:
           spec:
             description: AzureValidatorSpec defines the desired state of AzureValidator
             properties:
-              auth:
-                description: Allows the plugin user to override how the plugin is
-                  authed.
-                properties:
-                  secretName:
-                    description: Look up Azure creds from a secret
-                    type: string
-                type: object
-              defaultRegion:
-                type: string
+              roleAssignmentRules:
+                description: Rules for validating role assignments in Azure RBAC.
+                items:
+                  description: RoleAssignmentRule is a rule that validates that a
+                    desired role assignment exists within a subscription. The role
+                    is specified as its role name (e.g. "Contributor"). The validator
+                    takes care of looking up the details of the role definition associated
+                    with the role name automatically.
+                  properties:
+                    role:
+                      description: "Role allow users to specify either a role's role
+                        name (e.g. \"Contributor\") or a role's name (e.g. \"b24988ac-6180-42a0-ab88-20f7382dd24c\"),
+                        which is the name of the role with the role name \"Contributor\".
+                        This allows role assignments with custom roles to be validated
+                        too, not just built-in roles. \n If role is specified, it
+                        is used. If role is not specified but role name is specified,
+                        role name is used. If neither are specified, it is a misconfiguration
+                        and validation will fail. \n TODO: Look into if we can use
+                        a webhook to validate this at apply time instead of allowing
+                        it to cause validation to fail at runtime."
+                      properties:
+                        name:
+                          type: string
+                        roleName:
+                          type: string
+                      type: object
+                    servicePrincipalId:
+                      type: string
+                    subscriptionId:
+                      type: string
+                  required:
+                  - role
+                  - servicePrincipalId
+                  - subscriptionId
+                  type: object
+                type: array
             required:
-            - auth
-            - defaultRegion
+            - roleAssignmentRules
             type: object
           status:
             description: AzureValidatorStatus defines the observed state of AzureValidator

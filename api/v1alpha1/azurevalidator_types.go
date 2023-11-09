@@ -26,22 +26,56 @@ import (
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	// Describes the service principal to test when performing validations that
-	// involve checking what service principals can do.
-	Auth AzureAuth `json:"auth"`
-
-	DefaultRegion string `json:"defaultRegion"`
-
-	// TODO: Add Azure specific stuff to be validated (probably just the role
-	// at first).
-	// SubscriptionID string `json:"subscriptionId"`
+	// Rules for validating role assignments in Azure RBAC.
+	RoleAssignmentRules []RoleAssignmentRule `json:"roleAssignmentRules"`
 }
 
-type AzureAuth struct {
-	// Instead of having the details specified as part of the spec, allow the
-	// details to be specified in a secret, and allow the spec to control the
-	// name of the secret that the plugin looks in.
-	SecretName string `json:"secretName,omitempty"`
+// RoleAssignmentRule is a rule that validates that a desired role assignment
+// exists within a subscription. The role is specified as its role name (e.g.
+// "Contributor"). The validator takes care of looking up the details of the
+// role definition associated with the role name automatically.
+type RoleAssignmentRule struct {
+	Role               Role   `json:"role"`
+	ServicePrincipalID string `json:"servicePrincipalId"`
+	SubscriptionID     string `json:"subscriptionId"`
+}
+
+// GetRoleName returns the name of the role in the role assignment. Returns nil if the user did not
+// specify it in the spec.
+func (r RoleAssignmentRule) GetRoleName() *string {
+	return r.Role.Name
+}
+
+// GetRoleRoleName returns the role name of the role in the role assignment. Returns nil if the
+// user did not specify it in the spec.
+func (r RoleAssignmentRule) GetRoleRoleName() *string {
+	return r.Role.RoleName
+}
+
+// GetServicePrincipalID returns the service principal ID of the role assignment.
+func (r RoleAssignmentRule) GetServicePrincipalID() string {
+	return r.ServicePrincipalID
+}
+
+// GetSubscriptionID returns the subscription ID of the the subscription the role assignment must
+// exist in.
+func (r RoleAssignmentRule) GetSubscriptionID() string {
+	return r.SubscriptionID
+}
+
+// Role allow users to specify either a role's role name (e.g. "Contributor") or a role's name (e.g.
+// "b24988ac-6180-42a0-ab88-20f7382dd24c"), which is the name of the role with the role name
+// "Contributor". This allows role assignments with custom roles to be validated too, not just
+// built-in roles.
+//
+// If role is specified, it is used. If role is not specified but role name is specified, role name
+// is used. If neither are specified, it is a misconfiguration and validation will fail.
+//
+// TODO: Look into if we can use a webhook to validate this at apply time instead of allowing it to
+// cause validation to fail at runtime.
+type Role struct {
+	Name     *string `json:"name,omitempty"`
+	RoleName *string `json:"roleName,omitempty"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator

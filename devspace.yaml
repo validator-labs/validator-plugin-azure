@@ -19,7 +19,7 @@ deployments:
     namespace: validator-plugin-azure-system
     kubectl:
       manifests:
-      - hack/azure-creds-secret--power-user-sp.yaml
+      - hack/azure-creds-secret.yaml
   validator-plugin-azure:
     namespace: validator-plugin-azure-system
     kubectl:
