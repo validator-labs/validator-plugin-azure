@@ -16,15 +16,9 @@ const (
 // NewRoleAssignmentsClient creates an Azure role assignments client for working
 // with a particular subscription.
 func NewRoleAssignmentsClient(subscriptionID string) (*armauthorization.RoleAssignmentsClient, error) {
-	var cred *azidentity.DefaultAzureCredential
-	var err error
-	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
-		return nil, fmt.Errorf("could not prepare default Azure credential: %w", err)
-	}
-
-	clientFactory, err := armauthorization.NewClientFactory(subscriptionID, cred, nil)
+	clientFactory, err := armAuthClientFactory(subscriptionID)
 	if err != nil {
-		return nil, fmt.Errorf("could not create Azure client factory: %w", err)
+		return nil, fmt.Errorf("could not get armauthorization client factory: %w", err)
 	}
 
 	return clientFactory.NewRoleAssignmentsClient(), nil
@@ -50,15 +44,9 @@ func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
 // subscription, so it must be a subscription that the service principal the
 // plugin is authenticated as can read from.
 func BuiltInRoleLookupMap(subscriptionID string) (map[string]string, error) {
-	var cred *azidentity.DefaultAzureCredential
-	var err error
-	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
-		return nil, fmt.Errorf("could not prepare default Azure credential: %w", err)
-	}
-
-	clientFactory, err := armauthorization.NewClientFactory(subscriptionID, cred, nil)
+	clientFactory, err := armAuthClientFactory(subscriptionID)
 	if err != nil {
-		return nil, fmt.Errorf("could not create Azure client factory: %w", err)
+		return nil, fmt.Errorf("could not get armauthorization client factory: %w", err)
 	}
 
 	client := clientFactory.NewRoleDefinitionsClient()
@@ -82,4 +70,23 @@ func BuiltInRoleLookupMap(subscriptionID string) (map[string]string, error) {
 	}
 
 	return builtins, nil
+}
+
+// Attempts to retrieve the default Azure credential according to their chained configuration
+// pattern, and prepare a client factory for making requests to APIs associated with the
+// armauthorization package. Requires subscription ID parameter because the client factory comes
+// prepared to make API requests against a particular subscription.
+func armAuthClientFactory(subscriptionID string) (*armauthorization.ClientFactory, error) {
+	var cred *azidentity.DefaultAzureCredential
+	var err error
+	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
+		return nil, fmt.Errorf("could not prepare default Azure credential: %w", err)
+	}
+
+	clientFactory, err := armauthorization.NewClientFactory(subscriptionID, cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not create Azure client factory: %w", err)
+	}
+
+	return clientFactory, nil
 }
