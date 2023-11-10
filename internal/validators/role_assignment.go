@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/go-logr/logr"
+	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
@@ -20,8 +21,7 @@ import (
 
 // Describes the data needed to validate a rule.
 type roleAssignmentRule interface {
-	GetRoleName() *string
-	GetRoleRoleName() *string
+	GetRole() v1alpha1.Role
 	GetServicePrincipalID() string
 	GetSubscriptionID() string
 }
@@ -90,17 +90,17 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 
 	// From the remaining role assignments, check whether there is one with the desired role. First,
 	// find out whether we need to look the role up by its role name.
-	if rule.GetRoleName() != nil {
+	if rule.GetRole().Name != nil {
 		// The user has provided the name of the role directly, so we'll use it.
-		roleName = *rule.GetRoleName()
-	} else if rule.GetRoleRoleName() != nil {
+		roleName = *rule.GetRole().Name
+	} else if rule.GetRole().RoleName != nil {
 		// The user has not provided the name of the role, but they have provided the role name of
 		// the role, so we'll try to use it to look up the name of the role.
 		rolelookupMap, err := azure_utils.BuiltInRoleLookupMap(rule.GetSubscriptionID())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get role lookup map: %w", err)
 		}
-		specifiedRoleName := *rule.GetRoleRoleName()
+		specifiedRoleName := *rule.GetRole().RoleName
 		foundName, ok := rolelookupMap[specifiedRoleName]
 		if !ok {
 			failValidationResult(vr, rule, constants.ValidationTypeRoleAssignment, "Role name specified does not exist. Cannot validate.", []string{
@@ -127,8 +127,8 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 	}
 
 	failValidationResult(vr, rule, constants.ValidationTypeRoleAssignment, "Desired role assignment not found.", []string{
-		fmt.Sprintf("specified role name of role? %t", rule.GetRoleRoleName() != nil),
-		fmt.Sprintf("specified name of role? %t", rule.GetRoleName() != nil),
+		fmt.Sprintf("specified role name of role? %t", rule.GetRole().RoleName != nil),
+		fmt.Sprintf("specified name of role? %t", rule.GetRole().Name != nil),
 		fmt.Sprintf("specified service principal ID = %q", rule.GetServicePrincipalID()),
 		fmt.Sprintf("specified subscription ID = %q", rule.GetSubscriptionID()),
 	})
@@ -144,10 +144,10 @@ func buildValidationResult(rule roleAssignmentRule, validationType string) *type
 
 	// Provided spec might not have enough data to make a good identifier here.
 	identifier := "invalid-config"
-	if rule.GetRoleRoleName() != nil {
-		identifier = *rule.GetRoleRoleName()
-	} else if rule.GetRoleName() != nil {
-		identifier = *rule.GetRoleName()
+	if rule.GetRole().RoleName != nil {
+		identifier = *rule.GetRole().RoleName
+	} else if rule.GetRole().Name != nil {
+		identifier = *rule.GetRole().Name
 	}
 
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, identifier)
@@ -164,10 +164,10 @@ func buildValidationResult(rule roleAssignmentRule, validationType string) *type
 func failValidationResult(result *types.ValidationResult, rule roleAssignmentRule, validationType, message string, details []string) {
 	// Provided spec might not have enough data to make a good identifier here.
 	identifier := "invalid-config"
-	if rule.GetRoleRoleName() != nil {
-		identifier = *rule.GetRoleRoleName()
-	} else if rule.GetRoleName() != nil {
-		identifier = *rule.GetRoleName()
+	if rule.GetRole().RoleName != nil {
+		identifier = *rule.GetRole().RoleName
+	} else if rule.GetRole().Name != nil {
+		identifier = *rule.GetRole().Name
 	}
 
 	result.Condition.Details = details

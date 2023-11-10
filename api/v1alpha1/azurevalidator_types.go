@@ -40,16 +40,9 @@ type RoleAssignmentRule struct {
 	SubscriptionID     string `json:"subscriptionId"`
 }
 
-// GetRoleName returns the name of the role in the role assignment. Returns nil if the user did not
-// specify it in the spec.
-func (r RoleAssignmentRule) GetRoleName() *string {
-	return r.Role.Name
-}
-
-// GetRoleRoleName returns the role name of the role in the role assignment. Returns nil if the
-// user did not specify it in the spec.
-func (r RoleAssignmentRule) GetRoleRoleName() *string {
-	return r.Role.RoleName
+// GetRole returns the role of the role assignment.
+func (r RoleAssignmentRule) GetRole() Role {
+	return r.Role
 }
 
 // GetServicePrincipalID returns the service principal ID of the role assignment.
