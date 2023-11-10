@@ -1,8 +1,0 @@
-apiVersion: validation.spectrocloud.labs/v1alpha1
-kind: AzureValidator
-metadata:
-  name: azurevalidator-test
-spec:
-  auth:
-    secretName: test-secret-name
-  defaultRegion: test-default-region

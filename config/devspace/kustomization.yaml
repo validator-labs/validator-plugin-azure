@@ -35,4 +35,8 @@ patches:
             livenessProbe: null
             readinessProbe: null
             securityContext: null
+            envFrom:
+            - secretRef:
+                name: azure-creds
           securityContext: null
+

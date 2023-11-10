@@ -1,0 +1,24 @@
+auth:
+  # The name of the secret to look for the config in. Or, the name of the
+  # secret to be created and for the credentials to be provided to if a secret
+  # does not yet exist and createSecret is not overriden to false.
+  secretName: azure-creds
+  # Allows the plugin to automatically create the secret containing the
+  # credentials if it does not yet exist.
+  createSecret: true
+  # The tenant ID for the application in Microsoft Entra.
+  tenantId: ""
+  # The client ID associated with the tenant. Also known as application ID.
+  clientId: ""
+  # The client secret associated with the tenant.
+  clientSecret: ""
+# The subscription ID for a subscription.
+# TODO: Azure has a concept of a single service principal managing resources in
+#       subscriptions. Therefore, we need to determine whether this config
+#       should be for the service principal used as the "power user" or for the
+#       subscription the user intends to use with resources that will form
+#       their k8s cluster or AKS cluster created via Palette. We may end up
+#       allowing more than one subscription to be configured here.
+subscriptionId: ""
+# The ID of the "target" thing (e.g. "target subscription", "target service principal")
+theIDOfTheHighLevelAzureThingThatTheThingYouWantToCheckBelongsTo: ""

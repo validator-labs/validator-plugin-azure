@@ -183,11 +183,12 @@ $(HELM): $(LOCALBIN)
 helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
-   
+
 .PHONY: helm-build
 helm-build: helm helmify manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG) && cd ../../
-	$(KUSTOMIZE) build config/default | $(HELMIFY) -crd-dir
+	mkdir chart
+	$(KUSTOMIZE) build config/default | $(HELMIFY) -crd-dir chart/validator-plugin-azure
 	cat hack/extra-values.yaml >> chart/validator-plugin-azure/values.yaml
 
 .PHONY: helm-package
@@ -200,3 +201,11 @@ helm-package: generate manifests
 .PHONY: frigate
 frigate:
 	frigate gen chart/validator-plugin-azure --no-deps -o markdown > chart/validator-plugin-azure/README.md
+
+# dev has a cleanup step right now which deletes the old Docker image. Without
+# this step, DevSpace chooses to re-use the already built Docker image. We
+# should improve this later to speed things up.
+.PHONY: dev
+dev:
+	docker rmi $(docker images | grep validator-plugin-azure | tr -s ' ' | cut -d' ' -f3)
+	devspace dev -n validator-plugin-azure-system
