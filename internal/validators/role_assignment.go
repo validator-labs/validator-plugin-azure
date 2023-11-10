@@ -2,6 +2,7 @@ package validators
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -117,9 +118,10 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 	// We have the name of the role, so we can continue with validation. As soon as a match is
 	// found, consider the validation successful.
 	for _, ra := range roleAssignmentsFound {
-		if ra.Properties != nil &&
-			ra.Properties.RoleDefinitionID != nil &&
-			azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID) == roleName {
+		if ra.Properties == nil || ra.Properties.RoleDefinitionID == nil {
+			return nil, errors.New("data from Azure API response malformed; missing Properties.RoleDefinitionID")
+		}
+		if azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID) == roleName {
 			return vr, nil
 		}
 	}
