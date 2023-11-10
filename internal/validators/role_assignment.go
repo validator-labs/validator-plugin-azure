@@ -3,6 +3,7 @@ package validators
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
@@ -55,19 +56,23 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 	// the subscription. These will implicitly have scopes of this subscription.
 	// Therefore, there's no need to include a scope filter in the request.
 	// TODO: Look into using filter style API request.
-	pager := s.api.NewListForSubscriptionPager(nil)
-	var roleAssignments []*armauthorization.RoleAssignment
+	filter := url.QueryEscape(fmt.Sprintf("principalId eq '%s'", rule.GetServicePrincipalID()))
+	opts := &armauthorization.RoleAssignmentsClientListForSubscriptionOptions{
+		Filter: &filter,
+	}
+	pager := s.api.NewListForSubscriptionPager(opts)
+	var roleAssignmentsFound []*armauthorization.RoleAssignment
 	for pager.More() {
 		nextResult, err := pager.NextPage(context.TODO())
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve next page of role assignment results from pager: %w", err)
 		}
 		if nextResult.RoleAssignmentListResult.Value != nil {
-			roleAssignments = append(roleAssignments, nextResult.RoleAssignmentListResult.Value...)
+			roleAssignmentsFound = append(roleAssignmentsFound, nextResult.RoleAssignmentListResult.Value...)
 		}
 	}
 
-	if len(roleAssignments) == 0 {
+	if len(roleAssignmentsFound) == 0 {
 		// Failed validation result if no role assignments found.
 		state := vapi.ValidationFailed
 		condition := vapi.DefaultValidationCondition()
@@ -77,16 +82,6 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 			Condition: &condition,
 			State:     &state,
 		}, nil
-	}
-
-	// Filter the role assignments found in the query down to only ones
-	// where the member is the service principal that the validator is
-	// authenticated as.
-	var ownedBySP []*armauthorization.RoleAssignment
-	for _, ra := range roleAssignments {
-		if ra != nil && *ra.Properties.PrincipalID == rule.GetServicePrincipalID() {
-			ownedBySP = append(ownedBySP, ra)
-		}
 	}
 
 	// Note: This is the name of the role, not the role name of the role.
@@ -121,8 +116,10 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule roleAssignm
 
 	// We have the name of the role, so we can continue with validation. As soon as a match is
 	// found, consider the validation successful.
-	for _, ra := range ownedBySP {
-		if azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID) == roleName {
+	for _, ra := range roleAssignmentsFound {
+		if ra.Properties != nil &&
+			ra.Properties.RoleDefinitionID != nil &&
+			azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID) == roleName {
 			return vr, nil
 		}
 	}
