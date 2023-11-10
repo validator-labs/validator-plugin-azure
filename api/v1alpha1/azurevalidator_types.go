@@ -95,7 +95,7 @@ type AzureValidator struct {
 
 // AzureValidatorList contains a list of AzureValidator
 type AzureValidatorList struct {
-	metav1.TypeMeta `json:",inline"  `
+	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []AzureValidator `json:"items"`
 }

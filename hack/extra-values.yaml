@@ -12,13 +12,3 @@ auth:
   clientId: ""
   # The client secret associated with the tenant.
   clientSecret: ""
-# The subscription ID for a subscription.
-# TODO: Azure has a concept of a single service principal managing resources in
-#       subscriptions. Therefore, we need to determine whether this config
-#       should be for the service principal used as the "power user" or for the
-#       subscription the user intends to use with resources that will form
-#       their k8s cluster or AKS cluster created via Palette. We may end up
-#       allowing more than one subscription to be configured here.
-subscriptionId: ""
-# The ID of the "target" thing (e.g. "target subscription", "target service principal")
-theIDOfTheHighLevelAzureThingThatTheThingYouWantToCheckBelongsTo: ""
