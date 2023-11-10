@@ -30,6 +30,10 @@ type AzureValidatorSpec struct {
 	RoleAssignmentRules []RoleAssignmentRule `json:"roleAssignmentRules"`
 }
 
+func (s AzureValidatorSpec) ResultCount() int {
+	return len(s.RoleAssignmentRules)
+}
+
 // RoleAssignmentRule is a rule that validates that a desired role assignment
 // exists within a subscription. The role is specified as its role name (e.g.
 // "Contributor"). The validator takes care of looking up the details of the

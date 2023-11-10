@@ -27,7 +27,6 @@ import (
 	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/validators"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator/pkg/types"
 	vres "github.com/spectrocloud-labs/validator/pkg/validationresult"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -68,21 +67,15 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		Namespace: req.Namespace,
 	}
 	if err := r.Get(ctx, nn, vr); err == nil {
-		res, err := vres.HandleExistingValidationResult(nn, vr, r.Log)
-		if res != nil {
-			return *res, err
-		}
+		vres.HandleExistingValidationResult(nn, vr, r.Log)
 	} else {
 		if !apierrs.IsNotFound(err) {
 			r.Log.V(0).Error(err, "unexpected error getting ValidationResult", "name", nn.Name, "namespace", nn.Namespace)
 		}
-		res, err := vres.HandleNewValidationResult(r.Client, constants.PluginCode, nn, vr, r.Log)
-		if res != nil {
-			return *res, err
+		if err := vres.HandleNewValidationResult(r.Client, constants.PluginCode, validator.Spec.ResultCount(), nn, r.Log); err != nil {
+			return ctrl.Result{}, err
 		}
 	}
-
-	failed := &types.MonotonicBool{}
 
 	// Role Assignment rules
 	for _, rule := range validator.Spec.RoleAssignmentRules {
@@ -101,7 +94,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			if err != nil {
 				r.Log.V(0).Error(err, "failed to reconcile role assignment rule")
 			} else {
-				vres.SafeUpdateValidationResult(r.Client, nn, validationResult, failed, err, r.Log)
+				vres.SafeUpdateValidationResult(r.Client, nn, validationResult, err, r.Log)
 			}
 		}
 	}
