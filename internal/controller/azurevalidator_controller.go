@@ -84,7 +84,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		// the client, you need to know the subscription that will be queried.
 		// And you won't know which subscription that is until you read it from
 		// a rule spec.
-		client, err := azure_utils.NewRoleAssignmentsClient(rule.GetSubscriptionID())
+		client, err := azure_utils.NewRoleAssignmentsClient(rule.SubscriptionID)
 		if err != nil {
 			r.Log.V(0).Error(err, "failed to get Azure role assignments client")
 		} else {

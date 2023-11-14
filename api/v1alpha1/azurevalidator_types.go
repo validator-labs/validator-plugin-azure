@@ -34,30 +34,14 @@ func (s AzureValidatorSpec) ResultCount() int {
 	return len(s.RoleAssignmentRules)
 }
 
-// RoleAssignmentRule is a rule that validates that a desired role assignment
-// exists within a subscription. The role is specified as its role name (e.g.
-// "Contributor"). The validator takes care of looking up the details of the
-// role definition associated with the role name automatically.
+// RoleAssignmentRule is a rule that validates that one or more desired role assignments exist
+// within a subscription. For each role assignment, the role is specified as its role name (e.g.
+// "Contributor") or its name (e.g. "b24988ac-6180-42a0-ab88-20f7382dd24c" for Contributor). If the
+// role name is specified, the validator takes care of looking up the name automatically.
 type RoleAssignmentRule struct {
-	Role               Role   `json:"role"`
+	Roles              []Role `json:"roles"`
 	ServicePrincipalID string `json:"servicePrincipalId"`
 	SubscriptionID     string `json:"subscriptionId"`
-}
-
-// GetRole returns the role of the role assignment.
-func (r RoleAssignmentRule) GetRole() Role {
-	return r.Role
-}
-
-// GetServicePrincipalID returns the service principal ID of the role assignment.
-func (r RoleAssignmentRule) GetServicePrincipalID() string {
-	return r.ServicePrincipalID
-}
-
-// GetSubscriptionID returns the subscription ID of the the subscription the role assignment must
-// exist in.
-func (r RoleAssignmentRule) GetSubscriptionID() string {
-	return r.SubscriptionID
 }
 
 // Role allow users to specify either a role's role name (e.g. "Contributor") or a role's name (e.g.
