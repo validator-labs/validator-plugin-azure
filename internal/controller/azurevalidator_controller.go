@@ -93,9 +93,8 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			validationResult, err := svc.ReconcileRoleAssignmentRule(rule)
 			if err != nil {
 				r.Log.V(0).Error(err, "failed to reconcile role assignment rule")
-			} else {
-				vres.SafeUpdateValidationResult(r.Client, nn, validationResult, err, r.Log)
 			}
+			vres.SafeUpdateValidationResult(r.Client, nn, validationResult, err, r.Log)
 		}
 	}
 

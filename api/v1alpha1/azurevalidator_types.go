@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	validatorv1alpha1 "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -51,21 +50,13 @@ type RoleAssignmentRule struct {
 //
 // If role is specified, it is used. If role is not specified but role name is specified, role name
 // is used. If neither are specified, it is a misconfiguration and validation will fail.
-//
-// TODO: Look into if we can use a webhook to validate this at apply time instead of allowing it to
-// cause validation to fail at runtime.
 type Role struct {
 	Name     *string `json:"name,omitempty"`
 	RoleName *string `json:"roleName,omitempty"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator
-type AzureValidatorStatus struct {
-	// +optional
-	// +patchMergeKey=type
-	// +patchStrategy=merge
-	Conditions []validatorv1alpha1.ValidationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
-}
+type AzureValidatorStatus struct{}
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
