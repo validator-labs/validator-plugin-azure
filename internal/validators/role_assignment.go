@@ -16,6 +16,7 @@ import (
 	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
 	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type roleAssignmentAPI interface {
@@ -107,6 +108,7 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule v1alpha1.Ro
 		state = vapi.ValidationFailed
 		latestCondition.Failures = failures
 		latestCondition.Message = "Service principal missing one or more required roles."
+		latestCondition.Status = corev1.ConditionFalse
 	}
 
 	return validationResult, nil
