@@ -66,7 +66,7 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule v1alpha1.Ro
 	}
 
 	for _, ra := range roleAssignments {
-		if ra.ID != nil {
+		if ra.Properties != nil && ra.Properties.RoleDefinitionID != nil {
 			foundRoleNames[azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID)] = true
 		}
 	}
