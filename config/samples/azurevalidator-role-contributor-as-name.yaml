@@ -1,0 +1,10 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-role-contributor-as-name
+spec:
+  roleAssignmentRules:
+  - roles:
+    - name: "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    subscriptionId: "9b16dd0b-1bea-4c9a-a291-65e6f44c4745"
+    servicePrincipalId: "a83574a7-53ef-4b37-b85e-99f956f0985a"
