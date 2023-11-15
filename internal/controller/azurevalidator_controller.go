@@ -63,7 +63,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Get the active validator's validation result
 	vr := &vapi.ValidationResult{}
 	nn := ktypes.NamespacedName{
-		Name:      fmt.Sprintf("validator-plugin-azure-%s", validator.Name),
+		Name:      validationResultName(validator),
 		Namespace: req.Namespace,
 	}
 	if err := r.Get(ctx, nn, vr); err == nil {
@@ -107,4 +107,8 @@ func (r *AzureValidatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.AzureValidator{}).
 		Complete(r)
+}
+
+func validationResultName(validator *v1alpha1.AzureValidator) string {
+	return fmt.Sprintf("validator-plugin-azure-%s", validator.Name)
 }
