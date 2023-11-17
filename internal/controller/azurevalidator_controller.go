@@ -54,7 +54,9 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	validator := &v1alpha1.AzureValidator{}
 	if err := r.Get(ctx, req.NamespacedName, validator); err != nil {
-		r.Log.Error(err, "failed to fetch AzureValidator", "key", req)
+		if !apierrs.IsNotFound(err) {
+			r.Log.Error(err, "failed to fetch AzureValidator", "key", req)
+		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
