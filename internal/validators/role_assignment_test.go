@@ -1,54 +1,111 @@
 package validators
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
+	"github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/test"
+	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
+	"github.com/spectrocloud-labs/validator/pkg/types"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
+	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
+	corev1 "k8s.io/api/core/v1"
 )
 
-// TODO: Make this implement the needed interface and fill in any state it
-// needs to do that.
-type roleAssignmentsAPIMock struct {
+type roleAssignmentAPIMock struct {
+	data []*armauthorization.RoleAssignment
+	err  error
 }
 
-// func (m roleAssignmentsAPIMock) NewListForSubscriptionPager(options *armauthorization.RoleAssignmentsClientListForSubscriptionOptions) *runtime.Pager[armauthorization.RoleAssignmentsClientListForSubscriptionResponse] {
+func (m roleAssignmentAPIMock) ListRoleAssignmentsForSubscription(subscriptionID string, filter *string) ([]*armauthorization.RoleAssignment, error) {
+	return m.data, m.err
+}
 
-// }
+var roleLookupMapProviderMock = func(subscriptionID string) (map[string]string, error) {
+	return map[string]string{
+		"Role 1": "role_1_id",
+		"Role 2": "role_2_id",
+	}, nil
+}
 
-// var roleAssignmentService = NewRoleAssignmentRuleService(logr.Logger{}, roleAssignmentsAPIMock{})
+type testCase struct {
+	apiMock        roleAssignmentAPIMock
+	expectedError  error
+	expectedResult types.ValidationResult
+	name           string
+	rule           v1alpha1.RoleAssignmentRule
+}
 
 func TestRoleAssignmentRuleService_ReconcileRoleAssignmentRule(t *testing.T) {
-	type fields struct {
-		log logr.Logger
-		api roleAssignmentAPI
+	cs := []testCase{
+		{
+			name: "Fail (missing role assignment)",
+			rule: v1alpha1.RoleAssignmentRule{
+				Roles: []v1alpha1.Role{
+					{
+						Name: ptr.Ptr("role_1_id"),
+					},
+				},
+				ServicePrincipalID: "sp_id",
+				SubscriptionID:     "sub_id",
+			},
+			apiMock: roleAssignmentAPIMock{
+				data: []*armauthorization.RoleAssignment{
+					{
+						Properties: &armauthorization.RoleAssignmentProperties{},
+					},
+				},
+				err: nil,
+			},
+			expectedResult: vapitypes.ValidationResult{
+				Condition: &vapi.ValidationCondition{
+					ValidationType: "azure-role-assignment",
+					ValidationRule: "validation-sp_id",
+					Message:        "Service principal missing one or more required roles.",
+					Details:        []string{},
+					Failures:       []string{"Service principal missing role role_1_id"},
+					Status:         corev1.ConditionFalse,
+				},
+				State: ptr.Ptr(vapi.ValidationFailed),
+			},
+			expectedError: nil,
+		},
 	}
-	type args struct {
-		rule v1alpha1.RoleAssignmentRule
+	for _, c := range cs {
+		svc := NewRoleAssignmentRuleService(logr.Logger{}, c.apiMock, roleLookupMapProviderMock)
+		result, err := svc.ReconcileRoleAssignmentRule(c.rule)
+		test.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *vapitypes.ValidationResult
-		wantErr bool
-	}{}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &RoleAssignmentRuleService{
-				log: tt.fields.log,
-				api: tt.fields.api,
-			}
-			got, err := s.ReconcileRoleAssignmentRule(tt.args.rule)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RoleAssignmentRuleService.ReconcileRoleAssignmentRule() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RoleAssignmentRuleService.ReconcileRoleAssignmentRule() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+
+	// cs := []testCase{
+	// 	{
+	// 		name: "Fail (missing role assignment)",
+	// 		rule: v1alpha1.RoleAssignmentRule{
+	// 			Roles: []v1alpha1.Role{
+	// 				{
+	// 					Name: ptr.Ptr("role_a_id"),
+	// 				},
+	// 			},
+	// 			ServicePrincipalID: "sp_id",
+	// 			SubscriptionID:     "sub_id",
+	// 		},
+	// 		expectedResult: vapitypes.ValidationResult{
+	// 			Condition: &vapi.ValidationCondition{
+	// 				ValidationType: "azure-role-assignment",
+	// 				ValidationRule: "validation-sp_id",
+	// 				Message:        "Missing one or more role assignments",
+	// 				Details:        []string{},
+	// 				Failures:       []string{"Missing role role_a_id"},
+	// 				Status:         corev1.ConditionFalse,
+	// 			},
+	// 			State: ptr.Ptr(vapi.ValidationFailed),
+	// 		},
+	// 	},
+	// }
+	// for _, c := range cs {
+	// 	result, err := roleAssignmentService.ReconcileRoleAssignmentRule(c.rule)
+	// 	test.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
+	// }
 }

@@ -13,8 +13,8 @@ const (
 	RoleTypeBuiltInRole = "BuiltInRole"
 )
 
-// NewRoleAssignmentsClient creates an Azure role assignments client for working
-// with a particular subscription.
+// NewRoleAssignmentsClient creates a RoleAssignmentsClient from the Azure SDK for working with a
+// particular subscription.
 func NewRoleAssignmentsClient(subscriptionID string) (*armauthorization.RoleAssignmentsClient, error) {
 	clientFactory, err := armAuthClientFactory(subscriptionID)
 	if err != nil {
@@ -89,4 +89,42 @@ func armAuthClientFactory(subscriptionID string) (*armauthorization.ClientFactor
 	}
 
 	return clientFactory, nil
+}
+
+// AzureRoleAssignmentsClient is a facade over the Azure role assignments client. Code that uses
+// this instead of the actual Azure client is easier to test because it won't need to deal with
+// paging.
+type AzureRoleAssignmentsClient struct {
+	client *armauthorization.RoleAssignmentsClient
+}
+
+// NewAzureRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from
+// a client from the Azure SDK.
+func NewAzureRoleAssignmentsClient(azClient *armauthorization.RoleAssignmentsClient) *AzureRoleAssignmentsClient {
+	client := AzureRoleAssignmentsClient{
+		client: azClient,
+	}
+	return &client
+}
+
+// ListRoleAssignmentsForSubscription gets all the role assignments in a subscription. This is a
+// facade over the Azure role assignments client. Code that uses this instead of the Azure client
+// directly is easier to test because it won't have to deal with paging.
+//   - subscriptionID: The subscription to get role assignments for.
+//   - filter: An optional filter to apply, using the Azure filter syntax.
+func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForSubscription(subscriptionID string, filter *string) ([]*armauthorization.RoleAssignment, error) {
+	pager := c.client.NewListForSubscriptionPager(&armauthorization.RoleAssignmentsClientListForSubscriptionOptions{
+		Filter: filter,
+	})
+	var roleAssignments []*armauthorization.RoleAssignment
+	for pager.More() {
+		nextResult, err := pager.NextPage(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next page of results: %w", err)
+		}
+		if nextResult.RoleAssignmentListResult.Value != nil {
+			roleAssignments = append(roleAssignments, nextResult.RoleAssignmentListResult.Value...)
+		}
+	}
+	return roleAssignments, nil
 }

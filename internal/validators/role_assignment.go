@@ -1,12 +1,10 @@
 package validators
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
@@ -19,19 +17,26 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// roleAssignmentAPI contains methods that allow getting all role assignments for a subscription.
+// Note that this is the API of our Azure client facade, not a real Azure client.
 type roleAssignmentAPI interface {
-	NewListForSubscriptionPager(options *armauthorization.RoleAssignmentsClientListForSubscriptionOptions) *runtime.Pager[armauthorization.RoleAssignmentsClientListForSubscriptionResponse]
+	ListRoleAssignmentsForSubscription(subscriptionID string, filter *string) ([]*armauthorization.RoleAssignment, error)
 }
+
+// roleLookupMapProvider provides a lookup map of role names to names.
+type roleLookupMapProvider func(subscriptionID string) (map[string]string, error)
 
 type RoleAssignmentRuleService struct {
-	log logr.Logger
-	api roleAssignmentAPI
+	log              logr.Logger
+	api              roleAssignmentAPI
+	getRoleLookupMap roleLookupMapProvider
 }
 
-func NewRoleAssignmentRuleService(log logr.Logger, api roleAssignmentAPI) *RoleAssignmentRuleService {
+func NewRoleAssignmentRuleService(log logr.Logger, api roleAssignmentAPI, roleLookupMapProvider roleLookupMapProvider) *RoleAssignmentRuleService {
 	return &RoleAssignmentRuleService{
-		log: log,
-		api: api,
+		log:              log,
+		api:              api,
+		getRoleLookupMap: roleLookupMapProvider,
 	}
 }
 
@@ -51,19 +56,11 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule v1alpha1.Ro
 
 	// Get all role assignments in subscription. In this query, "principalId" must be a UUID, so
 	// this shouldn't have any injection vulnerabilities.
-	pager := s.api.NewListForSubscriptionPager(&armauthorization.RoleAssignmentsClientListForSubscriptionOptions{
-		Filter: ptr.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", rule.ServicePrincipalID))),
-	})
-	var roleAssignments []*armauthorization.RoleAssignment
-	for pager.More() {
-		nextResult, err := pager.NextPage(context.TODO())
-		if err != nil {
-			s.log.V(0).Error(err, "failed to get role assignments")
-			return validationResult, err
-		}
-		if nextResult.RoleAssignmentListResult.Value != nil {
-			roleAssignments = append(roleAssignments, nextResult.RoleAssignmentListResult.Value...)
-		}
+	filter := ptr.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", rule.ServicePrincipalID)))
+	roleAssignments, err := s.api.ListRoleAssignmentsForSubscription(rule.SubscriptionID, filter)
+	if err != nil {
+		s.log.V(0).Error(err, "failed to get role assignments")
+		return validationResult, err
 	}
 
 	for _, ra := range roleAssignments {
@@ -79,7 +76,7 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule v1alpha1.Ro
 		if role.Name != nil {
 			roleName = *role.Name
 		} else if role.RoleName != nil {
-			rolelookupMap, err := azure_utils.BuiltInRoleLookupMap(rule.SubscriptionID)
+			rolelookupMap, err := s.getRoleLookupMap(rule.SubscriptionID)
 			if err != nil {
 				s.log.V(0).Error(err, "failed to get role name lookup map")
 				return validationResult, err
