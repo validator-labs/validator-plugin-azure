@@ -32,7 +32,6 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		Spec: v1alpha1.AzureValidatorSpec{
 			RoleAssignmentRules: []v1alpha1.RoleAssignmentRule{
 				{
-					// TODO: Fill this in with real values I can use to run a test.
 					Roles: []v1alpha1.Role{
 						{
 							Name: ptr.Ptr("role_1_id"),
