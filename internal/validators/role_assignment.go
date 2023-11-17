@@ -17,6 +17,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+var errNoSuchBuiltInRole = errors.New("specified role name does not correspond to a built-in role; cannot validate")
+var errNoRoleIdentifierSpecified = errors.New("neither role name nor name specified for role")
+
 // roleAssignmentAPI contains methods that allow getting all role assignments for a subscription.
 // Note that this is the API of our Azure client facade, not a real Azure client.
 type roleAssignmentAPI interface {
@@ -84,13 +87,13 @@ func (s *RoleAssignmentRuleService) ReconcileRoleAssignmentRule(rule v1alpha1.Ro
 			specifiedRoleName := *role.RoleName
 			foundName, ok := rolelookupMap[specifiedRoleName]
 			if !ok {
-				err := errors.New("specified role name does not correspond to a built-in role; cannot validate")
+				err := errNoSuchBuiltInRole
 				s.log.V(0).Error(err, "cannot validate")
 				return validationResult, err
 			}
 			roleName = foundName
 		} else {
-			err := errors.New("neither role name nor name specified for role")
+			err := errNoRoleIdentifierSpecified
 			s.log.V(0).Error(err, "cannot validate")
 			return validationResult, err
 		}

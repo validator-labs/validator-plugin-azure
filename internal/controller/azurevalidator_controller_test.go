@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
+	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	//+kubebuilder:scaffold:imports
@@ -34,12 +35,11 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 					// TODO: Fill this in with real values I can use to run a test.
 					Roles: []v1alpha1.Role{
 						{
-							Name:     new(string),
-							RoleName: new(string),
+							Name: ptr.Ptr("role_1_id"),
 						},
 					},
-					ServicePrincipalID: "",
-					SubscriptionID:     "",
+					ServicePrincipalID: "sp_id",
+					SubscriptionID:     "sub_id",
 				},
 			},
 		},
@@ -48,7 +48,7 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 	vr := &vapi.ValidationResult{}
 	vrKey := types.NamespacedName{Name: validationResultName(val), Namespace: validatorNamespace}
 
-	It("Should do something", func() {
+	It("Should create a ValidationResult and update its Status with a failed condition", func() {
 		By("By creating a new AzureValidator")
 
 		ctx := context.Background()
