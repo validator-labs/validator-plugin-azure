@@ -108,8 +108,7 @@ func NewAzureRoleAssignmentsClient(azClient *armauthorization.RoleAssignmentsCli
 }
 
 // ListRoleAssignmentsForSubscription gets all the role assignments in a subscription. This is a
-// facade over the Azure role assignments client. Code that uses this instead of the Azure client
-// directly is easier to test because it won't have to deal with paging.
+// facade over the Azure role assignments client.
 //   - subscriptionID: The subscription to get role assignments for.
 //   - filter: An optional filter to apply, using the Azure filter syntax.
 func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForSubscription(subscriptionID string, filter *string) ([]*armauthorization.RoleAssignment, error) {
