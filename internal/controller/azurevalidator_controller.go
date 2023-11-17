@@ -63,7 +63,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Get the active validator's validation result
 	vr := &vapi.ValidationResult{}
 	nn := ktypes.NamespacedName{
-		Name:      fmt.Sprintf("validator-plugin-azure-%s", validator.Name),
+		Name:      validationResultName(validator),
 		Namespace: req.Namespace,
 	}
 	if err := r.Get(ctx, nn, vr); err == nil {
@@ -84,11 +84,12 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		// the client, you need to know the subscription that will be queried.
 		// And you won't know which subscription that is until you read it from
 		// a rule spec.
-		client, err := azure_utils.NewRoleAssignmentsClient(rule.SubscriptionID)
+		azClient, err := azure_utils.NewRoleAssignmentsClient(rule.SubscriptionID)
+		client := azure_utils.NewAzureRoleAssignmentsClient(azClient)
 		if err != nil {
 			r.Log.V(0).Error(err, "failed to get Azure role assignments client")
 		} else {
-			svc := validators.NewRoleAssignmentRuleService(r.Log, client)
+			svc := validators.NewRoleAssignmentRuleService(r.Log, client, azure_utils.BuiltInRoleLookupMap)
 
 			validationResult, err := svc.ReconcileRoleAssignmentRule(rule)
 			if err != nil {
@@ -107,4 +108,8 @@ func (r *AzureValidatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.AzureValidator{}).
 		Complete(r)
+}
+
+func validationResultName(validator *v1alpha1.AzureValidator) string {
+	return fmt.Sprintf("validator-plugin-azure-%s", validator.Name)
 }
