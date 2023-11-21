@@ -42,6 +42,7 @@ type RBACRule struct {
 	// this, validation will fail. If the principal has permissions equal to or more than this
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
 	// will pass.
+	//+kubebuilder:validation:MinItems=1
 	Permissions []PermissionSet `json:"permissionSets"`
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User.
@@ -56,6 +57,7 @@ type RBACRule struct {
 // specified permissions. This is useful for validating a custom role when one is used instead of a
 // built-in role.
 type PermissionSet struct {
+	//+kubebuilder:validation:MinItems=1
 	Permissions []string `json:"permissions,omitempty"`
 	Role        string   `json:"role"`
 	Scope       string   `json:"scope"`

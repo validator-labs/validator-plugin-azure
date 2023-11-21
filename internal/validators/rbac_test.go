@@ -58,22 +58,6 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			},
 		},
 		{
-			name: "Pass (no permission sets in rule)",
-			rule: v1alpha1.RBACRule{
-				PrincipalID: "p_id",
-			},
-			expectedResult: vapitypes.ValidationResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles.",
-					Details:        []string{},
-					Status:         corev1.ConditionTrue,
-				},
-				State: ptr.Ptr(vapi.ValidationSucceeded),
-			},
-		},
-		{
 			name: "Pass (one permission set in rule, role from permission set present)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{

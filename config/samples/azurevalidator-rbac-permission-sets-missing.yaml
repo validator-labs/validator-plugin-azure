@@ -1,0 +1,7 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-rbac-permission-sets-missing
+spec:
+  rbacRules:
+  - principalId: "a83574a7-53ef-4b37-b85e-99f956f0985a"
