@@ -69,6 +69,14 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 
 		ctx := context.Background()
 
+		valEmptySecretName := val.DeepCopy()
+		valEmptySecretName.Spec.Auth.SecretName = ""
+		Expect(k8sClient.Create(ctx, valEmptySecretName)).Should(Succeed())
+
+		valInvalidSecretName := val.DeepCopy()
+		valInvalidSecretName.Spec.Auth.SecretName = "invalid-secret-name"
+		Expect(k8sClient.Create(ctx, valInvalidSecretName)).Should(Succeed())
+
 		Expect(k8sClient.Create(ctx, authSecret)).Should(Succeed())
 		Expect(k8sClient.Create(ctx, val)).Should(Succeed())
 
