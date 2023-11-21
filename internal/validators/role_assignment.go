@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
@@ -19,15 +18,6 @@ import (
 
 var errNoSuchBuiltInRole = errors.New("specified role name does not correspond to a built-in role; cannot validate")
 var errNoRoleIdentifierSpecified = errors.New("neither role name nor name specified for role")
-
-// roleAssignmentAPI contains methods that allow getting all role assignments for a subscription.
-// Note that this is the API of our Azure client facade, not a real Azure client.
-type roleAssignmentAPI interface {
-	ListRoleAssignmentsForSubscription(subscriptionID string, filter *string) ([]*armauthorization.RoleAssignment, error)
-}
-
-// roleLookupMapProvider provides a lookup map of role names to names.
-type roleLookupMapProvider func(subscriptionID string) (map[string]string, error)
 
 type RoleAssignmentRuleService struct {
 	log              logr.Logger

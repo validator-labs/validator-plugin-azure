@@ -55,6 +55,32 @@ type Role struct {
 	RoleName *string `json:"roleName,omitempty"`
 }
 
+// Conveys that a specified security principal should have the specified permissions. Usually, the
+// security principal is a service principal and usually, the permissions are specified indirectly
+// by specifying just the name of a role.
+type RBACRule struct {
+	SecurityPrincipalID string          `json:"securityPrincipalId"`
+	Permissions         []PermissionSet `json:"subscriptionPermissionSet,omitempty"`
+}
+
+// Conveys that the security principal should be the member of a role assignment that provides the
+// specified role for the specified scope. Scope can be either subscription, resource group, or
+// resource.
+//
+// If permissions are specified, then it also conveys that the specified role should provide the
+// specified permissions. This is useful for validating a custom role when one is used instead of a
+// built-in role.
+type PermissionSet struct {
+	Role        RoleIdentifier `json:"role"`
+	Permissions []string       `json:"permissions,omitempty"`
+	Scope       string         `json:"scope,omitempty"`
+}
+
+type RoleIdentifier struct {
+	Name     *string `json:"name,omitempty"`
+	RoleName *string `json:"roleName,omitempty"`
+}
+
 // AzureValidatorStatus defines the observed state of AzureValidator
 type AzureValidatorStatus struct{}
 

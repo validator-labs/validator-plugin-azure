@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -125,4 +126,18 @@ func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForSubscription(subscrip
 		}
 	}
 	return roleAssignments, nil
+}
+
+// RoleAssignmentScopeSubscription extracts the ID of the subscription from a role assignment scope
+// string. Returns an error if the string is malformed, so that the error can be displayed in the
+// logs and the user knows they didn't configure scope somewhere in the spec correctly.
+func RoleAssignmentScopeSubscription(scope string) (string, error) {
+	re := regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)
+	matches := re.FindStringSubmatch(scope)
+
+	if len(matches) < 2 {
+		return "", fmt.Errorf("no subscription GUID found in the scope string; string may be invalid")
+	}
+
+	return matches[1], nil
 }
