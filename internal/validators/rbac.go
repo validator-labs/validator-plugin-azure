@@ -45,8 +45,8 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	// Build the default ValidationResult for this role assignment rule.
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
-	latestCondition.Message = "Security principal has all required roles."
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.SecurityPrincipalID)
+	latestCondition.Message = "Principal has all required roles."
+	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.PrincipalID)
 	latestCondition.ValidationType = constants.ValidationTypeRBAC
 	validationResult := &vapitypes.ValidationResult{Condition: &latestCondition, State: &state}
 
@@ -54,7 +54,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 
 	for i, set := range rule.Permissions {
 		s.log.V(0).Info("Processing permission set of rule.", "set #", i+1)
-		if err := s.processPermissionSet(set, rule.SecurityPrincipalID, &failures); err != nil {
+		if err := s.processPermissionSet(set, rule.PrincipalID, &failures); err != nil {
 			// Code this is returning to will take care of changing the validation result to a
 			// failed validation, using the error returned.
 			return validationResult, err
@@ -64,7 +64,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	if len(failures) > 0 {
 		state = vapi.ValidationFailed
 		latestCondition.Failures = failures
-		latestCondition.Message = "Security principal missing one or more required roles."
+		latestCondition.Message = "Principal missing one or more required roles."
 		latestCondition.Status = corev1.ConditionFalse
 	}
 
@@ -73,8 +73,8 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 
 // processPermissionSet processes a permission set from the rule.
 //   - set: The set to process.
-//   - principalID: The ID of the security principal to use in the filter. This comes from the rule
-//     the set is part of.
+//   - principalID: The ID of the principal to use in the filter. This comes from the rule that the
+//     set is part of.
 //   - failures: The list of failures being built up while processing the entire rule. Must be
 //     non-nil.
 func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, principalID string, failures *[]string) error {
@@ -82,8 +82,8 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	foundRoleNames := make(map[string]bool)
 
 	// Get all role assignments that apply to the specified scope where the member of the role
-	// assignment is the specified security principal. In this query, "principalId" must be a UUID,
-	// so this shouldn't have any injection vulnerabilities.
+	// assignment is the specified principal. In this query, "principalId" must be a UUID, so this
+	// shouldn't have any injection vulnerabilities.
 	//
 	// Note that this also returns role assignments that assign the role because the scope is a
 	// surrounding scope (e.g. the subscription the scope is contained within), not just the scope
@@ -100,43 +100,11 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		}
 	}
 
-	// First, find out whether we need to look the role up by its role name if the user provided
-	// its role name instead of its name.
-	var roleName string
-	role := set.Role
-	if role.Name != nil {
-		roleName = *role.Name
-	} else if role.RoleName != nil {
-		// To do the role name lookup, we need to get all of the role definitions that exist in the
-		// subscription that we're working with. We figure out which subscription we're working with
-		// by using the subscription from the scope of the permission set we're working on.
-		subForLookup, err := azure_utils.RoleAssignmentScopeSubscription(set.Scope)
-		if err != nil {
-			s.log.V(0).Error(err, "failed to parse subscription ID from scope string to perform role name lookup")
-			return err
-		}
-		rolelookupMap, err := s.getRoleLookupMap(subForLookup)
-		if err != nil {
-			s.log.V(0).Error(err, "failed to get role name lookup map")
-			return err
-		}
-		specifiedRoleName := *role.RoleName
-		foundName, ok := rolelookupMap[specifiedRoleName]
-		if !ok {
-			err := errNoSuchBuiltInRole
-			s.log.V(0).Error(err, "cannot validate")
-			return err
-		}
-		roleName = foundName
-	} else {
-		err := errNoRoleIdentifierSpecified
-		s.log.V(0).Error(err, "cannot validate")
-		return err
-	}
+	roleName := set.Role
 
 	_, ok := foundRoleNames[roleName]
 	if !ok {
-		*failures = append(*failures, fmt.Sprintf("Security principal missing role %s", roleName))
+		*failures = append(*failures, fmt.Sprintf("Principal missing role %s", roleName))
 	}
 
 	// No error means the rule processor knows that if there were failures, they have been appended

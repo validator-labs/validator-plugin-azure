@@ -55,12 +55,17 @@ type Role struct {
 	RoleName *string `json:"roleName,omitempty"`
 }
 
-// Conveys that a specified security principal should have the specified permissions. Usually, the
-// security principal is a service principal and usually, the permissions are specified indirectly
-// by specifying just the name of a role.
+// Conveys that a specified security principal (aka principal) should have the specified
+// permissions, via roles.
 type RBACRule struct {
-	SecurityPrincipalID string          `json:"securityPrincipalId"`
-	Permissions         []PermissionSet `json:"permissionSets"`
+	// The permissions that the principal must have. If the principal has permissions less than
+	// this, validation will fail. If the principal has permissions equal to or more than this
+	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
+	// will pass.
+	Permissions []PermissionSet `json:"permissionSets"`
+	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
+	// Group, ServicePrincipal, or User.
+	PrincipalID string `json:"principalId"`
 }
 
 // Conveys that the security principal should be the member of a role assignment that provides the
@@ -71,14 +76,9 @@ type RBACRule struct {
 // specified permissions. This is useful for validating a custom role when one is used instead of a
 // built-in role.
 type PermissionSet struct {
-	Role        RoleIdentifier `json:"role"`
-	Permissions []string       `json:"permissions,omitempty"`
-	Scope       string         `json:"scope"`
-}
-
-type RoleIdentifier struct {
-	Name     *string `json:"name,omitempty"`
-	RoleName *string `json:"roleName,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
+	Role        string   `json:"role"`
+	Scope       string   `json:"scope"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator
