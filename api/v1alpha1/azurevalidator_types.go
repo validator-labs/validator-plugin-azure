@@ -20,17 +20,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
+	Auth AzureAuth `json:"auth"`
 	// Rules for validating role assignments in Azure RBAC.
 	RoleAssignmentRules []RoleAssignmentRule `json:"roleAssignmentRules"`
 }
 
 func (s AzureValidatorSpec) ResultCount() int {
 	return len(s.RoleAssignmentRules)
+}
+
+type AzureAuth struct {
+	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
+	// Set to true if using WorkloadIdentityCredentials.
+	Implicit bool `json:"implicit"`
+	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
+	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
+	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // RoleAssignmentRule is a rule that validates that one or more desired role assignments exist

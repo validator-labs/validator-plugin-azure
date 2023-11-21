@@ -30,6 +30,9 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 			Namespace: validatorNamespace,
 		},
 		Spec: v1alpha1.AzureValidatorSpec{
+			Auth: v1alpha1.AzureAuth{
+				Implicit: true,
+			},
 			RoleAssignmentRules: []v1alpha1.RoleAssignmentRule{
 				{
 					Roles: []v1alpha1.Role{
