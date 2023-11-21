@@ -60,7 +60,7 @@ type Role struct {
 // by specifying just the name of a role.
 type RBACRule struct {
 	SecurityPrincipalID string          `json:"securityPrincipalId"`
-	Permissions         []PermissionSet `json:"subscriptionPermissionSet,omitempty"`
+	Permissions         []PermissionSet `json:"permissionSets"`
 }
 
 // Conveys that the security principal should be the member of a role assignment that provides the
@@ -73,7 +73,7 @@ type RBACRule struct {
 type PermissionSet struct {
 	Role        RoleIdentifier `json:"role"`
 	Permissions []string       `json:"permissions,omitempty"`
-	Scope       string         `json:"scope,omitempty"`
+	Scope       string         `json:"scope"`
 }
 
 type RoleIdentifier struct {
