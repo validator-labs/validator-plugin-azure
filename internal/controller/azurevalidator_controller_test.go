@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -70,10 +71,12 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		ctx := context.Background()
 
 		valEmptySecretName := val.DeepCopy()
+		valEmptySecretName.Name = fmt.Sprintf("%s-empty-secret-name", azureValidatorName)
 		valEmptySecretName.Spec.Auth.SecretName = ""
 		Expect(k8sClient.Create(ctx, valEmptySecretName)).Should(Succeed())
 
 		valInvalidSecretName := val.DeepCopy()
+		valInvalidSecretName.Name = fmt.Sprintf("%s-invalid-secret-name", azureValidatorName)
 		valInvalidSecretName.Spec.Auth.SecretName = "invalid-secret-name"
 		Expect(k8sClient.Create(ctx, valInvalidSecretName)).Should(Succeed())
 
