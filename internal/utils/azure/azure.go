@@ -14,6 +14,11 @@ const (
 	RoleTypeBuiltInRole = "BuiltInRole"
 )
 
+var (
+	// Regexp used for extracting Subscription IDs from role assignment scope strings.
+	re = regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)
+)
+
 // NewRoleAssignmentsClient creates a RoleAssignmentsClient from the Azure SDK for working with a
 // particular subscription.
 func NewRoleAssignmentsClient(subscriptionID string) (*armauthorization.RoleAssignmentsClient, error) {
@@ -132,7 +137,6 @@ func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForSubscription(subscrip
 // string. Returns an error if the string is malformed, so that the error can be displayed in the
 // logs and the user knows they didn't configure scope somewhere in the spec correctly.
 func RoleAssignmentScopeSubscription(scope string) (string, error) {
-	re := regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)
 	matches := re.FindStringSubmatch(scope)
 
 	if len(matches) < 2 {
