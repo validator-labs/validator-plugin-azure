@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	//+kubebuilder:scaffold:imports
@@ -30,15 +29,15 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 			Namespace: validatorNamespace,
 		},
 		Spec: v1alpha1.AzureValidatorSpec{
-			RoleAssignmentRules: []v1alpha1.RoleAssignmentRule{
+			RBACRules: []v1alpha1.RBACRule{
 				{
-					Roles: []v1alpha1.Role{
+					Permissions: []v1alpha1.PermissionSet{
 						{
-							Name: ptr.Ptr("role_1_id"),
+							Role:  "role_1_id",
+							Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
 						},
 					},
-					ServicePrincipalID: "sp_id",
-					SubscriptionID:     "sub_id",
+					PrincipalID: "p_id",
 				},
 			},
 		},

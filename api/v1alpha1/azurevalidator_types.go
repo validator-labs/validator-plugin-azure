@@ -25,34 +25,14 @@ import (
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	// Rules for validating role assignments in Azure RBAC.
-	RoleAssignmentRules []RoleAssignmentRule `json:"roleAssignmentRules"`
+
+	// Rules for validating that the correct role assignments have been created in Azure RBAC to
+	// provide needed permissions.
+	RBACRules []RBACRule `json:"rbacRules"`
 }
 
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RoleAssignmentRules)
-}
-
-// RoleAssignmentRule is a rule that validates that one or more desired role assignments exist
-// within a subscription. For each role assignment, the role is specified as its role name (e.g.
-// "Contributor") or its name (e.g. "b24988ac-6180-42a0-ab88-20f7382dd24c" for Contributor). If the
-// role name is specified, the validator takes care of looking up the name automatically.
-type RoleAssignmentRule struct {
-	Roles              []Role `json:"roles"`
-	ServicePrincipalID string `json:"servicePrincipalId"`
-	SubscriptionID     string `json:"subscriptionId"`
-}
-
-// Role allow users to specify either a role's role name (e.g. "Contributor") or a role's name (e.g.
-// "b24988ac-6180-42a0-ab88-20f7382dd24c"), which is the name of the role with the role name
-// "Contributor". This allows role assignments with custom roles to be validated too, not just
-// built-in roles.
-//
-// If role is specified, it is used. If role is not specified but role name is specified, role name
-// is used. If neither are specified, it is a misconfiguration and validation will fail.
-type Role struct {
-	Name     *string `json:"name,omitempty"`
-	RoleName *string `json:"roleName,omitempty"`
+	return len(s.RBACRules)
 }
 
 // Conveys that a specified security principal (aka principal) should have the specified

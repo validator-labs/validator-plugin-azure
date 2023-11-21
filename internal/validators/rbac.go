@@ -16,26 +16,21 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// roleAssignmentAPI2 contains methods that allow getting all role assignments for a scope.
+// roleAssignmentAPI contains methods that allow getting all role assignments for a scope.
 // Note that this is the API of our Azure client facade, not a real Azure client.
-//
-// "2" refers to the fact that this is our second attempt at an interface like this in the package.
-// If we keep this approach, this will become just the interface, not 2.
-type roleAssignmentAPI2 interface {
+type roleAssignmentAPI interface {
 	ListRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error)
 }
 
 type RBACRuleService struct {
-	log              logr.Logger
-	api              roleAssignmentAPI2
-	getRoleLookupMap roleLookupMapProvider
+	log logr.Logger
+	api roleAssignmentAPI
 }
 
-func NewRBACRuleService(log logr.Logger, api roleAssignmentAPI2, roleLookupMapProvider roleLookupMapProvider) *RBACRuleService {
+func NewRBACRuleService(log logr.Logger, api roleAssignmentAPI) *RBACRuleService {
 	return &RBACRuleService{
-		log:              log,
-		api:              api,
-		getRoleLookupMap: roleLookupMapProvider,
+		log: log,
+		api: api,
 	}
 }
 

@@ -77,23 +77,18 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 	}
 
-	// Role Assignment rules
-	for _, rule := range validator.Spec.RoleAssignmentRules {
-		// Service is created once per rule because in order to create the
-		// service, it needs an Azure API client. And in order to create the
-		// the client, you need to know the subscription that will be queried.
-		// And you won't know which subscription that is until you read it from
-		// a rule spec.
-		azClient, err := azure_utils.NewRoleAssignmentsClient(rule.SubscriptionID)
+	azClient, err := azure_utils.NewRoleAssignmentsClient()
+	if err != nil {
+		r.Log.V(0).Error(err, "failed to get Azure role assignments client")
+	} else {
 		client := azure_utils.NewAzureRoleAssignmentsClient(azClient)
-		if err != nil {
-			r.Log.V(0).Error(err, "failed to get Azure role assignments client")
-		} else {
-			svc := validators.NewRoleAssignmentRuleService(r.Log, client, azure_utils.BuiltInRoleLookupMap)
 
-			validationResult, err := svc.ReconcileRoleAssignmentRule(rule)
+		// RBAC rules
+		svc := validators.NewRBACRuleService(r.Log, client)
+		for _, rule := range validator.Spec.RBACRules {
+			validationResult, err := svc.ReconcileRBACRule(rule)
 			if err != nil {
-				r.Log.V(0).Error(err, "failed to reconcile role assignment rule")
+				r.Log.V(0).Error(err, "failed to reconcile RBAC rule")
 			}
 			vres.SafeUpdateValidationResult(r.Client, nn, validationResult, err, r.Log)
 		}
