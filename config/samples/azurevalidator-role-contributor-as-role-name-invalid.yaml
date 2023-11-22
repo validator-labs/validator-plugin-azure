@@ -3,6 +3,9 @@ kind: AzureValidator
 metadata:
   name: azurevalidator-role-contributor-as-role-name-invalid
 spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
   roleAssignmentRules:
   - roles:
     - roleName: "RoleThatDoesNotExist" # Invalid because this role name does not match any role.

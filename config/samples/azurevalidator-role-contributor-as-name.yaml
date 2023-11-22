@@ -3,6 +3,9 @@ kind: AzureValidator
 metadata:
   name: azurevalidator-role-contributor-as-name
 spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
   roleAssignmentRules:
   - roles:
     - name: "b24988ac-6180-42a0-ab88-20f7382dd24c"
