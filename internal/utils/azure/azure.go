@@ -1,3 +1,5 @@
+// Package azure implements utilities that relate to more than one thing we want to do with Azure
+// for the plugin's validation logic.
 package azure
 
 import (
