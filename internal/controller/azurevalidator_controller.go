@@ -18,10 +18,20 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ktypes "k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
@@ -29,13 +39,9 @@ import (
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
 	vres "github.com/spectrocloud-labs/validator/pkg/validationresult"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	ktypes "k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var SecretNameRequiredError = errors.New("auth.secretName is required")
 
 // AzureValidatorReconciler reconciles an AzureValidator object
 type AzureValidatorReconciler struct {
@@ -58,6 +64,18 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			r.Log.Error(err, "failed to fetch AzureValidator", "key", req)
 		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Configure Azure environment variable credentials from a secret, if applicable
+	if !validator.Spec.Auth.Implicit {
+		if validator.Spec.Auth.SecretName == "" {
+			r.Log.Error(SecretNameRequiredError, "failed to reconcile AzureValidator with empty auth.secretName", "key", req)
+			return ctrl.Result{}, SecretNameRequiredError
+		}
+		if err := r.envFromSecret(validator.Spec.Auth.SecretName, req.Namespace); err != nil {
+			r.Log.Error(err, "failed to configure environment from secret")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Get the active validator's validation result
@@ -101,6 +119,25 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	r.Log.V(0).Info("Requeuing for re-validation in two minutes.", "name", req.Name, "namespace", req.Namespace)
 	return ctrl.Result{RequeueAfter: time.Second * 120}, nil
+}
+
+// envFromSecret sets environment variables from a secret to configure Azure credentials
+func (r *AzureValidatorReconciler) envFromSecret(name, namespace string) error {
+	r.Log.Info("Configuring environment from secret", "name", name, "namespace", namespace)
+
+	nn := ktypes.NamespacedName{Name: name, Namespace: namespace}
+	secret := &corev1.Secret{}
+	if err := r.Get(context.Background(), nn, secret); err != nil {
+		return err
+	}
+
+	for k, v := range secret.Data {
+		if err := os.Setenv(k, string(v)); err != nil {
+			return err
+		}
+		r.Log.Info("Set environment variable", "key", k)
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

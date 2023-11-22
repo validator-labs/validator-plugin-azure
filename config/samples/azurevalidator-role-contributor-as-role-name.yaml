@@ -3,6 +3,9 @@ kind: AzureValidator
 metadata:
   name: azurevalidator-role-contributor-as-role-name
 spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
   roleAssignmentRules:
   - roles:
     - roleName: Contributor
