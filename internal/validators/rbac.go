@@ -10,7 +10,7 @@ import (
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
-	strings "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/strings"
+	string_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/strings"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
@@ -125,10 +125,8 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		*failures = append(*failures, fmt.Sprintf("Principal missing role %s", roleName))
 	}
 
-	if len(set.Permissions) > 0 {
-		if err := s.processRolePermissions(set, failures); err != nil {
-			return fmt.Errorf("failed to process permissions specified in permission set: %w", err)
-		}
+	if err := s.processRolePermissions(set, failures); err != nil {
+		return fmt.Errorf("failed to process permissions specified in permission set: %w", err)
 	}
 
 	// No error means the rule processor knows that if there were failures, they have been appended
@@ -145,61 +143,52 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 //     non-nil.
 func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, failures *[]string) error {
 
-	// TODO: Remove if we don't need this.
-	// foundPermissions := make(map[string]bool)
+	// Special case. Nothing to do, so skip Azure API call and don't append any failures.
+	if len(set.Actions) == 0 && len(set.DataActions) == 0 {
+		return nil
+	}
 
 	// Get all the permissions that a particular role definition has. There are two ways to get
 	// the details of a role definition. You can use its fully-qualified ID or a combination of its
 	// id and its scope. We do the latter because this is information that will always be available
 	// in our spec.
-	data, err := s.rdAPI.GetPermissionDataForRoleDefinition(set.Role, set.Scope)
+	perms, err := s.rdAPI.GetPermissionDataForRoleDefinition(set.Role, set.Scope)
 	if err != nil {
 		return fmt.Errorf("failed to get permission data for role definition: %w", err)
 	}
 
 	// Permission data is divided into "actions" and "data actions". We need to deal with both, but
 	// actions don't relate to data actions and vice versa.
-
-	// Actions
-	if strings.AnyNil(data.Actions) || strings.AnyNil(data.NotActions) {
-		return errors.New("invalid data from Azure API (nil pointers for permission actions)")
-	}
-	for _, action := range set.Permissions {
-		if notGuaranteed, reason := notGuaranteed(action, data.Actions, data.NotActions); notGuaranteed {
-			*failures = append(*failures, fmt.Sprintf("Role does not provide permission to perform action %s (reason: %s)", action, reason))
+	if len(set.Actions) > 0 {
+		if string_utils.AnyNil(perms.Actions) || string_utils.AnyNil(perms.NotActions) {
+			return errors.New("invalid data from Azure API (nil pointers for permission actions or not actions)")
+		}
+		permsActions := string_utils.ToVals(perms.Actions)
+		permsNotActions := string_utils.ToVals(perms.NotActions)
+		hasNeededPermissions, err := allCandidateActionsPermitted(set.Actions, permsActions, permsNotActions)
+		if err != nil {
+			return fmt.Errorf("failed to validate specified actions of role: %w", err)
+		}
+		if !hasNeededPermissions {
+			*failures = append(*failures, "role does not permit one or more specified actions")
 		}
 	}
-
-	// Data actions
-	// TODO: Implement this after we add data actions to the spec
+	if len(set.DataActions) > 0 {
+		if string_utils.AnyNil(perms.DataActions) || string_utils.AnyNil(perms.NotDataActions) {
+			return errors.New("invalid data from Azure API (nil pointers for permission data actions or not data actions)")
+		}
+		permsDataActions := string_utils.ToVals(perms.DataActions)
+		permsNotDataActions := string_utils.ToVals(perms.NotDataActions)
+		hasNeededPermissions, err := allCandidateActionsPermitted(set.DataActions, permsDataActions, permsNotDataActions)
+		if err != nil {
+			return fmt.Errorf("failed to validate specified data actions of role: %w", err)
+		}
+		if !hasNeededPermissions {
+			*failures = append(*failures, "role does not permit one or more specified data actions")
+		}
+	}
 
 	// No error means the rule processor knows that if there were failures, they have been appended
 	// to the single list of failures by now.
 	return nil
-}
-
-// notGuaranteed determines whether, given a set of explicitly allowed actions (called "actions" in
-// Azure) and a set of explicitly unallowed actions (called "not actions" in Azure), the desired
-// action (which we call a "permission") is guaranteed to be allowed by Azure.
-//
-// We need an algorithm like this because the goal of the validator plugin is to determine whether
-// the action the principal would perform is guaranteed to be allowed. The plugin must fail
-// validation if there is any chance that the action is unallowed.
-//
-// For more info on how Azure judges whether an action is allowed, according to a role def, see:
-// https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions
-func notGuaranteed(action string, actions, notActions []*string) (bool, NotGuaranteedReason) {
-
-	// In order for the action to be allowed, it must be present among the list of allowed actions.
-	if !strings.ContainsPtrToEqlTo(actions, action) {
-		return true, NotGuaranteedReasonNotPresentAmongActions
-	}
-
-	// Even if the action is allowed because of the "[Data]Actions" part of role definition, it can
-	// still be unallowed by the "Not[Data]Actions" part.
-	if strings.ContainsPtrToEqlTo(notActions, action) {
-		return true, NotGuaranteedReasonPresentAmongNotActions
-	}
-
-	return false, ""
 }
