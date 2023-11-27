@@ -33,21 +33,13 @@ func NewRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error)
 
 	// SubscriptionID arg value isn't relevant because we won't be using methods from the client
 	// that use the subscription ID state. We'll only use scope methods, where subscription ID is
-	// provided for each query, if relevant for the scope used in the query.
+	// provided for each query if relevant for the scope used in the query.
 	client, err := armauthorization.NewRoleAssignmentsClient("", cred, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create role assignments client: %w", err)
 	}
 
 	return client, nil
-}
-
-// RoleNameFromRoleDefinitionID extracts the name of a role from an Azure role definition ID. See
-// test case for example.
-func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
-	split := strings.Split(roleDefinitionID, "/")
-	roleName := split[len(split)-1]
-	return roleName
 }
 
 // AzureRoleAssignmentsClient is a facade over the Azure role assignments client. Code that uses
@@ -57,9 +49,8 @@ type AzureRoleAssignmentsClient struct {
 	client *armauthorization.RoleAssignmentsClient
 }
 
-// NewAzureRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from
-// a client from the Azure SDK.
-//   - azClient: A role assignments client from the Azure SDK. Must be non-nil.
+// NewAzureRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from a
+// client from the Azure SDK.
 func NewAzureRoleAssignmentsClient(azClient *armauthorization.RoleAssignmentsClient) *AzureRoleAssignmentsClient {
 	return &AzureRoleAssignmentsClient{
 		client: azClient,
@@ -67,9 +58,6 @@ func NewAzureRoleAssignmentsClient(azClient *armauthorization.RoleAssignmentsCli
 }
 
 // ListRoleAssignmentsForScope gets all the role assignments matching a scope.
-//   - scope: The scope for the role assignments query. This can be any scope supported by Azure
-//     (e.g. subscription scope).
-//   - filter: An optional filter to apply, using the Azure Authorization API filter syntax.
 func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error) {
 	pager := c.client.NewListForScopePager(scope, &armauthorization.RoleAssignmentsClientListForScopeOptions{
 		Filter: filter,
@@ -89,10 +77,71 @@ func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForScope(scope string, f
 	return roleAssignments, nil
 }
 
+// NewRoleDefinitionsClient creates a RoleDefinitionsClient from the Azure SDK.
+func NewRoleDefinitionsClient() (*armauthorization.RoleDefinitionsClient, error) {
+	// Get credentials from the three env vars. For more info on default auth, see:
+	// https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication
+	var cred *azidentity.DefaultAzureCredential
+	var err error
+	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
+		return nil, fmt.Errorf("failed to prepare default Azure credential: %w", err)
+	}
+
+	client, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create role assignments client: %w", err)
+	}
+
+	return client, nil
+}
+
+// AzureRoleDefinitionsClient is a facade over the Azure role definitions client. Code that uses
+// this instead of the actual Azure client is easier to test because it won't need to deal with
+// finding the permissions part of the API response.
+type AzureRoleDefinitionsClient struct {
+	client *armauthorization.RoleDefinitionsClient
+}
+
+// NewAzureRoleDefinitionsClient creates a new AzureRoleDefinitionsClient (our facade client) from a
+// client from the Azure SDK.
+func NewAzureRoleDefinitionsClient(azClient *armauthorization.RoleDefinitionsClient) *AzureRoleDefinitionsClient {
+	return &AzureRoleDefinitionsClient{
+		client: azClient,
+	}
+}
+
+// GetPermissionDataForRoleDefinition gets the permissions data for a role definition, given its
+// role definition ID (the short ID, not the fully-qualified one) and its scope.
+func (c *AzureRoleDefinitionsClient) GetPermissionDataForRoleDefinition(roleDefinitionID, scope string) (*armauthorization.Permission, error) {
+	roleDefinition, err := c.client.Get(context.TODO(), scope, roleDefinitionID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get role definition data: %w", err)
+	}
+
+	if roleDefinition.Properties == nil || roleDefinition.Properties.Permissions == nil {
+		return nil, fmt.Errorf("role definition data from Azure API response malformed (missing permissions property): %w", err)
+	}
+
+	// This is intentional. The API response's type is a slice of permissions structs (not just a
+	// struct), and as far as we can tell, there will always be only one of them in the slice, no
+	// matter how many permissions exist in the data and how often changes are made to the role
+	// definition.
+	if len(roleDefinition.Properties.Permissions) != 1 {
+		return nil, fmt.Errorf("role definition data from Azure API response malformed (not exactly one permissions data struct)")
+	}
+
+	return roleDefinition.Properties.Permissions[0], nil
+}
+
+// RoleNameFromRoleDefinitionID extracts the name of a role from an Azure role definition ID.
+func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
+	split := strings.Split(roleDefinitionID, "/")
+	roleName := split[len(split)-1]
+	return roleName
+}
+
 // RoleAssignmentScopeSubscription extracts the ID of the subscription from a role assignment scope
-// string. Returns an error if the string is malformed, so that the error can be displayed in the
-// logs and the user knows they didn't configure scope somewhere in the spec correctly.
-//   - scope: The scope string to parse. Must be a valid scope string according to Azure API specs.
+// string. Returns an error if the string is malformed.
 func RoleAssignmentScopeSubscription(scope string) (string, error) {
 	matches := re.FindStringSubmatch(scope)
 

@@ -19,10 +19,6 @@ const (
 // permitted in the action or not action. Any more than that are invalid. Also, candidate actions do
 // not support any wildcards. The args will be considered invalid and an error will be returned if
 // these wildcard rules are not followed.
-//
-//   - candidateActions: The list of candidate actions.
-//   - actions: The list of actions for the role definition.
-//   - notActions: The list of not actions for the role definition.
 func allCandidateActionsPermitted(candidateActions, actions, notActions []string) (bool, error) {
 
 	// Create a map of strings and bools, with a key for every candidate action. Default each value
@@ -78,13 +74,6 @@ func allCandidateActionsPermitted(candidateActions, actions, notActions []string
 // candidate action (depending on whether we're doing the pass through the actions or the not
 // actions). The logic for looking for wildcards, prefixes, suffixes, etc is the same for each
 // compared list of actions. Mutates the map if it needs to permit or deny a candidate action.
-//   - candidateAction: The candidate action.
-//   - comparedActions: The list of actions we're comparing the action to during this operation.
-//   - setPermittedTo: Whether to permit the action when the comparison criteria are met. If this
-//     is true, flip the key to true, permitting the action. If this is false, we flip the key to
-//     false, denying it after previously permitting it during the earlier function call.
-//   - permittedCandidateActions: The map where we track what's permitted. Mutated if criteria are
-//     met.
 func processCandidateAction(candidateAction string, comparedActions []string, setPermittedTo bool, permittedCandidateActions map[string]bool) {
 
 	for _, comparedAction := range comparedActions {

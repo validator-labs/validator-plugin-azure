@@ -35,3 +35,12 @@ func AnyNil(strs []*string) bool {
 	}
 	return false
 }
+
+// ToVals maps a slice of string pointers to their string values. All pointers must be non-nil.
+func ToVals(strs []*string) []string {
+	vals := make([]string, len(strs))
+	for i, s := range strs {
+		vals[i] = *s
+	}
+	return vals
+}

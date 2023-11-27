@@ -52,15 +52,27 @@ type RBACRule struct {
 // Conveys that the security principal should be the member of a role assignment that provides the
 // specified role for the specified scope. Scope can be either subscription, resource group, or
 // resource.
-//
-// If permissions are specified, then it also conveys that the specified role should provide the
-// specified permissions. This is useful for validating a custom role when one is used instead of a
-// built-in role.
 type PermissionSet struct {
+	// If provided, the actions that the role must be able to perform. Must not contain any
+	// wildcards. If not specified, the role is assumed to already be able to perform all required
+	// actions.
 	//+kubebuilder:validation:MinItems=1
-	Permissions []string `json:"permissions,omitempty"`
-	Role        string   `json:"role"`
-	Scope       string   `json:"scope"`
+	Actions []string `json:"actions,omitempty"`
+	// If provided, the data actions that the role must be able to perform. Must not contain any
+	// wildcards. If not provided, the role is assumed to already be able to perform all required
+	// data actions.
+	//+kubebuilder:validation:MinItems=1
+	DataActions []string `json:"dataActions,omitempty"`
+	// The role name. Note that this is the name of the role, which looks like an ID, not the role
+	// name of the role, which looks like a descriptive name. If this is a custom role and actions
+	// or data actions are also specified, so that permissions are validated too, the custom role
+	// must only contain actions and/or data actions that contain no wildcards or one wildcard, not
+	// multiple wildcards.
+	Role string `json:"role"`
+	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
+	// this. For example, a role assignment found with subscription scope will satisfy a permission
+	// set where the role scope specified is a resource group within that subscrption.
+	Scope string `json:"scope"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator

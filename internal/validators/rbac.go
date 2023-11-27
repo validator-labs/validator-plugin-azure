@@ -18,19 +18,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// NotGuaranteedReason is the reason permission to perform a desired action should be denied.
-type NotGuaranteedReason = string
-
-const (
-	// NotGuaranteedReasonNotPresentAmongActions means that permission should be denied because the
-	// action is not present among the "actions".
-	NotGuaranteedReasonNotPresentAmongActions = "NotPresentAmongActions"
-	// NotGuaranteedReasonNotPresentAmongActions means that permission should be denied because even
-	// though the action is present among the actions, it is present among the "not actions" too.
-	NotGuaranteedReasonPresentAmongNotActions = "PresentAmongNotActions"
-)
-
 // roleAssignmentAPI contains methods that allow getting all role assignments for a scope.
+//
 // Note that this is the API of our Azure client facade, not a real Azure client.
 type roleAssignmentAPI interface {
 	ListRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error)
@@ -38,6 +27,7 @@ type roleAssignmentAPI interface {
 
 // roleDefinitionAPI contains methods that allow getting all the information we need for an existing
 // role definition.
+//
 // Note that this is the API of our Azure client facade, not a real Azure client.
 type roleDefinitionAPI interface {
 	GetPermissionDataForRoleDefinition(roleDefinitionID, scope string) (*armauthorization.Permission, error)
@@ -82,7 +72,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	if len(failures) > 0 {
 		state = vapi.ValidationFailed
 		latestCondition.Failures = failures
-		latestCondition.Message = "Principal missing one or more required roles."
+		latestCondition.Message = "Principal missing one or more required roles or one or more required roles missing required permissions."
 		latestCondition.Status = corev1.ConditionFalse
 	}
 
@@ -90,11 +80,6 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 }
 
 // processPermissionSet processes a permission set from the rule.
-//   - set: The permission being processed.
-//   - principalID: The ID of the principal to use in the filter. This comes from the rule that the
-//     set is part of.
-//   - failures: The list of failures being built up while processing the entire rule. Must be
-//     non-nil.
 func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, principalID string, failures *[]string) error {
 
 	foundRoleNames := make(map[string]bool)
@@ -129,8 +114,6 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		return fmt.Errorf("failed to process permissions specified in permission set: %w", err)
 	}
 
-	// No error means the rule processor knows that if there were failures, they have been appended
-	// to the single list of failures by now.
 	return nil
 }
 
@@ -138,9 +121,6 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 // verifies that the permissions specified in the spec are indeed present in the role definition for
 // the role specified. This is only used when permissions are specified. Otherwise, role is assumed
 // to have all the needed permissions.
-//   - set: The permission being processed.
-//   - failures: The list of failures being built up while processing the entire rule. Must be
-//     non-nil.
 func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, failures *[]string) error {
 
 	// Special case. Nothing to do, so skip Azure API call and don't append any failures.
@@ -188,7 +168,5 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 		}
 	}
 
-	// No error means the rule processor knows that if there were failures, they have been appended
-	// to the single list of failures by now.
 	return nil
 }
