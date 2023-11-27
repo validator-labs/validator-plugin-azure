@@ -3,6 +3,9 @@ kind: AzureValidator
 metadata:
   name: azurevalidator-rbac-permission-sets-empty
 spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
   rbacRules:
   - principalId: "a83574a7-53ef-4b37-b85e-99f956f0985a"
     permissionSets: []

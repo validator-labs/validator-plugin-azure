@@ -1,0 +1,6 @@
+apiVersion: v2
+name: validator-plugin-azure
+description: Perform various Azure validations (Principal RBAC, AAD Application API permissions, and Service Quotas)
+type: application
+version: 0.0.2  # x-release-please-version
+appVersion: "0.0.2"  # x-release-please-version
