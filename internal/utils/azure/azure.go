@@ -21,8 +21,13 @@ var (
 	re = regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)
 )
 
-// NewRoleAssignmentsClient creates a RoleAssignmentsClient from the Azure SDK.
-func NewRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error) {
+type AzureAPI struct {
+	RoleAssignments *armauthorization.RoleAssignmentsClient
+	RoleDefinitions *armauthorization.RoleDefinitionsClient
+}
+
+// NewAzureAPI creates an AzureAPI object that aggregates Azure service clients.
+func NewAzureAPI() (*AzureAPI, error) {
 	// Get credentials from the three env vars. For more info on default auth, see:
 	// https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication
 	var cred *azidentity.DefaultAzureCredential
@@ -34,12 +39,20 @@ func NewRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error)
 	// SubscriptionID arg value isn't relevant because we won't be using methods from the client
 	// that use the subscription ID state. We'll only use scope methods, where subscription ID is
 	// provided for each query if relevant for the scope used in the query.
-	client, err := armauthorization.NewRoleAssignmentsClient("", cred, nil)
+	raClient, err := armauthorization.NewRoleAssignmentsClient("", cred, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create role assignments client: %w", err)
+		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
 	}
 
-	return client, nil
+	rdClient, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
+	}
+
+	return &AzureAPI{
+		RoleAssignments: raClient,
+		RoleDefinitions: rdClient,
+	}, err
 }
 
 // AzureRoleAssignmentsClient is a facade over the Azure role assignments client. Code that uses
@@ -75,24 +88,6 @@ func (c *AzureRoleAssignmentsClient) ListRoleAssignmentsForScope(scope string, f
 	}
 
 	return roleAssignments, nil
-}
-
-// NewRoleDefinitionsClient creates a RoleDefinitionsClient from the Azure SDK.
-func NewRoleDefinitionsClient() (*armauthorization.RoleDefinitionsClient, error) {
-	// Get credentials from the three env vars. For more info on default auth, see:
-	// https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication
-	var cred *azidentity.DefaultAzureCredential
-	var err error
-	if cred, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
-		return nil, fmt.Errorf("failed to prepare default Azure credential: %w", err)
-	}
-
-	client, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create role assignments client: %w", err)
-	}
-
-	return client, nil
 }
 
 // AzureRoleDefinitionsClient is a facade over the Azure role definitions client. Code that uses

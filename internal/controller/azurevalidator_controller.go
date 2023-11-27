@@ -77,14 +77,15 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 	}
 
-	azClient, err := azure_utils.NewRoleAssignmentsClient()
+	azureAPI, err := azure_utils.NewAzureAPI()
 	if err != nil {
-		r.Log.V(0).Error(err, "failed to get Azure role assignments client")
+		r.Log.V(0).Error(err, "failed to create Azure API object: %w", err)
 	} else {
-		client := azure_utils.NewAzureRoleAssignmentsClient(azClient)
+		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureAPI.RoleAssignments)
+		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureAPI.RoleDefinitions)
 
 		// RBAC rules
-		svc := validators.NewRBACRuleService(r.Log, client)
+		svc := validators.NewRBACRuleService(r.Log, raClient, rdClient)
 		for _, rule := range validator.Spec.RBACRules {
 			validationResult, err := svc.ReconcileRBACRule(rule)
 			if err != nil {
