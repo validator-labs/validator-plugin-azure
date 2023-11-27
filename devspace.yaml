@@ -2,6 +2,9 @@ name: validator-plugin-azure
 version: v2beta1
 
 vars:
+  GOARCH:
+    command: go
+    args: ["env", "GOARCH"]
   IMAGE: quay.io/spectrocloud-labs/validator-plugin-azure
 
 images:
@@ -12,11 +15,13 @@ images:
     createPullSecret: false
     dockerfile: ./Dockerfile.devspace
     rebuildStrategy: ignoreContextChanges
-    docker: {}
+    docker:
+      args:
+      - --platform=linux/${GOARCH}
 
 deployments:
   azure-creds-secret:
-    namespace: validator-plugin-azure-system
+    namespace: default
     kubectl:
       manifests:
       - hack/azure-creds-secret.yaml
