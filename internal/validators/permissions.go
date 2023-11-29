@@ -15,7 +15,7 @@ const (
 // the role definition explicitly denies, even if they would have been permitted based on the
 // actions (not actions override actions).
 //
-// Wildcards are take into account, but only for the actions and not actions, with one wildcard
+// Wildcards are taken into account, but only for the actions and not actions, with one wildcard
 // permitted in the action or not action. Any more than that are invalid. Also, candidate actions do
 // not support any wildcards. The args will be considered invalid and an error will be returned if
 // these wildcard rules are not followed.

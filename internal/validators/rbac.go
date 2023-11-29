@@ -1,7 +1,6 @@
 package validators
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -140,11 +139,14 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 	// Permission data is divided into "actions" and "data actions". We need to deal with both, but
 	// actions don't relate to data actions and vice versa.
 	if len(set.Actions) > 0 {
-		if string_utils.AnyNil(perms.Actions) || string_utils.AnyNil(perms.NotActions) {
-			return errors.New("invalid data from Azure API (nil pointers for permission actions or not actions)")
+		permsActions, err := string_utils.ToVals(perms.Actions)
+		if err != nil {
+			return fmt.Errorf("failed to use Actions data: %w", err)
 		}
-		permsActions := string_utils.ToVals(perms.Actions)
-		permsNotActions := string_utils.ToVals(perms.NotActions)
+		permsNotActions, err := string_utils.ToVals(perms.NotActions)
+		if err != nil {
+			return fmt.Errorf("failed to use NotActions data: %w", err)
+		}
 		hasNeededPermissions, err := allCandidateActionsPermitted(set.Actions, permsActions, permsNotActions)
 		if err != nil {
 			return fmt.Errorf("failed to validate specified actions of role: %w", err)
@@ -154,11 +156,14 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 		}
 	}
 	if len(set.DataActions) > 0 {
-		if string_utils.AnyNil(perms.DataActions) || string_utils.AnyNil(perms.NotDataActions) {
-			return errors.New("invalid data from Azure API (nil pointers for permission data actions or not data actions)")
+		permsDataActions, err := string_utils.ToVals(perms.DataActions)
+		if err != nil {
+			return fmt.Errorf("failed to use DataActions data: %w", err)
 		}
-		permsDataActions := string_utils.ToVals(perms.DataActions)
-		permsNotDataActions := string_utils.ToVals(perms.NotDataActions)
+		permsNotDataActions, err := string_utils.ToVals(perms.NotDataActions)
+		if err != nil {
+			return fmt.Errorf("failed to use NotDataActions data: %w", err)
+		}
 		hasNeededPermissions, err := allCandidateActionsPermitted(set.DataActions, permsDataActions, permsNotDataActions)
 		if err != nil {
 			return fmt.Errorf("failed to validate specified data actions of role: %w", err)

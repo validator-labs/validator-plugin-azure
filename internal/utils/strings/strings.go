@@ -1,5 +1,7 @@
 package strings
 
+import "fmt"
+
 // DeDupeStrSlice deduplicates a slices of strings
 func DeDupeStrSlice(ss []string) []string {
 	found := make(map[string]bool)
@@ -26,21 +28,15 @@ func ContainsPtrToEqlTo(strPtrs []*string, c string) bool {
 	return false
 }
 
-// AnyNil returns whether any of the string pointers in a slice of string pointers are nil.
-func AnyNil(strs []*string) bool {
-	for _, s := range strs {
-		if s == nil {
-			return true
-		}
-	}
-	return false
-}
-
-// ToVals maps a slice of string pointers to their string values. All pointers must be non-nil.
-func ToVals(strs []*string) []string {
+// ToVals maps a slice of string pointers to their string values. Returns an error if it encounters
+// a nil pointer.
+func ToVals(strs []*string) ([]string, error) {
 	vals := make([]string, len(strs))
 	for i, s := range strs {
+		if s == nil {
+			return nil, fmt.Errorf("pointer in slice was nil")
+		}
 		vals[i] = *s
 	}
-	return vals
+	return vals, nil
 }
