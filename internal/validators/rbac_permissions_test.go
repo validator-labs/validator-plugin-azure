@@ -1,10 +1,16 @@
 package validators
 
 import (
+	"reflect"
 	"testing"
 )
 
-func Test_allCandidateActionsPermitted(t *testing.T) {
+func Test_processCandidateActions(t *testing.T) {
+	allPermitted := result{
+		missingFromActions:  []string{},
+		presentInNotActions: []deniedAction{},
+	}
+
 	type args struct {
 		candidateActions []string
 		actions          []string
@@ -13,7 +19,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    bool
+		want    result
 		wantErr bool
 	}{
 		// Actions and not actions in the test cases are both candidate actions.
@@ -79,7 +85,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "no candidate actions, no not actions",
@@ -88,7 +94,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "no candidate actions, no actions",
@@ -97,7 +103,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{},
 				notActions:       []string{"P/r/sr/a"},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "no candidate actions, some actions and some not actions",
@@ -106,7 +112,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/r/sr/a"},
 			},
-			want: true,
+			want: allPermitted,
 		},
 
 		// Test cases with one candidate action. No wildcards.
@@ -117,7 +123,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{},
 				notActions:       []string{},
 			},
-			want: false,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions, no not actions",
@@ -126,7 +132,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, no actions, present in not actions",
@@ -135,7 +141,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{},
 				notActions:       []string{"P/r/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions",
@@ -144,7 +158,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/r/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/a",
+					},
+				},
+			},
 		},
 
 		// Test cases with one candidate action, an action with a wildcard that permits it, and
@@ -156,7 +178,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"*/r/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/*/sr/a",
@@ -165,7 +187,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/*/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/r/*/a",
@@ -174,7 +196,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/*/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/r/sr/*",
@@ -183,7 +205,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like */sr/a",
@@ -192,7 +214,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"*/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/*/a",
@@ -201,7 +223,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/*/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/r/*",
@@ -210,7 +232,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like */a",
@@ -219,7 +241,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"*/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like P/*",
@@ -228,7 +250,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, present in actions with wildcard, no not actions, wildcard used like *",
@@ -237,7 +259,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 
 		// Test cases with one candidate action, an action that permits it, and a not action with
@@ -253,7 +275,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"*/r/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "*/r/sr/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/*/sr/a",
@@ -262,7 +292,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/*/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/*/sr/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/r/*/a",
@@ -271,7 +309,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/r/*/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/*/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/r/sr/*",
@@ -280,7 +326,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/r/sr/*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/*",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like */sr/a",
@@ -289,7 +343,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"*/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "*/sr/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/*/a",
@@ -298,7 +360,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/*/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/*/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/r/*",
@@ -307,7 +377,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/r/*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/*",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like */a",
@@ -316,7 +394,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"*/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "*/a",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like P/*",
@@ -325,7 +411,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"P/*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/*",
+					},
+				},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, present in not actions with wildcard, wildcard used like *",
@@ -334,7 +428,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a"},
 				notActions:       []string{"*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "*",
+					},
+				},
+			},
 		},
 
 		// Test cases where there are multiple candidate actions.
@@ -345,7 +447,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a", "P/r/sr/b"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "two candidate actions, one action (wildcard), no not actions",
@@ -354,7 +456,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "two candidate actions, one action (wildcard), one not action that denies one of the candidate actions",
@@ -363,7 +465,15 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/*"},
 				notActions:       []string{"P/r/sr/a"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/a",
+					},
+				},
+			},
 		},
 		{
 			name: "two candidate actions, one action (wildcard), one not action that denies one of the candidate actions via wildcard",
@@ -372,7 +482,19 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/*"},
 				notActions:       []string{"P/r/sr/*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/*",
+					},
+					{
+						candidateAction: "P/r/sr/b",
+						denyingAction:   "P/r/sr/*",
+					},
+				},
+			},
 		},
 		{
 			name: "two candidate actions, one action (wildcard at high level), one not action that denies one of the candidate actions via wildcard",
@@ -381,11 +503,23 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/*"},
 				notActions:       []string{"P/r/sr/*"},
 			},
-			want: false,
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/*",
+					},
+					{
+						candidateAction: "P/r/sr/b",
+						denyingAction:   "P/r/sr/*",
+					},
+				},
+			},
 		},
 
-		// Test cases where there is redundant data (would be weird if users provided this, but we
-		// don't want these to lead to failed validations).
+		// Test cases where there is redundant data, which should not lead to failed validations and
+		// should not include redundant failure data. Failures should be deduplicated.
 		{
 			name: "one candidate action, two identical actions, no not actions",
 			args: args{
@@ -393,7 +527,7 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a", "P/r/sr/a"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
 		},
 		{
 			name: "one candidate action, one action that permits it, one action that permits it at a higher level via wildcard, no not actions",
@@ -402,18 +536,72 @@ func Test_allCandidateActionsPermitted(t *testing.T) {
 				actions:          []string{"P/r/sr/a", "*"},
 				notActions:       []string{},
 			},
-			want: true,
+			want: allPermitted,
+		},
+		{
+			name: "one candidate action, two identical actions, two identical not actions that deny them",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a", "P/r/sr/a"},
+				notActions:       []string{"P/r/sr/a", "P/r/sr/a"},
+			},
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/a",
+					},
+				},
+			},
+		},
+		{
+			name: "one candidate action, one action that permits it, one action that permits it at a higher level via wildcard, two identical not actions that deny them",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a", "*"},
+				notActions:       []string{"P/r/sr/a", "*"},
+			},
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "P/r/sr/a",
+					},
+				},
+			},
+		},
+		{
+			name: "one candidate action, one action that permits it, one action that permits it at a higher level via wildcard, one not actions that denies it, one not action that denies it at a higher level via wildcard, wildcard not action specified first",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a", "*"},
+				notActions:       []string{"*", "P/r/sr/a"},
+			},
+			want: result{
+				missingFromActions: []string{},
+				presentInNotActions: []deniedAction{
+					// Test confirms that the first denying action encountered during iteration
+					// becomes the failure data.
+					{
+						candidateAction: "P/r/sr/a",
+						denyingAction:   "*",
+					},
+				},
+			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := allCandidateActionsPermitted(tt.args.candidateActions, tt.args.actions, tt.args.notActions)
+			got, err := processCandidateActions(tt.args.candidateActions, tt.args.actions, tt.args.notActions)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("allCandidateActionsPermitted() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("processCandidateActions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("allCandidateActionsPermitted() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("processCandidateActions() = %v, want %v", got, tt.want)
 			}
 		})
 	}

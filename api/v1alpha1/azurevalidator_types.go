@@ -71,10 +71,10 @@ type PermissionSet struct {
 	//+kubebuilder:validation:MinItems=1
 	DataActions []string `json:"dataActions,omitempty"`
 	// The role name. Note that this is the name of the role, which looks like an ID, not the role
-	// name of the role, which looks like a descriptive name. If this is a custom role and actions
-	// or data actions are also specified, so that permissions are validated too, the custom role
-	// must only contain actions and/or data actions that contain no wildcards or one wildcard, not
-	// multiple wildcards.
+	// name of the role, which looks like a descriptive name. If this is a custom role and Actions
+	// and/or DataActions are also specified, so that permissions are validated too, the custom role
+	// must only contain Actions and/or DataActions that contain at most one wildcard per
+	// Action/DataAction.
 	Role string `json:"role"`
 	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
 	// this. For example, a role assignment found with subscription scope will satisfy a permission

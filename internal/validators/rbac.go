@@ -9,7 +9,7 @@ import (
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
-	string_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/strings"
+	slice_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/slices"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
@@ -52,15 +52,14 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	// Build the default ValidationResult for this role assignment rule.
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
-	latestCondition.Message = "Principal has all required roles."
+	latestCondition.Message = "Principal has all required roles and all roles have required permissions."
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.PrincipalID)
 	latestCondition.ValidationType = constants.ValidationTypeRBAC
 	validationResult := &vapitypes.ValidationResult{Condition: &latestCondition, State: &state}
 
 	failures := make([]string, 0)
 
-	for i, set := range rule.Permissions {
-		s.log.V(0).Info("Processing permission set of rule.", "set #", i+1)
+	for _, set := range rule.Permissions {
 		if err := s.processPermissionSet(set, rule.PrincipalID, &failures); err != nil {
 			// Code this is returning to will take care of changing the validation result to a
 			// failed validation, using the error returned.
@@ -71,7 +70,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	if len(failures) > 0 {
 		state = vapi.ValidationFailed
 		latestCondition.Failures = failures
-		latestCondition.Message = "Principal missing one or more required roles or one or more required roles missing required permissions."
+		latestCondition.Message = "Principal lacks required Azure RBAC permissions. See failures for details."
 		latestCondition.Status = corev1.ConditionFalse
 	}
 
@@ -139,37 +138,43 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 	// Permission data is divided into "actions" and "data actions". We need to deal with both, but
 	// actions don't relate to data actions and vice versa.
 	if len(set.Actions) > 0 {
-		permsActions, err := string_utils.ToVals(perms.Actions)
+		permsActions, err := slice_utils.Vals(perms.Actions)
 		if err != nil {
-			return fmt.Errorf("failed to use Actions data: %w", err)
+			return fmt.Errorf("failed to dereference Actions data: %w", err)
 		}
-		permsNotActions, err := string_utils.ToVals(perms.NotActions)
+		permsNotActions, err := slice_utils.Vals(perms.NotActions)
 		if err != nil {
-			return fmt.Errorf("failed to use NotActions data: %w", err)
+			return fmt.Errorf("failed to dereference NotActions data: %w", err)
 		}
-		hasNeededPermissions, err := allCandidateActionsPermitted(set.Actions, permsActions, permsNotActions)
-		if err != nil {
-			return fmt.Errorf("failed to validate specified actions of role: %w", err)
-		}
-		if !hasNeededPermissions {
-			*failures = append(*failures, "role does not permit one or more specified actions")
+		if result, err := processCandidateActions(set.Actions, permsActions, permsNotActions); err != nil {
+			return fmt.Errorf("failed to validate specified Actions for role: %w", err)
+		} else {
+			for _, missing := range result.missingFromActions {
+				*failures = append(*failures, fmt.Sprintf("Specified Action %s missing from role's current Actions.", missing))
+			}
+			for _, present := range result.presentInNotActions {
+				*failures = append(*failures, fmt.Sprintf("Specified Action %s denied by Action %s in role's current NotActions.", present.candidateAction, present.denyingAction))
+			}
 		}
 	}
 	if len(set.DataActions) > 0 {
-		permsDataActions, err := string_utils.ToVals(perms.DataActions)
+		permsDataActions, err := slice_utils.Vals(perms.DataActions)
 		if err != nil {
-			return fmt.Errorf("failed to use DataActions data: %w", err)
+			return fmt.Errorf("failed to dereference DataActions data: %w", err)
 		}
-		permsNotDataActions, err := string_utils.ToVals(perms.NotDataActions)
+		permsNotDataActions, err := slice_utils.Vals(perms.NotDataActions)
 		if err != nil {
-			return fmt.Errorf("failed to use NotDataActions data: %w", err)
+			return fmt.Errorf("failed to dereference NotDataActions data: %w", err)
 		}
-		hasNeededPermissions, err := allCandidateActionsPermitted(set.DataActions, permsDataActions, permsNotDataActions)
-		if err != nil {
-			return fmt.Errorf("failed to validate specified data actions of role: %w", err)
-		}
-		if !hasNeededPermissions {
-			*failures = append(*failures, "role does not permit one or more specified data actions")
+		if result, err := processCandidateActions(set.DataActions, permsDataActions, permsNotDataActions); err != nil {
+			return fmt.Errorf("failed to validate specified DataActions for role: %w", err)
+		} else {
+			for _, missing := range result.missingFromActions {
+				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s missing from role's current DataActions.", missing))
+			}
+			for _, present := range result.presentInNotActions {
+				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by Action %s in role's current DataNotActions.", present.candidateAction, present.denyingAction))
+			}
 		}
 	}
 
