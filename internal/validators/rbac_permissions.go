@@ -78,11 +78,7 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 	// Second iteration. Determine whether Action should be denied based on role's current NotActions.
 	for _, candidateAction := range candidateActions {
 		if matched, comparedAction := processCandidateAction(candidateAction, notActions); matched {
-			// Only consider this NotAction to be the one that denies the candidate Action if it has not already been
-			// denied by a NotAction.
-			if _, ok := actionsDenied[candidateAction]; !ok {
-				actionsDenied[candidateAction] = comparedAction
-			}
+			actionsDenied[candidateAction] = comparedAction
 		}
 	}
 
