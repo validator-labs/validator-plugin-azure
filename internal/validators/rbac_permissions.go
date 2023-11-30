@@ -59,10 +59,10 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 	}
 	for _, na := range notActions {
 		if len(na) == 0 {
-			return result{}, fmt.Errorf("invalid NotAction or DataNotAction in current role data, is empty string")
+			return result{}, fmt.Errorf("invalid NotAction or NotDataAction in current role data, is empty string")
 		}
 		if numWildcards(na) > 1 {
-			return result{}, fmt.Errorf("invalid NotAction or DataNotAction in current role data, has multiple wildcards")
+			return result{}, fmt.Errorf("invalid NotAction or NotDataAction in current role data, has multiple wildcards")
 		}
 	}
 

@@ -173,7 +173,7 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s missing from role's current DataActions.", missingAction))
 			}
 			for candidateAction, denyingAction := range result.presentInNotActions {
-				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by Action %s in role's current DataNotActions.", candidateAction, denyingAction))
+				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by Action %s in role's current NotDataActions.", candidateAction, denyingAction))
 			}
 		}
 	}
