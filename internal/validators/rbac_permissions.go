@@ -71,8 +71,7 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 	// First iteration. Determine whether Action should be permitted based on role's current Actions.
 	for _, candidateAction := range candidateActions {
 		match := func(_ string) { delete(actionsUnpermittedBecauseMissing, candidateAction) }
-		noMatch := func(_ string) { /* Nothing to do when not matched. */ }
-		processCandidateAction(candidateAction, actions, match, noMatch)
+		processCandidateAction(candidateAction, actions, match)
 	}
 
 	// Second iteration. Determine whether Action should be denied based on role's current NotActions.
@@ -84,8 +83,7 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 				actionsDenied[candidateAction] = notAction
 			}
 		}
-		noMatch := func(_ string) { /* Nothing to do when not matched. */ }
-		processCandidateAction(candidateAction, notActions, match, noMatch)
+		processCandidateAction(candidateAction, notActions, match)
 	}
 
 	return result{
@@ -99,8 +97,8 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 // actions). The logic for looking for wildcards, prefixes, suffixes, etc is the same for each
 // compared list of actions.
 //
-// match and noMatch are hooks to run when there is either a match or no match during the iteration.
-func processCandidateAction(candidateAction string, comparedActions []string, match, noMatch func(comparedAction string)) {
+// match is code to run when there is a match.
+func processCandidateAction(candidateAction string, comparedActions []string, match func(comparedAction string)) {
 	for _, comparedAction := range comparedActions {
 		if !hasWildcard(comparedAction) {
 			// If allowed action has no wildcard, candidate action must be equal to it exactly
@@ -158,8 +156,6 @@ func processCandidateAction(candidateAction string, comparedActions []string, ma
 			match(comparedAction)
 			continue
 		}
-
-		noMatch(comparedAction)
 	}
 }
 
