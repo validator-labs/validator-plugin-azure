@@ -3,29 +3,26 @@ package validators
 import (
 	"fmt"
 	"strings"
+
+	map_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/maps"
+	"golang.org/x/exp/maps"
 )
 
 const (
 	wildcard = "*"
 )
 
-// deniedAction describes a candidate action and the NotAction configured in a role that denied it.
-type deniedAction struct {
-	candidateAction string
-	denyingAction   string
-}
-
-// result summarizes data about how many actions were not permitted by a role's configuration and if
-// they weren't permitted because they were included in the role's NotActions, which NotAction it
-// was that denied it.
+// result summarizes data about how many actions were not permitted by a role's configuration.
 type result struct {
-	missingFromActions  []string
-	presentInNotActions []deniedAction
+	// The Actions missing from the role's Actions.
+	missingFromActions []string
+	// The Actions present in the role's Not Actions (keys) and the NotActions that denied them (values).
+	presentInNotActions map[string]string
 }
 
 // processCandidateActions returns whether a list of Azure RBAC actions should be permitted based on
 // a list of "actions" and "not actions" for a role definition, where actions are actions that the
-// role definition explicitly permits and not actons are actions that the role definition explicitly
+// role definition explicitly permits and not actions are actions that the role definition explicitly
 // denies, even if they would have been permitted based on the actions (not actions override
 // actions). This works for both pairs of Actions and NotActions and pairs of DataActions and
 // NotDataActions.
@@ -35,6 +32,13 @@ type result struct {
 // not support any wildcards. The args will be considered invalid and an error will be returned if
 // these wildcard rules are not followed.
 func processCandidateActions(candidateActions, actions, notActions []string) (result, error) {
+
+	// Begin by assuming every specified Actions will be unpermitted, and that they will be unpermitted because they
+	// aren't included in the role's Actions.
+	actionsUnpermittedBecauseMissing := map_utils.FromKeys(candidateActions, true)
+	// Also begin by assuming no specified Actions will be unpermitted because of being included in the role's
+	// NotActions. Key is the specified Action, value is the NotAction that denied it.
+	actionsDenied := map[string]string{}
 
 	// Validate specified candidate Actions, Action data, and NotAction data.
 	for _, ca := range candidateActions {
@@ -62,44 +66,32 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 		}
 	}
 
-	// Now we know all data is valid. We can figure out, for each candidate action, whether it
-	// should be permitted based on the Actions and then whether it should be unpermitted based on
-	// the NotActions. We also track, for each action we decide not to permit, why it isn't
-	// permitted.
-	unpermittedActions := map[string]bool{}
-	result := result{
-		missingFromActions:  []string{},
-		presentInNotActions: []deniedAction{},
-	}
+	// Build a result by performing two iterations over the specified Actions.
+
+	// First iteration. Determine whether Action should be permitted based on role's current Actions.
 	for _, candidateAction := range candidateActions {
-		match := func(_ string) {
-			// Intentional no-op
-		}
-		noMatch := func(_ string) {
-			if ok := unpermittedActions[candidateAction]; !ok {
-				result.missingFromActions = append(result.missingFromActions, candidateAction)
-				unpermittedActions[candidateAction] = true
-			}
-		}
+		match := func(_ string) { delete(actionsUnpermittedBecauseMissing, candidateAction) }
+		noMatch := func(_ string) { /* Nothing to do when not matched. */ }
 		processCandidateAction(candidateAction, actions, match, noMatch)
 	}
+
+	// Second iteration. Determine whether Action should be denied based on role's current NotActions.
 	for _, candidateAction := range candidateActions {
-		match := func(comparedAction string) {
-			if ok := unpermittedActions[candidateAction]; !ok {
-				result.presentInNotActions = append(result.presentInNotActions, deniedAction{
-					candidateAction: candidateAction,
-					denyingAction:   comparedAction,
-				})
-				unpermittedActions[candidateAction] = true
+		match := func(notAction string) {
+			// Only consider this NotAction to be the one that denies the candidate Action if it has not already been
+			// denied by a NotAction.
+			if _, ok := actionsDenied[candidateAction]; !ok {
+				actionsDenied[candidateAction] = notAction
 			}
 		}
-		noMatch := func(_ string) {
-			// Intentional no-op
-		}
+		noMatch := func(_ string) { /* Nothing to do when not matched. */ }
 		processCandidateAction(candidateAction, notActions, match, noMatch)
 	}
 
-	return result, nil
+	return result{
+		missingFromActions:  maps.Keys(actionsUnpermittedBecauseMissing),
+		presentInNotActions: actionsDenied,
+	}, nil
 }
 
 // processCandidateAction centralizes our logic for determining whether to permit or deny a
@@ -109,7 +101,6 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 //
 // match and noMatch are hooks to run when there is either a match or no match during the iteration.
 func processCandidateAction(candidateAction string, comparedActions []string, match, noMatch func(comparedAction string)) {
-
 	for _, comparedAction := range comparedActions {
 		if !hasWildcard(comparedAction) {
 			// If allowed action has no wildcard, candidate action must be equal to it exactly
@@ -186,7 +177,7 @@ func hasWildcard(action string) bool {
 // MapWithAllFalse when given a list of strings, creates and returns a map where each key is added
 // to the map's set of keys with its value set to false.
 func MapWithAllFalse(keys []string) map[string]bool {
-	m := make(map[string]bool)
+	m := map[string]bool{}
 	for _, k := range keys {
 		m[k] = false
 	}

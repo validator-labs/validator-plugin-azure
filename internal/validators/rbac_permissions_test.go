@@ -7,8 +7,8 @@ import (
 
 func Test_processCandidateActions(t *testing.T) {
 	allPermitted := result{
-		missingFromActions:  []string{},
-		presentInNotActions: []deniedAction{},
+		missingFromActions:  make([]string, 0),
+		presentInNotActions: make(map[string]string, 0),
 	}
 
 	type args struct {
@@ -123,7 +123,10 @@ func Test_processCandidateActions(t *testing.T) {
 				actions:          []string{},
 				notActions:       []string{},
 			},
-			want: allPermitted,
+			want: result{
+				missingFromActions:  []string{"P/r/sr/a"},
+				presentInNotActions: map[string]string{},
+			},
 		},
 		{
 			name: "one candidate action, present in actions, no not actions",
@@ -142,13 +145,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{"P/r/sr/a"},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
 			},
 		},
 		{
@@ -159,14 +157,29 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
 			},
+		},
+
+		// Test cases with one candidate action and multiple actions to permit it.
+		{
+			name: "one candidate action, present in two actions (as first action), no not actions",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a", "P/r/sr/b"},
+				notActions:       []string{},
+			},
+			want: allPermitted,
+		},
+		{
+			name: "one candidate action, present in two actions (as second action), no not actions",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/b", "P/r/sr/a"},
+				notActions:       []string{},
+			},
+			want: allPermitted,
 		},
 
 		// Test cases with one candidate action, an action with a wildcard that permits it, and
@@ -276,13 +289,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"*/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "*/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "*/r/sr/a"},
 			},
 		},
 		{
@@ -293,13 +301,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/*/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/*/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/*/sr/a"},
 			},
 		},
 		{
@@ -310,13 +313,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/*/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/*/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/*/a"},
 			},
 		},
 		{
@@ -327,13 +325,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/*"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/*",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/*"},
 			},
 		},
 		{
@@ -344,13 +337,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"*/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "*/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "*/sr/a"},
 			},
 		},
 		{
@@ -361,13 +349,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/*/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/*/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/*/a"},
 			},
 		},
 		{
@@ -378,13 +361,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/*"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/*",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/*"},
 			},
 		},
 		{
@@ -395,13 +373,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"*/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "*/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "*/a"},
 			},
 		},
 		{
@@ -412,13 +385,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/*"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/*",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/*"},
 			},
 		},
 		{
@@ -429,13 +397,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"*"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "*",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "*"},
 			},
 		},
 
@@ -466,13 +429,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
 			},
 		},
 		{
@@ -484,15 +442,9 @@ func Test_processCandidateActions(t *testing.T) {
 			},
 			want: result{
 				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/*",
-					},
-					{
-						candidateAction: "P/r/sr/b",
-						denyingAction:   "P/r/sr/*",
-					},
+				presentInNotActions: map[string]string{
+					"P/r/sr/a": "P/r/sr/*",
+					"P/r/sr/b": "P/r/sr/*",
 				},
 			},
 		},
@@ -505,15 +457,9 @@ func Test_processCandidateActions(t *testing.T) {
 			},
 			want: result{
 				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/*",
-					},
-					{
-						candidateAction: "P/r/sr/b",
-						denyingAction:   "P/r/sr/*",
-					},
+				presentInNotActions: map[string]string{
+					"P/r/sr/a": "P/r/sr/*",
+					"P/r/sr/b": "P/r/sr/*",
 				},
 			},
 		},
@@ -546,13 +492,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/a", "P/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
 			},
 		},
 		{
@@ -563,13 +504,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"P/r/sr/a", "*"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "P/r/sr/a",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
 			},
 		},
 		{
@@ -580,15 +516,8 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{"*", "P/r/sr/a"},
 			},
 			want: result{
-				missingFromActions: []string{},
-				presentInNotActions: []deniedAction{
-					// Test confirms that the first denying action encountered during iteration
-					// becomes the failure data.
-					{
-						candidateAction: "P/r/sr/a",
-						denyingAction:   "*",
-					},
-				},
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "*"},
 			},
 		},
 	}

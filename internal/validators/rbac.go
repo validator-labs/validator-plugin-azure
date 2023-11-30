@@ -149,11 +149,11 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 		if result, err := processCandidateActions(set.Actions, permsActions, permsNotActions); err != nil {
 			return fmt.Errorf("failed to validate specified Actions for role: %w", err)
 		} else {
-			for _, missing := range result.missingFromActions {
-				*failures = append(*failures, fmt.Sprintf("Specified Action %s missing from role's current Actions.", missing))
+			for _, missingAction := range result.missingFromActions {
+				*failures = append(*failures, fmt.Sprintf("Specified Action %s missing from role's current Actions.", missingAction))
 			}
-			for _, present := range result.presentInNotActions {
-				*failures = append(*failures, fmt.Sprintf("Specified Action %s denied by Action %s in role's current NotActions.", present.candidateAction, present.denyingAction))
+			for candidateAction, denyingAction := range result.presentInNotActions {
+				*failures = append(*failures, fmt.Sprintf("Specified Action %s denied by Action %s in role's current NotActions.", candidateAction, denyingAction))
 			}
 		}
 	}
@@ -169,11 +169,11 @@ func (s *RBACRuleService) processRolePermissions(set v1alpha1.PermissionSet, fai
 		if result, err := processCandidateActions(set.DataActions, permsDataActions, permsNotDataActions); err != nil {
 			return fmt.Errorf("failed to validate specified DataActions for role: %w", err)
 		} else {
-			for _, missing := range result.missingFromActions {
-				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s missing from role's current DataActions.", missing))
+			for _, missingAction := range result.missingFromActions {
+				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s missing from role's current DataActions.", missingAction))
 			}
-			for _, present := range result.presentInNotActions {
-				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by Action %s in role's current DataNotActions.", present.candidateAction, present.denyingAction))
+			for candidateAction, denyingAction := range result.presentInNotActions {
+				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by Action %s in role's current DataNotActions.", candidateAction, denyingAction))
 			}
 		}
 	}
