@@ -87,16 +87,6 @@ spec:
                               type: string
                             minItems: 1
                             type: array
-                          role:
-                            description: The role name. Note that this is the name
-                              of the role, which looks like an ID, not the role name
-                              of the role, which looks like a descriptive name. If
-                              this is a custom role and actions or data actions are
-                              also specified, so that permissions are validated too,
-                              the custom role must only contain actions and/or data
-                              actions that contain no wildcards or one wildcard, not
-                              multiple wildcards.
-                            type: string
                           scope:
                             description: The minimum scope of the role. Role assignments
                               found at higher level scopes will satisfy this. For
@@ -105,7 +95,6 @@ spec:
                               is a resource group within that subscrption.
                             type: string
                         required:
-                        - role
                         - scope
                         type: object
                       minItems: 1

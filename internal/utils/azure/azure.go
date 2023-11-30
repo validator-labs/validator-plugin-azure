@@ -12,10 +12,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 )
 
-const (
-	RoleTypeBuiltInRole = "BuiltInRole"
-)
-
 var (
 	// Regexp used for extracting Subscription IDs from role assignment scope strings.
 	re = regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)

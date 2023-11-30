@@ -51,7 +51,6 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 				{
 					Permissions: []v1alpha1.PermissionSet{
 						{
-							Role:  "role_1_id",
 							Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
 						},
 					},

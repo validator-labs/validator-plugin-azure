@@ -23,15 +23,31 @@ func (m roleAssignmentAPIMock) ListRoleAssignmentsForScope(scope string, filter 
 }
 
 type roleDefinitionAPIMock struct {
-	data *armauthorization.Permission
+	// key = roleDefinitionID
+	data map[string]*armauthorization.Permission
 	err  error
 }
 
-func (m roleDefinitionAPIMock) GetPermissionDataForRoleDefinition(roleDefinitionID, scope string) (*armauthorization.Permission, error) {
-	return m.data, m.err
+func (m roleDefinitionAPIMock) GetPermissionDataForRoleDefinition(roleDefinitionID, _ string) (*armauthorization.Permission, error) {
+	return m.data[roleDefinitionID], m.err
 }
 
 func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
+	// Used for test cases where we need to simulate Azure having no role definitions (without
+	// causing nil pointer errors).
+	// noRoleDefinitions := roleDefinitionAPIMock{
+	// 	data: &armauthorization.Permission{
+	// 		Actions:        []*string{},
+	// 		DataActions:    []*string{},
+	// 		NotActions:     []*string{},
+	// 		NotDataActions: []*string{},
+	// 	},
+	// 	err: nil,
+	// }
+
+	// Example scopes taken from:
+	// https://learn.microsoft.com/en-us/azure/role-based-access-control/scope-overview
+	subscriptionScope := "/subscriptions/00000000-0000-0000-0000-000000000000"
 
 	type testCase struct {
 		name           string
@@ -42,41 +58,28 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		expectedResult vapitypes.ValidationResult
 	}
 
+	// The tests for the rbac_permissions.go cover whether the Actions and NotActions are processed
+	// correctly, regardless of how many roles provide them, so these test cases just need to test:
+	//
+	//   - That this part of the algorithm feeds multiple role assignments, if they're available,
+	//     into the other part.
+	//   - How we form the ValidationResult CR when validation passes or fails (error messages etc).
+	//
+	// Notably, we are *not* testing that specified scopes correctly match role assignments that
+	// have overly broad scope (e.g. subscripton scope, permitting actions on resource groups)
+	// because that's not our logic, that's Azure's logic. Our tests provide mock role assignment
+	// results like how Azure provides them right now.
+
 	cs := []testCase{
-		// Example scopes taken from:
-		// https://learn.microsoft.com/en-us/azure/role-based-access-control/scope-overview
-
-		// Test cases without actions or data actions specified, just roles.
+		// All required permissions provided
 		{
-			name: "Fail (missing role assignment)",
-			rule: v1alpha1.RBACRule{
-				PrincipalID: "p_id",
-				Permissions: []v1alpha1.PermissionSet{
-					{
-						Role:  "role_1_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
-					},
-				},
-			},
-			expectedResult: vapitypes.ValidationResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
-					Message:        "Principal lacks required Azure RBAC permissions. See failures for details.",
-					Details:        []string{},
-					Failures:       []string{"Principal missing role role_1_id"},
-					Status:         corev1.ConditionFalse,
-				},
-				State: ptr.Ptr(vapi.ValidationFailed),
-			},
-		},
-		{
-			name: "Pass (one permission set in rule, role from permission set present)",
+			name: "Pass (all required actions and data actions provided by role assignments)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Role:  "role_1_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
+						Actions:     []string{"a/b/c/d"},
+						DataActions: []string{"e/f/g/h"},
+						Scope:       subscriptionScope,
 					},
 				},
 				PrincipalID: "p_id",
@@ -85,33 +88,44 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("role_id"),
 						},
 					},
 				},
+				err: nil,
 			},
+			rdAPIMock: roleDefinitionAPIMock{
+				data: map[string]*armauthorization.Permission{
+					"role_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d")},
+						DataActions:    []*string{ptr.Ptr("e/f/g/h")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+				},
+				err: nil,
+			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
+					Message:        "Principal has role assignments that provide all required permissions.",
 					Details:        []string{},
+					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
 				},
 				State: ptr.Ptr(vapi.ValidationSucceeded),
 			},
 		},
 		{
-			name: "Pass (two permission sets in rule, both roles from permission sets)",
+			name: "Pass (all required actions and data actions provided by two role assignments)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Role:  "role_1_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
-					},
-					{
-						Role:  "role_2_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
+						Actions:     []string{"a/b/c/d", "aa/bb/cc/dd"},
+						DataActions: []string{"e/f/g/h", "ee/ff/gg/hh"},
+						Scope:       subscriptionScope,
 					},
 				},
 				PrincipalID: "p_id",
@@ -120,34 +134,55 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("role_1_id"),
 						},
 					},
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_2_id"),
+							RoleDefinitionID: ptr.Ptr("role_2_id"),
 						},
 					},
 				},
+				err: nil,
 			},
+			rdAPIMock: roleDefinitionAPIMock{
+				data: map[string]*armauthorization.Permission{
+					"role_1_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d")},
+						DataActions:    []*string{ptr.Ptr("e/f/g/h")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+					"role_2_id": {
+						Actions:        []*string{ptr.Ptr("aa/bb/cc/dd")},
+						DataActions:    []*string{ptr.Ptr("ee/ff/gg/hh")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+				},
+				err: nil,
+			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
+					Message:        "Principal has role assignments that provide all required permissions.",
 					Details:        []string{},
+					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
 				},
 				State: ptr.Ptr(vapi.ValidationSucceeded),
 			},
 		},
 		{
-			name: "Pass (one permission set in rule, role from permission set present, resource group scope)",
+			name: "Pass (all required actions and data actions provided by two role assignments, with redundant role assignments)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Role:  "role_1_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+						Actions:     []string{"a/b/c/d", "aa/bb/cc/dd"},
+						DataActions: []string{"e/f/g/h", "ee/ff/gg/hh"},
+						Scope:       subscriptionScope,
 					},
 				},
 				PrincipalID: "p_id",
@@ -156,95 +191,56 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("role_1_id"),
 						},
 					},
-				},
-			},
-			expectedResult: vapitypes.ValidationResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
-					Details:        []string{},
-					Status:         corev1.ConditionTrue,
-				},
-				State: ptr.Ptr(vapi.ValidationSucceeded),
-			},
-		},
-		{
-			name: "Pass (one permission set in rule, role from permission set present, management group scope)",
-			rule: v1alpha1.RBACRule{
-				Permissions: []v1alpha1.PermissionSet{
-					{
-						Role:  "role_1_id",
-						Scope: "/providers/Microsoft.Management/managementGroups/marketing-group",
-					},
-				},
-				PrincipalID: "p_id",
-			},
-			raAPIMock: roleAssignmentAPIMock{
-				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("role_2_id"),
 						},
 					},
 				},
+				err: nil,
 			},
+			rdAPIMock: roleDefinitionAPIMock{
+				data: map[string]*armauthorization.Permission{
+					"role_1_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d")},
+						DataActions:    []*string{ptr.Ptr("e/f/g/h")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+					"role_2_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d"), ptr.Ptr("aa/bb/cc/dd")},
+						DataActions:    []*string{ptr.Ptr("e/f/g/h"), ptr.Ptr("ee/ff/gg/hh")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+				},
+				err: nil,
+			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
+					Message:        "Principal has role assignments that provide all required permissions.",
 					Details:        []string{},
-					Status:         corev1.ConditionTrue,
-				},
-				State: ptr.Ptr(vapi.ValidationSucceeded),
-			},
-		},
-		{
-			name: "Pass (one permission set in rule, role from permission set present, resource scope)",
-			rule: v1alpha1.RBACRule{
-				Permissions: []v1alpha1.PermissionSet{
-					{
-						Role:  "role_1_id",
-						Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg/providers/Microsoft.Storage/storageAccounts/azurestorage12345/blobServices/default/containers/blob-container-01",
-					},
-				},
-				PrincipalID: "p_id",
-			},
-			raAPIMock: roleAssignmentAPIMock{
-				data: []*armauthorization.RoleAssignment{
-					{
-						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
-						},
-					},
-				},
-			},
-			expectedResult: vapitypes.ValidationResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
-					Details:        []string{},
+					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
 				},
 				State: ptr.Ptr(vapi.ValidationSucceeded),
 			},
 		},
 
-		// Test cases with roles with actions and data actions specified, testing action (aka
-		// permission) validation too.
+		// All required permissions not provided
 		{
-			name: "Fail (one permission set in rule, role from permission set present, role lacks specified actions)",
+			name: "Fail (no required actions provided by role assignments)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{"Pa/ra/sra/aa"},
+						Actions:     []string{"a/b/c/d"},
 						DataActions: []string{},
-						Role:        "role_1_id",
 						Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000",
 					},
 				},
@@ -254,27 +250,31 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("/role_id"),
 						},
 					},
 				},
 			},
 			rdAPIMock: roleDefinitionAPIMock{
-				data: &armauthorization.Permission{
-					Actions:        []*string{},
-					NotActions:     []*string{},
-					DataActions:    []*string{},
-					NotDataActions: []*string{},
+				data: map[string]*armauthorization.Permission{
+					"role_id": {
+						Actions:        []*string{},
+						DataActions:    []*string{},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
 				},
+				err: nil,
 			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal lacks required Azure RBAC permissions. See failures for details.",
+					Message:        "Principal lacks required permissions. See failures for details.",
 					Details:        []string{},
 					Failures: []string{
-						"Specified Action Pa/ra/sra/aa missing from role's current Actions.",
+						"Specified Action a/b/c/d missing from principal because no role assignment provides it.",
 					},
 					Status: corev1.ConditionFalse,
 				},
@@ -282,13 +282,12 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			},
 		},
 		{
-			name: "Fail (one permission set in rule, role from permission set present, role lacks specified data actions)",
+			name: "Fail (no required actions provided by role assignments, role assignments have the actions and data actions flipped around)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{},
-						DataActions: []string{"Pd/rd/srd/ad"},
-						Role:        "role_1_id",
+						Actions:     []string{"a/b/c/d"},
+						DataActions: []string{"e/f/g/h"},
 						Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000",
 					},
 				},
@@ -298,27 +297,80 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("/role_id"),
 						},
 					},
 				},
 			},
 			rdAPIMock: roleDefinitionAPIMock{
-				data: &armauthorization.Permission{
-					Actions:        []*string{},
-					NotActions:     []*string{},
-					DataActions:    []*string{},
-					NotDataActions: []*string{},
+				data: map[string]*armauthorization.Permission{
+					"role_id": {
+						Actions:        []*string{ptr.Ptr("e/f/g/h")},
+						DataActions:    []*string{ptr.Ptr("a/b/c/d")},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
 				},
+				err: nil,
 			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal lacks required Azure RBAC permissions. See failures for details.",
+					Message:        "Principal lacks required permissions. See failures for details.",
 					Details:        []string{},
 					Failures: []string{
-						"Specified DataAction Pd/rd/srd/ad missing from role's current DataActions.",
+						"Specified Action a/b/c/d missing from principal because no role assignment provides it.",
+						"Specified DataAction e/f/g/h missing from principal because no role assignment provides it.",
+					},
+					Status: corev1.ConditionFalse,
+				},
+				State: ptr.Ptr(vapi.ValidationFailed),
+			},
+		},
+
+		// Some required permissions provided
+		{
+			name: "Fail (some required actions provided by role assignments but not all)",
+			rule: v1alpha1.RBACRule{
+				Permissions: []v1alpha1.PermissionSet{
+					{
+						Actions:     []string{"a/b/c/d", "aa/bb/cc/dd"},
+						DataActions: []string{},
+						Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000",
+					},
+				},
+				PrincipalID: "p_id",
+			},
+			raAPIMock: roleAssignmentAPIMock{
+				data: []*armauthorization.RoleAssignment{
+					{
+						Properties: &armauthorization.RoleAssignmentProperties{
+							RoleDefinitionID: ptr.Ptr("/role_id"),
+						},
+					},
+				},
+			},
+			rdAPIMock: roleDefinitionAPIMock{
+				data: map[string]*armauthorization.Permission{
+					"role_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d")},
+						DataActions:    []*string{},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
+				},
+			},
+			expectedError: nil,
+			expectedResult: vapitypes.ValidationResult{
+				Condition: &vapi.ValidationCondition{
+					ValidationType: "azure-rbac",
+					ValidationRule: "validation-p_id",
+					Message:        "Principal lacks required permissions. See failures for details.",
+					Details:        []string{},
+					Failures: []string{
+						"Specified Action aa/bb/cc/dd missing from principal because no role assignment provides it.",
 					},
 					Status: corev1.ConditionFalse,
 				},
@@ -326,13 +378,12 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			},
 		},
 		{
-			name: "Pass (one permission set in rule, role from permission set present, role has specified actions and data actions, no not actions or not data actions)",
+			name: "Fail (required actions provided by role assignments but not required data actions)",
 			rule: v1alpha1.RBACRule{
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{"Pa/ra/sra/aa"},
-						DataActions: []string{"Pd/rd/srd/ad"},
-						Role:        "role_1_id",
+						Actions:     []string{"a/b/c/d"},
+						DataActions: []string{"e/f/g/h"},
 						Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000",
 					},
 				},
@@ -342,69 +393,31 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
+							RoleDefinitionID: ptr.Ptr("/role_id"),
 						},
 					},
 				},
 			},
 			rdAPIMock: roleDefinitionAPIMock{
-				data: &armauthorization.Permission{
-					Actions:        []*string{ptr.Ptr("Pa/ra/sra/aa")},
-					NotActions:     []*string{},
-					DataActions:    []*string{ptr.Ptr("Pd/rd/srd/ad")},
-					NotDataActions: []*string{},
+				data: map[string]*armauthorization.Permission{
+					"role_id": {
+						Actions:        []*string{ptr.Ptr("a/b/c/d")},
+						DataActions:    []*string{},
+						NotActions:     []*string{},
+						NotDataActions: []*string{},
+					},
 				},
+				err: nil,
 			},
+			expectedError: nil,
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-p_id",
-					Message:        "Principal has all required roles and all roles have required permissions.",
-					Details:        []string{},
-					Status:         corev1.ConditionTrue,
-				},
-				State: ptr.Ptr(vapi.ValidationSucceeded),
-			},
-		},
-		{
-			name: "Fail (one permission set in rule, role from permission set present, role has specified actions and data actions, also specified as not actions and not data actions)",
-			rule: v1alpha1.RBACRule{
-				Permissions: []v1alpha1.PermissionSet{
-					{
-						Actions:     []string{"Pa/ra/sra/aa"},
-						DataActions: []string{"Pd/rd/srd/ad"},
-						Role:        "role_1_id",
-						Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000",
-					},
-				},
-				PrincipalID: "p_id",
-			},
-			raAPIMock: roleAssignmentAPIMock{
-				data: []*armauthorization.RoleAssignment{
-					{
-						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("/role_1_id"),
-						},
-					},
-				},
-			},
-			rdAPIMock: roleDefinitionAPIMock{
-				data: &armauthorization.Permission{
-					Actions:        []*string{ptr.Ptr("Pa/ra/sra/aa")},
-					NotActions:     []*string{ptr.Ptr("Pa/ra/sra/aa")},
-					DataActions:    []*string{ptr.Ptr("Pd/rd/srd/ad")},
-					NotDataActions: []*string{ptr.Ptr("Pd/rd/srd/ad")},
-				},
-			},
-			expectedResult: vapitypes.ValidationResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
-					Message:        "Principal lacks required Azure RBAC permissions. See failures for details.",
+					Message:        "Principal lacks required permissions. See failures for details.",
 					Details:        []string{},
 					Failures: []string{
-						"Specified Action Pa/ra/sra/aa denied by Action Pa/ra/sra/aa in role's current NotActions.",
-						"Specified DataAction Pd/rd/srd/ad denied by Action Pd/rd/srd/ad in role's current NotDataActions.",
+						"Specified DataAction e/f/g/h missing from principal because no role assignment provides it.",
 					},
 					Status: corev1.ConditionFalse,
 				},
