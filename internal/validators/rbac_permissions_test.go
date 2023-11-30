@@ -162,7 +162,8 @@ func Test_processCandidateActions(t *testing.T) {
 			},
 		},
 
-		// Test cases with one candidate action and multiple actions to permit it.
+		// Test cases with one candidate action and multiple actions to permit it. Cases test whether candidate Actions
+		// that should be permitted are, even if the first Action is not enough to permit it.
 		{
 			name: "one candidate action, present in two actions (as first action), no not actions",
 			args: args{
@@ -180,6 +181,33 @@ func Test_processCandidateActions(t *testing.T) {
 				notActions:       []string{},
 			},
 			want: allPermitted,
+		},
+
+		// Test cases with one candidate Action and multiple NotActions to deny them. Cases test whether candidate
+		// Actions that should be denied are, even if the first NotAction is not enough to deny it.
+		{
+			name: "one candidate action, present in actions, present in not actions (as first not action)",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a"},
+				notActions:       []string{"P/r/sr/a", "P/r/sr/b"},
+			},
+			want: result{
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
+			},
+		},
+		{
+			name: "one candidate action, present in actions, present in not actions (as first not action)",
+			args: args{
+				candidateActions: []string{"P/r/sr/a"},
+				actions:          []string{"P/r/sr/a"},
+				notActions:       []string{"P/r/sr/b", "P/r/sr/a"},
+			},
+			want: result{
+				missingFromActions:  []string{},
+				presentInNotActions: map[string]string{"P/r/sr/a": "P/r/sr/a"},
+			},
 		},
 
 		// Test cases with one candidate action, an action with a wildcard that permits it, and
@@ -404,10 +432,19 @@ func Test_processCandidateActions(t *testing.T) {
 
 		// Test cases where there are multiple candidate actions.
 		{
-			name: "two candidate actions, both present in actions, no not actions",
+			name: "two candidate actions, both present in actions (in the same order), no not actions",
 			args: args{
 				candidateActions: []string{"P/r/sr/a", "P/r/sr/b"},
 				actions:          []string{"P/r/sr/a", "P/r/sr/b"},
+				notActions:       []string{},
+			},
+			want: allPermitted,
+		},
+		{
+			name: "two candidate actions, both present in actions (in opposite order), no not actions",
+			args: args{
+				candidateActions: []string{"P/r/sr/a", "P/r/sr/b"},
+				actions:          []string{"P/r/sr/b", "P/r/sr/a"},
 				notActions:       []string{},
 			},
 			want: allPermitted,
