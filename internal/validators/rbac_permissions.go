@@ -70,20 +70,20 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 
 	// First iteration. Determine whether Action should be permitted based on role's current Actions.
 	for _, candidateAction := range candidateActions {
-		match := func(_ string) { delete(actionsUnpermittedBecauseMissing, candidateAction) }
-		processCandidateAction(candidateAction, actions, match)
+		if matched, _ := processCandidateAction(candidateAction, actions); matched {
+			delete(actionsUnpermittedBecauseMissing, candidateAction)
+		}
 	}
 
 	// Second iteration. Determine whether Action should be denied based on role's current NotActions.
 	for _, candidateAction := range candidateActions {
-		match := func(notAction string) {
+		if matched, comparedAction := processCandidateAction(candidateAction, notActions); matched {
 			// Only consider this NotAction to be the one that denies the candidate Action if it has not already been
 			// denied by a NotAction.
 			if _, ok := actionsDenied[candidateAction]; !ok {
-				actionsDenied[candidateAction] = notAction
+				actionsDenied[candidateAction] = comparedAction
 			}
 		}
-		processCandidateAction(candidateAction, notActions, match)
 	}
 
 	return result{
@@ -97,14 +97,16 @@ func processCandidateActions(candidateActions, actions, notActions []string) (re
 // actions). The logic for looking for wildcards, prefixes, suffixes, etc is the same for each
 // compared list of actions.
 //
-// match is code to run when there is a match.
-func processCandidateAction(candidateAction string, comparedActions []string, match func(comparedAction string)) {
+// Returns true if there was a match during the algorithm and false if there wasn't. The calling
+// code knows what to do based on what was returned. Also returns the Action that the candidate
+// Action is being compared to when there is a match.
+func processCandidateAction(candidateAction string, comparedActions []string) (bool, string) {
 	for _, comparedAction := range comparedActions {
 		if !hasWildcard(comparedAction) {
 			// If allowed action has no wildcard, candidate action must be equal to it exactly
 			// in order for the candidate action to be permitted.
 			if candidateAction == comparedAction {
-				match(comparedAction)
+				return true, comparedAction
 			}
 			// Whether the action permitted the candidate action because it was equal to it or
 			// it didn't, we can move on to the next action, because if it has no wildcard, it
@@ -114,8 +116,7 @@ func processCandidateAction(candidateAction string, comparedActions []string, ma
 
 		// Special case for when string is just a single char - the wildcard.
 		if comparedAction == wildcard {
-			match(comparedAction)
-			continue
+			return true, comparedAction
 		}
 
 		// If allowed action string has a wildcard, candidate action must match when we take
@@ -128,8 +129,7 @@ func processCandidateAction(candidateAction string, comparedActions []string, ma
 			// candidate action, permit the candidate action.
 			actionSuffix := strings.TrimPrefix(comparedAction, wildcard)
 			if strings.HasSuffix(candidateAction, actionSuffix) {
-				match(comparedAction)
-				continue
+				return true, comparedAction
 			}
 		}
 
@@ -140,8 +140,7 @@ func processCandidateAction(candidateAction string, comparedActions []string, ma
 			// candidate action, permit the candidate action.
 			actionPrefix := strings.TrimSuffix(comparedAction, wildcard)
 			if strings.HasPrefix(candidateAction, actionPrefix) {
-				match(comparedAction)
-				continue
+				return true, comparedAction
 			}
 		}
 
@@ -153,10 +152,12 @@ func processCandidateAction(candidateAction string, comparedActions []string, ma
 		actionPrefix := splitAction[0]
 		actionSuffix := splitAction[1]
 		if strings.HasPrefix(candidateAction, actionPrefix) && strings.HasSuffix(candidateAction, actionSuffix) {
-			match(comparedAction)
-			continue
+			return true, comparedAction
 		}
 	}
+
+	// Compared action not relevant when there was no match.
+	return false, ""
 }
 
 // numWildcards returns how many wildcards an action string has.
