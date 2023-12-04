@@ -21,7 +21,7 @@ images:
 
 deployments:
   azure-creds-secret:
-    namespace: validator-plugin-azure-system
+    namespace: default # validator-plugin-azure-system
     kubectl:
       manifests:
       - hack/azure-creds-secret.yaml

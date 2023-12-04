@@ -89,12 +89,16 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	// Get all deny assignments and role assignments for specified scope and principal.
 	// Note that in this filter, Azure checks "principalId" to make sure it's a UUID, so we don't
 	// need to escape the principal ID user input from the spec.
-	filter := ptr.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
-	denyAssignments, err := s.daAPI.GetDenyAssignmentsForScope(set.Scope, filter)
+	daFilter := ptr.Ptr(fmt.Sprintf("principalId eq '%s'", principalID))
+	denyAssignments, err := s.daAPI.GetDenyAssignmentsForScope(set.Scope, daFilter)
 	if err != nil {
 		return fmt.Errorf("failed to get deny assignments: %w", err)
 	}
-	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, filter)
+	// Note that Azure's Go SDK for their API has a bug where it doesn't escape the filter string
+	// for the role assignments call we do here, so we manually escape it ourselves.
+	// https://github.com/Azure/azure-sdk-for-go/issues/20847
+	raFilter := ptr.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
+	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, raFilter)
 	if err != nil {
 		return fmt.Errorf("failed to get role assignments: %w", err)
 	}
