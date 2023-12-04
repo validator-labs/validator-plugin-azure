@@ -12,3 +12,16 @@ func DeDupeStrSlice(ss []string) []string {
 	}
 	return l
 }
+
+// Contains returns whether a string is contained within a slice of string pointers, with respect to
+// equality (not identity).
+//   - s: The candidate slice of string pointers. Nil values allowed.
+//   - c: The candidate string.
+func ContainsPtrToEqlTo(strPtrs []*string, c string) bool {
+	for _, strPtr := range strPtrs {
+		if strPtr != nil && *strPtr == c {
+			return true
+		}
+	}
+	return false
+}

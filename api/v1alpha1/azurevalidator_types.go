@@ -22,13 +22,30 @@ import (
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	Auth AzureAuth `json:"auth"`
-	// Rules for validating role assignments in Azure RBAC.
-	RoleAssignmentRules []RoleAssignmentRule `json:"roleAssignmentRules"`
+	// Rules for validating that the correct role assignments have been created in Azure RBAC to
+	// provide needed permissions.
+	RBACRules []RBACRule `json:"rbacRules"`
+	Auth      AzureAuth  `json:"auth"`
 }
 
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RoleAssignmentRules)
+	return len(s.RBACRules)
+}
+
+// Conveys that a specified security principal (aka principal) should have the specified
+// permissions, via roles. It doesn't matter which roles provide the permissions as long as enough
+// role assignments exist that the principal has all of the permissions and no deny assignments
+// exist that deny the permissions.
+type RBACRule struct {
+	// The permissions that the principal must have. If the principal has permissions less than
+	// this, validation will fail. If the principal has permissions equal to or more than this
+	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
+	// will pass.
+	//+kubebuilder:validation:MinItems=1
+	Permissions []PermissionSet `json:"permissionSets"`
+	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
+	// Group, ServicePrincipal, or User.
+	PrincipalID string `json:"principalId"`
 }
 
 type AzureAuth struct {
@@ -41,26 +58,22 @@ type AzureAuth struct {
 	SecretName string `json:"secretName,omitempty"`
 }
 
-// RoleAssignmentRule is a rule that validates that one or more desired role assignments exist
-// within a subscription. For each role assignment, the role is specified as its role name (e.g.
-// "Contributor") or its name (e.g. "b24988ac-6180-42a0-ab88-20f7382dd24c" for Contributor). If the
-// role name is specified, the validator takes care of looking up the name automatically.
-type RoleAssignmentRule struct {
-	Roles              []Role `json:"roles"`
-	ServicePrincipalID string `json:"servicePrincipalId"`
-	SubscriptionID     string `json:"subscriptionId"`
-}
-
-// Role allow users to specify either a role's role name (e.g. "Contributor") or a role's name (e.g.
-// "b24988ac-6180-42a0-ab88-20f7382dd24c"), which is the name of the role with the role name
-// "Contributor". This allows role assignments with custom roles to be validated too, not just
-// built-in roles.
-//
-// If role is specified, it is used. If role is not specified but role name is specified, role name
-// is used. If neither are specified, it is a misconfiguration and validation will fail.
-type Role struct {
-	Name     *string `json:"name,omitempty"`
-	RoleName *string `json:"roleName,omitempty"`
+// Conveys that the security principal should be the member of a role assignment that provides the
+// specified role for the specified scope. Scope can be either subscription, resource group, or
+// resource.
+type PermissionSet struct {
+	// If provided, the actions that the role must be able to perform. Must not contain any
+	// wildcards. If not specified, the role is assumed to already be able to perform all required
+	// actions.
+	Actions []string `json:"actions,omitempty"`
+	// If provided, the data actions that the role must be able to perform. Must not contain any
+	// wildcards. If not provided, the role is assumed to already be able to perform all required
+	// data actions.
+	DataActions []string `json:"dataActions,omitempty"`
+	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
+	// this. For example, a role assignment found with subscription scope will satisfy a permission
+	// set where the role scope specified is a resource group within that subscription.
+	Scope string `json:"scope"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator
