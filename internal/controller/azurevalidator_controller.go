@@ -41,7 +41,7 @@ import (
 	vres "github.com/spectrocloud-labs/validator/pkg/validationresult"
 )
 
-var SecretNameRequiredError = errors.New("auth.secretName is required")
+var ErrSecretNameRequired = errors.New("auth.secretName is required")
 
 // AzureValidatorReconciler reconciles an AzureValidator object
 type AzureValidatorReconciler struct {
@@ -69,8 +69,8 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Configure Azure environment variable credentials from a secret, if applicable
 	if !validator.Spec.Auth.Implicit {
 		if validator.Spec.Auth.SecretName == "" {
-			r.Log.Error(SecretNameRequiredError, "failed to reconcile AzureValidator with empty auth.secretName", "key", req)
-			return ctrl.Result{}, SecretNameRequiredError
+			r.Log.Error(ErrSecretNameRequired, "failed to reconcile AzureValidator with empty auth.secretName", "key", req)
+			return ctrl.Result{}, ErrSecretNameRequired
 		}
 		if err := r.envFromSecret(validator.Spec.Auth.SecretName, req.Namespace); err != nil {
 			r.Log.Error(err, "failed to configure environment from secret")
@@ -99,11 +99,12 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if err != nil {
 		r.Log.V(0).Error(err, "failed to create Azure API object: %w", err)
 	} else {
+		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureAPI.DenyAssignments)
 		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureAPI.RoleAssignments)
 		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureAPI.RoleDefinitions)
 
 		// RBAC rules
-		svc := validators.NewRBACRuleService(r.Log, raClient, rdClient)
+		svc := validators.NewRBACRuleService(r.Log, daClient, raClient, rdClient)
 		for _, rule := range validator.Spec.RBACRules {
 			validationResult, err := svc.ReconcileRBACRule(rule)
 			if err != nil {

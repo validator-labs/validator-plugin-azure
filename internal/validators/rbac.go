@@ -8,39 +8,42 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
-	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
 	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
-	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
 )
 
-// roleAssignmentAPI contains methods that allow getting all role assignments for a scope.
-//
-// Note that this is the API of our Azure client facade, not a real Azure client.
+// denyAssignmentAPI contains methods that allow getting all deny assignments for a scope and
+// optional filter.
+type denyAssignmentAPI interface {
+	GetDenyAssignmentsForScope(scope string, filter *string) ([]*armauthorization.DenyAssignment, error)
+}
+
+// roleAssignmentAPI contains methods that allow getting all role assignments for a scope and
+// optional filter.
 type roleAssignmentAPI interface {
-	ListRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error)
+	GetRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error)
 }
 
 // roleDefinitionAPI contains methods that allow getting all the information we need for an existing
 // role definition.
-//
-// Note that this is the API of our Azure client facade, not a real Azure client.
 type roleDefinitionAPI interface {
-	GetPermissionDataForRoleDefinition(roleDefinitionID, scope string) (*armauthorization.Permission, error)
+	GetByID(roleID string) (*armauthorization.RoleDefinition, error)
 }
 
 type RBACRuleService struct {
 	log   logr.Logger
+	daAPI denyAssignmentAPI
 	raAPI roleAssignmentAPI
 	rdAPI roleDefinitionAPI
 }
 
-func NewRBACRuleService(log logr.Logger, raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
+func NewRBACRuleService(log logr.Logger, daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
 	return &RBACRuleService{
 		log:   log,
+		daAPI: daAPI,
 		raAPI: raAPI,
 		rdAPI: rdAPI,
 	}
@@ -53,7 +56,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
-	latestCondition.Message = "Principal has role assignments that provide all required permissions."
+	latestCondition.Message = "Principal has all required permissions."
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.PrincipalID)
 	latestCondition.ValidationType = constants.ValidationTypeRBAC
 	validationResult := &vapitypes.ValidationResult{Condition: &latestCondition, State: &state}
@@ -83,123 +86,58 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		return nil
 	}
 
-	// Get all role assignments that apply to the specified scope where the member of the role
-	// assignment is the specified principal. In this query, "principalId" must be a UUID, so this
-	// shouldn't have any injection vulnerabilities.
-	//
-	// Note that this also returns role assignments that assign the role because the scope is a
-	// surrounding scope (e.g. the subscription the scope is contained within), not just the scope
-	// itself. That's okay. We want to consider a validator to be valid if it has too many
-	// permissions. It should only fail if it has too few permissions.
+	// Get all deny assignments and role assignments for specified scope and principal.
+	// Note that in this filter, Azure checks "principalId" to make sure it's a UUID, so we don't
+	// need to escape the principal ID user input from the spec.
 	filter := ptr.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
-	roleAssignments, err := s.raAPI.ListRoleAssignmentsForScope(set.Scope, filter)
+	denyAssignments, err := s.daAPI.GetDenyAssignmentsForScope(set.Scope, filter)
+	if err != nil {
+		return fmt.Errorf("failed to get deny assignments: %w", err)
+	}
+	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, filter)
 	if err != nil {
 		return fmt.Errorf("failed to get role assignments: %w", err)
 	}
 
-	// For each role assignment found, get the permissions data from its role definition.
-	allPermissionsData := make([]*armauthorization.Permission, 0)
+	// For each role assignment found, get its role definition, because that's what we actually need
+	// to do validation. We need to know which Actions and DataActions the role permits.
+	roleDefinitions := []*armauthorization.RoleDefinition{}
 	for _, ra := range roleAssignments {
-		// Note that Azure calls both the fully-qualified ID from the role assignment and the short
-		// ID in the role definition a "role definition ID".
-		if ra == nil || ra.Properties == nil || ra.Properties.RoleDefinitionID == nil {
-			return fmt.Errorf("invalid data from Azure API (role definition ID property nil)")
+		if ra.Properties == nil {
+			return fmt.Errorf("role assignment properties nil")
 		}
-		roleDefinitionIDForQuery := azure_utils.RoleNameFromRoleDefinitionID(*ra.Properties.RoleDefinitionID)
-		permissions, err := s.rdAPI.GetPermissionDataForRoleDefinition(roleDefinitionIDForQuery, set.Scope)
+		if ra.Properties.RoleDefinitionID == nil {
+			return fmt.Errorf("role assignment properties role definition ID nil")
+		}
+		rdID := *ra.Properties.RoleDefinitionID
+		// Note that, in Azure, in the role assignments API, the value is called "role definition
+		// ID", but in the role definitions API, it is called "role ID".
+		roleDefinition, err := s.rdAPI.GetByID(rdID)
 		if err != nil {
-			return fmt.Errorf("failed to get permissions data for role definition: %w", err)
+			return fmt.Errorf("failed to get role definition using role definition ID of role assignment: %w", err)
 		}
-		if permissions == nil {
-			return fmt.Errorf("invalid data from Azure API (permissions data nil)")
-		}
-		allPermissionsData = append(allPermissionsData, permissions)
+		roleDefinitions = append(roleDefinitions, roleDefinition)
 	}
 
-	// Combine all permissions together.
-	principalActionsMap := make(map[string]bool, 0)
-	principalNotActionsMap := make(map[string]bool, 0)
-	principalDataActionsMap := make(map[string]bool, 0)
-	principalNotDataActionsMap := make(map[string]bool, 0)
-	for _, p := range allPermissionsData {
-		if p.Actions == nil {
-			return fmt.Errorf("invalid data from Azure API (Actions nil)")
-		}
-		for _, a := range p.Actions {
-			if a == nil {
-				return fmt.Errorf("invalid data from Azure API (Action nil)")
-			}
-			principalActionsMap[*a] = true
-		}
-		if p.NotActions == nil {
-			return fmt.Errorf("invalid data from Azure API (NotActions nil)")
-		}
-		for _, na := range p.NotActions {
-			if na == nil {
-				return fmt.Errorf("invalid data from Azure API (NotAction nil)")
-			}
-			principalNotActionsMap[*na] = true
-		}
-		if p.DataActions == nil {
-			return fmt.Errorf("invalid data from Azure API (DataActions nil)")
-		}
-		for _, da := range p.DataActions {
-			if da == nil {
-				return fmt.Errorf("invalid data from Azure API (DataAction nil)")
-			}
-			principalDataActionsMap[*da] = true
-		}
-		if p.NotDataActions == nil {
-			return fmt.Errorf("invalid data from Azure API (NotDataActions nil)")
-		}
-		for _, nda := range p.NotDataActions {
-			if nda == nil {
-				return fmt.Errorf("invalid data from Azure API (NotDataAction nil)")
-			}
-			principalNotDataActionsMap[*nda] = true
-		}
+	// Get the results and append failure messages if needed.
+	result, err := processAllCandidateActions(set.Actions, set.DataActions, denyAssignments, roleDefinitions)
+	if err != nil {
+		return fmt.Errorf("failed to determine which candidate Actions and DataActions were denied and/or unpermitted: %w", err)
+	}
+	for denied, by := range result.actions.denied {
+		*failures = append(*failures, fmt.Sprintf("Action %s denied by deny assignment %s.", denied, by))
+	}
+	for _, unpermitted := range result.actions.unpermitted {
+		*failures = append(*failures, fmt.Sprintf("Action %s unpermitted because no role assignment permits it.", unpermitted))
+	}
+	for denied, by := range result.dataActions.denied {
+		*failures = append(*failures, fmt.Sprintf("DataAction %s denied by deny assignment %s.", denied, by))
+	}
+	for _, unpermitted := range result.dataActions.unpermitted {
+		*failures = append(*failures, fmt.Sprintf("DataAction %s unpermitted because no role assignment permits it.", unpermitted))
 	}
 
-	// Permission data is divided into "actions" and "data actions". We need to deal with both, but
-	// actions don't relate to data actions and vice versa.
-
-	// Only process the Actions and NotActions data from the Azure API if the permission set
-	// specified required Actions.
-	if len(set.Actions) > 0 {
-		actions := maps.Keys(principalActionsMap)
-		notActions := maps.Keys(principalNotActionsMap)
-		if result, err := processCandidateActions(set.Actions, actions, notActions); err != nil {
-			return fmt.Errorf("failed to validate specified Actions for role: %w", err)
-		} else {
-			for _, missingAction := range result.missingFromActions {
-				*failures = append(*failures, fmt.Sprintf("Specified Action %s missing from principal because no role assignment provides it.", missingAction))
-			}
-			for candidateAction, denyingAction := range result.presentInNotActions {
-				// TODO: See if we can improve this in a future version. It would be helpful for the
-				// user if they could see, in the failure message, which role assignment denied the
-				// required Action they specified instead of only being able to see that some role
-				// assignment denied it.
-				*failures = append(*failures, fmt.Sprintf("Specified Action %s denied by NotAction %s in one of principal's role assignments.", candidateAction, denyingAction))
-			}
-		}
-	}
-
-	// Only process the DataActions and NotDataActions data from the Azure API if the permission set
-	// specified required DataActions.
-	if len(set.DataActions) > 0 {
-		actions := maps.Keys(principalDataActionsMap)
-		notActions := maps.Keys(principalNotDataActionsMap)
-		if result, err := processCandidateActions(set.DataActions, actions, notActions); err != nil {
-			return fmt.Errorf("failed to validate specified DataActions for role: %w", err)
-		} else {
-			for _, missingAction := range result.missingFromActions {
-				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s missing from principal because no role assignment provides it.", missingAction))
-			}
-			for candidateAction, denyingAction := range result.presentInNotActions {
-				*failures = append(*failures, fmt.Sprintf("Specified DataAction %s denied by NotDataAction %s in one of principal's role assignments.", candidateAction, denyingAction))
-			}
-		}
-	}
-
+	// The `failures` slice will have been changed appropriately by here. Calling code will handle
+	// this appropriately.
 	return nil
 }

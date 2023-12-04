@@ -92,7 +92,7 @@ spec:
                               found at higher level scopes will satisfy this. For
                               example, a role assignment found with subscription scope
                               will satisfy a permission set where the role scope specified
-                              is a resource group within that subscrption.
+                              is a resource group within that subscription.
                             type: string
                         required:
                         - scope

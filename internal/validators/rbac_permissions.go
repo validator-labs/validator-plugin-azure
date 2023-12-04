@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	map_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/maps"
 	"golang.org/x/exp/maps"
 )
@@ -12,101 +13,340 @@ const (
 	wildcard = "*"
 )
 
-// result summarizes data about how many actions were not permitted by a role's configuration.
-type result struct {
-	// The Actions missing from the role's Actions.
-	missingFromActions []string
-	// The Actions present in the role's Not Actions (keys) and the NotActions that denied them (values).
-	presentInNotActions map[string]string
+// deniedAndUnpermitted is data about which candidate actions were denied because a deny assignment
+// denied them and which were unpermitted because no role assignment permitted them.
+type deniedAndUnpermitted struct {
+	// denied are the candidate Actions that were denied by a deny assignment and the name of the
+	// deny assignment that denied them.
+	denied map[string]string
+	// unpermitted are the candidate Actions that weren't permitted because no role assignment
+	// permitted them.
+	unpermitted []string
 }
 
-// processCandidateActions returns whether a list of Azure RBAC actions should be permitted based on
-// a list of "actions" and "not actions" for a role definition, where actions are actions that the
-// role definition explicitly permits and not actions are actions that the role definition explicitly
-// denies, even if they would have been permitted based on the actions (not actions override
-// actions). This works for both pairs of Actions and NotActions and pairs of DataActions and
-// NotDataActions.
-//
-// Wildcards are taken into account, but only for the actions and not actions, with one wildcard
-// permitted in the action or not action. Any more than that are invalid. Also, candidate actions do
-// not support any wildcards. The args will be considered invalid and an error will be returned if
-// these wildcard rules are not followed.
-func processCandidateActions(candidateActions, actions, notActions []string) (result, error) {
+// result is the data about which Actions and DataActions were denied and unpermitted.
+type result struct {
+	actions     deniedAndUnpermitted
+	dataActions deniedAndUnpermitted
+}
 
-	// Begin by assuming every specified Actions will be unpermitted, and that they will be unpermitted because they
-	// aren't included in the role's Actions.
-	actionsUnpermittedBecauseMissing := map_utils.FromKeys(candidateActions, true)
-	// Also begin by assuming no specified Actions will be unpermitted because of being included in the role's
-	// NotActions. Key is the specified Action, value is the NotAction that denied it.
-	actionsDenied := map[string]string{}
+// denyAssignmentInfo is a container for permission data from the Azure API response that we've
+// validated as non-nil. Used for both control Actions and DataActions. Important to use instead of
+// slices of strings because it lets us tie NotActions to the Actions they subtract from on a per
+// role basis. Unlike roleInfo below, this lets us retain deny assignment ID (the fully-qualified ID
+// where it's a path with the scope on the left and the name of the deny assignment on the right)
+// too so that we can report the names of deny assignments that deny candidate Actions or
+// DataActions to the user.
+type denyAssignmentInfo struct {
+	actions    []string
+	notActions []string
+	id         string
+}
 
-	// Validate specified candidate Actions, Action data, and NotAction data.
-	for _, ca := range candidateActions {
-		if len(ca) == 0 {
-			return result{}, fmt.Errorf("invalid candidate Action or DataAction in specified permissions, is empty string")
-		}
-		if numWildcards(ca) > 0 {
-			return result{}, fmt.Errorf("invalid candidate Action or DataAction in specified permissions, has one or more wildcards")
-		}
+// roleInfo is a container for permission data from the Azure API response that we've validated as
+// non-nil. Used for both control Actions and DataActions. Important to use instead of slices of
+// strings because it lets us tie NotActions to the Actions they subtract from on a per role basis.
+type roleInfo struct {
+	actions    []string
+	notActions []string
+}
+
+// processAllCandidateActions determines, based on a set of deny assignments and roles (associated
+// with role assignments), which required actions and data actions are denied by presence of deny
+// assignment and/or unpermitted by lack of role assignment.
+func processAllCandidateActions(candidateActions, candidateDataActions []string, denyAssignments []*armauthorization.DenyAssignment, roles []*armauthorization.RoleDefinition) (result, error) {
+	errNil := func(subject string) error {
+		return fmt.Errorf("%s nil", subject)
 	}
-	for _, a := range actions {
-		if len(a) == 0 {
-			return result{}, fmt.Errorf("invalid Action or DataAction in current role data, is empty string")
-		}
-		if numWildcards(a) > 1 {
-			return result{}, fmt.Errorf("invalid Action or DataAction in current role data, has multiple  wildcards")
-		}
+	appendStr := func(vals *[]string, val string) {
+		*vals = append(*vals, val)
 	}
-	for _, na := range notActions {
-		if len(na) == 0 {
-			return result{}, fmt.Errorf("invalid NotAction or NotDataAction in current role data, is empty string")
-		}
-		if numWildcards(na) > 1 {
-			return result{}, fmt.Errorf("invalid NotAction or NotDataAction in current role data, has multiple wildcards")
-		}
+	appendDenyInfo := func(vals *[]denyAssignmentInfo, val denyAssignmentInfo) {
+		*vals = append(*vals, val)
+	}
+	appendRoleInfo := func(vals *[]roleInfo, val roleInfo) {
+		*vals = append(*vals, val)
 	}
 
-	// Build a result by performing two iterations over the specified Actions.
-
-	// First iteration. Determine whether Action should be permitted based on role's current Actions.
-	for _, candidateAction := range candidateActions {
-		if matched, _ := processCandidateAction(candidateAction, actions); matched {
-			delete(actionsUnpermittedBecauseMissing, candidateAction)
+	// Validate the candidate Actions and DataActions specified by the user for our algorithm's
+	// constraints. They must not have any wildcards.
+	for _, c := range candidateActions {
+		if numWildcards(c) > 0 {
+			return result{}, fmt.Errorf("candidate Actions must not have wildcards")
 		}
 	}
-
-	// Second iteration. Determine whether Action should be denied based on role's current NotActions.
-	for _, candidateAction := range candidateActions {
-		if matched, comparedAction := processCandidateAction(candidateAction, notActions); matched {
-			actionsDenied[candidateAction] = comparedAction
+	for _, c := range candidateDataActions {
+		if numWildcards(c) > 0 {
+			return result{}, fmt.Errorf("candidate DataActions must not have wildcards")
 		}
 	}
 
+	// Dereference all the data from Azure, while validating it for our algorithm's constraints.
+	// Deny assignments and role assignments that exist in the user's Azure account must have at
+	// most one wildcard each.
+	denyAssignmentInfoControl := []denyAssignmentInfo{}
+	denyAssignmentInfoData := []denyAssignmentInfo{}
+	roleInfoControl := []roleInfo{}
+	roleInfoData := []roleInfo{}
+	for _, denyAssignment := range denyAssignments {
+		if denyAssignment == nil {
+			return result{}, errNil("deny assignment")
+		}
+		if denyAssignment.ID == nil {
+			return result{}, errNil("deny assignment ID")
+		}
+		denyAssignmentID := *denyAssignment.ID
+		if denyAssignment.Properties == nil {
+			return result{}, errNil("deny assignment properties")
+		}
+		if denyAssignment.Properties.Permissions == nil {
+			return result{}, errNil("deny assignment properties permissions")
+		}
+		permissions := denyAssignment.Properties.Permissions
+		// We can expect there to only be one permissions item in the list of permissions. That's
+		// just how Azure works.
+		if len(permissions) != 1 {
+			return result{}, errNil("deny assignment permissions length not equal to 1")
+		}
+		permission := permissions[0]
+		if permission.Actions == nil {
+			return result{}, errNil("deny assignment Actions")
+		}
+		actions := []string{}
+		for _, ptr := range permission.Actions {
+			if ptr == nil {
+				return result{}, errNil("deny assignment Action")
+			}
+			action := *ptr
+			if numWildcards(action) > 1 {
+				return result{}, fmt.Errorf("deny assignment Action %s has multiple wildcards", action)
+			}
+			appendStr(&actions, action)
+		}
+		if permission.NotActions == nil {
+			return result{}, errNil("deny assignment NotActions")
+		}
+		notActions := []string{}
+		for _, ptr := range permission.NotActions {
+			if ptr == nil {
+				return result{}, errNil("deny assignment NotAction")
+			}
+			notAction := *ptr
+			if numWildcards(notAction) > 1 {
+				return result{}, fmt.Errorf("deny assignment NotAction %s has multiple wildcards", notAction)
+			}
+			appendStr(&notActions, notAction)
+		}
+		appendDenyInfo(&denyAssignmentInfoControl, denyAssignmentInfo{
+			actions:    actions,
+			notActions: notActions,
+			id:         denyAssignmentID,
+		})
+		if permission.DataActions == nil {
+			return result{}, errNil("deny assignment DataActions")
+		}
+		dataActions := []string{}
+		for _, ptr := range permission.DataActions {
+			if ptr == nil {
+				return result{}, errNil("deny assignment DataAction")
+			}
+			dataAction := *ptr
+			if numWildcards(dataAction) > 1 {
+				return result{}, fmt.Errorf("deny assignment DataAction %s has multiple wildcards", dataAction)
+			}
+			appendStr(&dataActions, dataAction)
+		}
+		if permission.NotDataActions == nil {
+			return result{}, errNil("deny assignment NotDataActions")
+		}
+		notDataActions := []string{}
+		for _, ptr := range permission.NotDataActions {
+			if ptr == nil {
+				return result{}, errNil("deny assignment NotDataAction")
+			}
+			notDataAction := *ptr
+			if numWildcards(notDataAction) > 1 {
+				return result{}, fmt.Errorf("deny assignment NotDataAction %s has multiple wildcards", notDataAction)
+			}
+			appendStr(&notDataActions, notDataAction)
+		}
+		appendDenyInfo(&denyAssignmentInfoData, denyAssignmentInfo{
+			actions:    dataActions,
+			notActions: notDataActions,
+			id:         denyAssignmentID,
+		})
+	}
+	for _, role := range roles {
+		if role == nil {
+			return result{}, errNil("role")
+		}
+		if role.Properties == nil {
+			return result{}, errNil("role properties")
+		}
+		if role.Properties.Permissions == nil {
+			return result{}, errNil("role properties permissions")
+		}
+		permissions := role.Properties.Permissions
+		// We can expect there to only be one permissions item in the list of permissions. That's
+		// just how Azure works.
+		if len(permissions) != 1 {
+			return result{}, errNil("role permissions length not equal to 1")
+		}
+		permission := permissions[0]
+		if permission.Actions == nil {
+			return result{}, errNil("role Actions")
+		}
+		actions := []string{}
+		for _, ptr := range permission.Actions {
+			if ptr == nil {
+				return result{}, errNil("role Action")
+			}
+			action := *ptr
+			if numWildcards(action) > 1 {
+				return result{}, fmt.Errorf("role Action %s has multiple wildcards", action)
+			}
+			appendStr(&actions, action)
+		}
+		if permission.NotActions == nil {
+			return result{}, errNil("role NotActions")
+		}
+		notActions := []string{}
+		for _, ptr := range permission.NotActions {
+			if ptr == nil {
+				return result{}, errNil("role NotAction")
+			}
+			notAction := *ptr
+			if numWildcards(notAction) > 1 {
+				return result{}, fmt.Errorf("role NotAction %s has multiple wildcards", notAction)
+			}
+			appendStr(&notActions, notAction)
+		}
+		appendRoleInfo(&roleInfoControl, roleInfo{
+			actions:    actions,
+			notActions: notActions,
+		})
+		if permission.DataActions == nil {
+			return result{}, errNil("role DataActions")
+		}
+		dataActions := []string{}
+		for _, ptr := range permission.DataActions {
+			if ptr == nil {
+				return result{}, errNil("role DataAction")
+			}
+			dataAction := *ptr
+			if numWildcards(dataAction) > 1 {
+				return result{}, fmt.Errorf("role DataAction %s has multiple wildcards", dataAction)
+			}
+			appendStr(&dataActions, dataAction)
+		}
+		if permission.NotDataActions == nil {
+			return result{}, errNil("role NotDataActions")
+		}
+		notDataActions := []string{}
+		for _, ptr := range permission.NotDataActions {
+			if ptr == nil {
+				return result{}, errNil("role NotDataAction")
+			}
+			notDataAction := *ptr
+			if numWildcards(notDataAction) > 1 {
+				return result{}, fmt.Errorf("role NotDataAction %s has multiple wildcards", notDataAction)
+			}
+			appendStr(&notDataActions, notDataAction)
+		}
+		appendRoleInfo(&roleInfoData, roleInfo{
+			actions:    dataActions,
+			notActions: notDataActions,
+		})
+	}
+
+	// Use dereferenced data to find denied and unpermitted for control Actions, and then for
+	// DataActions.
 	return result{
-		missingFromActions:  maps.Keys(actionsUnpermittedBecauseMissing),
-		presentInNotActions: actionsDenied,
+		actions:     findDeniedAndUnpermitted(candidateActions, denyAssignmentInfoControl, roleInfoControl),
+		dataActions: findDeniedAndUnpermitted(candidateDataActions, denyAssignmentInfoData, roleInfoData),
 	}, nil
 }
 
-// processCandidateAction centralizes our logic for determining whether to permit or deny a
-// candidate action (depending on whether we're doing the pass through the actions or the not
-// actions). The logic for looking for wildcards, prefixes, suffixes, etc is the same for each
-// compared list of actions.
+// findDeniedAndUnpermitted determines, based on a set of NotActions and Actions, from deny
+// assignments and from role assignments, which candidate actions should be denied due to the deny
+// assignments and which should be unpermitted due to the role assignments.
 //
-// Returns true if there was a match during the algorithm and false if there wasn't. The calling
-// code knows what to do based on what was returned. Also returns the Action that the candidate
-// Action is being compared to when there is a match.
-func processCandidateAction(candidateAction string, comparedActions []string) (bool, string) {
+// This logic can be used for both control Actions and DataActions. They just need to come from the
+// right source (deny assignment vs. role).
+func findDeniedAndUnpermitted(candidateActions []string, denyAssignments []denyAssignmentInfo, roles []roleInfo) deniedAndUnpermitted {
+	// Begin with all candidate Actions marked as "unpermitted". It's better to start with all
+	// candidates considered unpermitted and marking them as permitted later instead of starting
+	// with an empty list of unpermitted actions and adding candidates to it later because of how
+	// the algorithm below works.
+	unpermitted := map_utils.FromKeys(candidateActions, true)
+	// Begin with no candidate Actions marked as denied.
+	//   keys = candidate Actions
+	//   values = names of denying deny assignments
+	denied := make(map[string]string, 0)
+
+candidateActions:
+	for _, candidateAction := range candidateActions {
+		for _, denyAssignment := range denyAssignments {
+			// Does any NotAction in the deny assignment match the candidate Action?
+			if matches, _ := candidateActionMatches(candidateAction, denyAssignment.notActions); matches {
+				// Move on to next deny assignment because this NotAction matching means the deny
+				// assignment does not deny the candidate Action.
+				continue
+			} else {
+				// Does any Action in the deny assignment match the candidate Action?
+				if matches, _ := candidateActionMatches(candidateAction, denyAssignment.actions); matches {
+					// Mark candidate action as "denied by deny assignment {denyAssignmentId}".
+					denied[candidateAction] = denyAssignment.id
+				}
+			}
+		}
+		for _, role := range roles {
+			// Does any NotAction in the role match the candidate Action?
+			if matches, _ := candidateActionMatches(candidateAction, role.notActions); matches {
+				// Move on to next role because this NotAction matching means the role does not
+				// permit the candidate Action.
+				continue
+			} else {
+				// Does any Action in the role match the candidate Action?
+				if matches, _ := candidateActionMatches(candidateAction, role.actions); matches {
+					// Mark candidate action as permitted.
+					delete(unpermitted, candidateAction)
+					// Move on to next candidate Action because this Action matching means the role
+					// permits the candidate Action.
+					continue candidateActions
+				}
+			}
+		}
+	}
+
+	// We've now considered all deny assignments and roles for all candidate actions. We've
+	// determined which candidate Actions were denied and which were simply not permitted in the
+	// first place. It's possible for a candidate Action to be both denied and not permitted. We
+	// report two failures for such candidate Actions so that the user gets as much info as possible
+	// each time they observe the validation result.
+	return deniedAndUnpermitted{
+		denied:      denied,
+		unpermitted: maps.Keys(unpermitted),
+	}
+}
+
+// candidateActionMatches determines whether a candidate Action matches any compared Actions, where
+// the compared Actions are Actions or NotActions, from roles or deny assignments. Returns the
+// matching compared Action when a match is found.
+//
+// The candidate Action must have no wildcards. The compared Actions must have no more than one
+// wildcard each.
+func candidateActionMatches(candidateAction string, comparedActions []string) (bool, string) {
 	for _, comparedAction := range comparedActions {
 		if !hasWildcard(comparedAction) {
-			// If allowed action has no wildcard, candidate action must be equal to it exactly
-			// in order for the candidate action to be permitted.
+			// If allowed action has no wildcard, candidate action must be equal to it exactly in
+			// order for the candidate action to be permitted.
 			if candidateAction == comparedAction {
 				return true, comparedAction
 			}
-			// Whether the action permitted the candidate action because it was equal to it or
-			// it didn't, we can move on to the next action, because if it has no wildcard, it
-			// is impossible for it to permit the candidate action via wildcard.
+			// Whether the action permitted the candidate action because it was equal to it or it
+			// didn't, we can move on to the next action, because if it has no wildcard, it is
+			// impossible for it to permit the candidate action via wildcard.
 			continue
 		}
 
@@ -115,12 +355,12 @@ func processCandidateAction(candidateAction string, comparedActions []string) (b
 			return true, comparedAction
 		}
 
-		// If allowed action string has a wildcard, candidate action must match when we take
-		// the wildcard into account.
+		// If allowed action string has a wildcard, candidate action must match when we take the
+		// wildcard into account.
 
 		if comparedAction[0:1] == wildcard {
-			// Wildcard is at beginning of allowed action. No prefix in action string to take
-			// into account.
+			// Wildcard is at beginning of allowed action. No prefix in action string to take into
+			// account.
 			// Find the suffix of the action string. If that suffix is also a suffix of the
 			// candidate action, permit the candidate action.
 			actionSuffix := strings.TrimPrefix(comparedAction, wildcard)
@@ -141,9 +381,9 @@ func processCandidateAction(candidateAction string, comparedActions []string) (b
 		}
 
 		// Wildcard is somewhere in the middle. Must take into account prefix and suffix.
-		// Split the action string by the wildcard. The first segment is a prefix. The second is
-		// a suffix. If the candidate action has this prefix as a prefix and has this suffix
-		// as a suffix, permit the candidate action.
+		// Split the action string by the wildcard. The first segment is a prefix. The second is a
+		// suffix. If the candidate action has this prefix as a prefix and has this suffix as a
+		// suffix, permit the candidate action.
 		splitAction := strings.Split(comparedAction, wildcard)
 		actionPrefix := splitAction[0]
 		actionSuffix := splitAction[1]
@@ -165,14 +405,4 @@ func numWildcards(action string) int {
 // algorithm.
 func hasWildcard(action string) bool {
 	return numWildcards(action) == 1
-}
-
-// MapWithAllFalse when given a list of strings, creates and returns a map where each key is added
-// to the map's set of keys with its value set to false.
-func MapWithAllFalse(keys []string) map[string]bool {
-	m := map[string]bool{}
-	for _, k := range keys {
-		m[k] = false
-	}
-	return m
 }

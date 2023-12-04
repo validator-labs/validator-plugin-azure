@@ -72,7 +72,7 @@ type PermissionSet struct {
 	DataActions []string `json:"dataActions,omitempty"`
 	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
 	// this. For example, a role assignment found with subscription scope will satisfy a permission
-	// set where the role scope specified is a resource group within that subscrption.
+	// set where the role scope specified is a resource group within that subscription.
 	Scope string `json:"scope"`
 }
 
