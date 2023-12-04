@@ -1,0 +1,17 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-rbac-one-permission-set-some-actions-permitted-by-one-role
+spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
+  rbacRules:
+  # Rule is expected to result in Failed validation
+  - principalId: "9debc6b2-56be-4f03-bf0b-4762397fc327"
+    permissionSets:
+    - scope: "/subscriptions/9b16dd0b-1bea-4c9a-a291-65e6f44c4745"
+      # Some actions provided by custom role TestCustomRole (d2dd3116-04f5-4c40-944a-c28eeeed6a2e)
+      actions:
+      - "Microsoft.Compute/virtualMachines/read" # role has this action
+      - "Microsoft.Compute/virtualMachines/write" # but not this one
