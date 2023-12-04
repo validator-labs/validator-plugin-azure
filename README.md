@@ -12,17 +12,35 @@ The Azure [validator](https://github.com/spectrocloud-labs/validator) plugin ens
 
 The Azure validator plugin reconciles `AzureValidator` custom resources to perform the following validations against your Azure environment:
 
-TODO
+1. Compare the Azure RBAC permissions associated with a [security principal](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview#security-principal) against an expected permission set.
 
 Each `AzureValidator` CR is (re)-processed every two minutes to continuously ensure that your Azure environment matches the expected state.
 
 See the [samples](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations.
 
-(TODO: actual samples)
+## Authn & Authz
 
-## Supported Service Quotas by Azure Service
+Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly. All supported options are detailed below:
 
-TODO
+* Implicit (`AzureValidator.auth.implicit == true`)
+  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-1-define-environment-variables)
+  * [Workload Identity](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-2-use-workload-identity)
+  * [System-defined managed identity](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-3-use-a-managed-identity)
+* Explicit (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
+  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-1-define-environment-variables)
+
+> [!NOTE]
+> See [values.yaml](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
+
+### Minimal Azure RBAC permissions by validation type
+
+For validation to succeed, certain Azure RBAC permissions must be assigned to the principal used via role assignments. The minimal required [operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) that must be listed under `Actions` in the role assignments are as follows:
+
+* `Microsoft.Authorization/denyAssignments/read`
+* `Microsoft.Authorization/roleAssignments/read`
+* `Microsoft.Authorization/roleDefinitions/read`
+
+If you want to use a built-in role instead of a custom role to provide these permissions, you can use [`Managed Identity Operator`](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator).
 
 ## Installation
 
@@ -34,9 +52,7 @@ helm repo update
 helm install validator-plugin-azure validator-plugin-azure/validator-plugin-azure -n validator-plugin-azure --create-namespace
 ```
 
-(TODO: Helm)
-
-## Getting Started
+## Development
 
 You’ll need a Kubernetes cluster to run against. You can use [kind](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 
@@ -78,25 +94,11 @@ UnDeploy the controller from the cluster:
 make undeploy
 ```
 
-## Contributing
-
-All contributions are welcome! Feel free to reach out on the [Spectro Cloud community Slack](https://spectrocloudcommunity.slack.com/join/shared_invite/zt-g8gfzrhf-cKavsGD_myOh30K24pImLA#/shared-invite/email).
-
-Make sure `pre-commit` is [installed](https://pre-commit.com#install).
-
-Install the `pre-commit` scripts:
-
-```console
-pre-commit install --hook-type commit-msg
-pre-commit install --hook-type pre-commit
-```
-
 ### How it works
 
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/),
-which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
+It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/), which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
 
 ### Test It Out
 
@@ -122,6 +124,19 @@ If you are editing the API definitions, generate the manifests such as CRs or CR
 make manifests
 ```
 
+## Contributing
+
+All contributions are welcome! Feel free to reach out on the [Spectro Cloud community Slack](https://spectrocloudcommunity.slack.com/join/shared_invite/zt-g8gfzrhf-cKavsGD_myOh30K24pImLA#/shared-invite/email).
+
+Make sure `pre-commit` is [installed](https://pre-commit.com#install).
+
+Install the `pre-commit` scripts:
+
+```console
+pre-commit install --hook-type commit-msg
+pre-commit install --hook-type pre-commit
+```
+
 **NOTE:** Run `make --help` for more information on all potential `make` targets
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
@@ -141,4 +156,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
