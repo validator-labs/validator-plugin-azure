@@ -81,9 +81,19 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 // processPermissionSet processes a permission set from the rule.
 func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, principalID string, failures *[]string) error {
 
-	// Special case. Nothing to do, so skip Azure API call and don't append any failures.
+	// We consider this spec invalid. Both are optional at the spec level because we need to allow
+	// users to validate a set of required control Actions, a set of required DataActions, or both.
+	// But, if a user provides neither, it means they don't have any validation to be done, and they
+	// shouldn't create the AzureValidator.
+	if set.Actions == nil && set.DataActions == nil {
+		return fmt.Errorf("spec invalid; must specify at least actions or dataActions in each permission set")
+	}
+
+	// Also invalid. If they've specified one or the other, but end up being empty in Go, it again
+	// means that they've only specified empty lists in the YAML, and they don't have any
+	// validation to be done, and they shouldn't create the AzureValidator.
 	if len(set.Actions) == 0 && len(set.DataActions) == 0 {
-		return nil
+		return fmt.Errorf("spec invalid; must have at least one required Action or one required DataAction to validate")
 	}
 
 	// Get all deny assignments and role assignments for specified scope and principal.

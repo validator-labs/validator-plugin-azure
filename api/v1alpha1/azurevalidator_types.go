@@ -33,7 +33,9 @@ func (s AzureValidatorSpec) ResultCount() int {
 }
 
 // Conveys that a specified security principal (aka principal) should have the specified
-// permissions, via roles.
+// permissions, via roles. It doesn't matter which roles provide the permissions as long as enough
+// role assignments exist that the principal has all of the permissions and no deny assignments
+// exist that deny the permissions.
 type RBACRule struct {
 	// The permissions that the principal must have. If the principal has permissions less than
 	// this, validation will fail. If the principal has permissions equal to or more than this
@@ -63,12 +65,10 @@ type PermissionSet struct {
 	// If provided, the actions that the role must be able to perform. Must not contain any
 	// wildcards. If not specified, the role is assumed to already be able to perform all required
 	// actions.
-	//+kubebuilder:validation:MinItems=1
 	Actions []string `json:"actions,omitempty"`
 	// If provided, the data actions that the role must be able to perform. Must not contain any
 	// wildcards. If not provided, the role is assumed to already be able to perform all required
 	// data actions.
-	//+kubebuilder:validation:MinItems=1
 	DataActions []string `json:"dataActions,omitempty"`
 	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
 	// this. For example, a role assignment found with subscription scope will satisfy a permission

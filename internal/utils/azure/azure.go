@@ -5,16 +5,10 @@ package azure
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-)
-
-var (
-	// Regexp used for extracting Subscription IDs from role assignment scope strings.
-	re = regexp.MustCompile(`subscriptions/([a-fA-F0-9\-]+)`)
 )
 
 type AzureAPI struct {
@@ -156,16 +150,4 @@ func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
 	split := strings.Split(roleDefinitionID, "/")
 	roleName := split[len(split)-1]
 	return roleName
-}
-
-// RoleAssignmentScopeSubscription extracts the ID of the subscription from a role assignment scope
-// string. Returns an error if the string is malformed.
-func RoleAssignmentScopeSubscription(scope string) (string, error) {
-	matches := re.FindStringSubmatch(scope)
-
-	if len(matches) < 2 {
-		return "", fmt.Errorf("no subscription GUID found in the scope string; string may be invalid")
-	}
-
-	return matches[1], nil
 }
