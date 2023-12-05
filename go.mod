@@ -8,7 +8,8 @@ require (
 	github.com/go-logr/logr v1.3.0
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.30.0
-	github.com/spectrocloud-labs/validator v0.0.27
+	github.com/spectrocloud-labs/validator v0.0.28
+	golang.org/x/exp v0.0.0-20231127185646-65229373498e
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
 	k8s.io/client-go v0.28.4
@@ -58,7 +59,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
-	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
