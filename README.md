@@ -20,14 +20,23 @@ See the [samples](https://github.com/spectrocloud-labs/validator-plugin-azure/tr
 
 ## Authn & Authz
 
-Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly. All supported options are detailed below:
+Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource.
 
-* Implicit (`AzureValidator.auth.implicit == true`)
-  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-1-define-environment-variables)
-  * [Workload Identity](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-2-use-workload-identity)
-  * [System-defined managed identity](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-3-use-a-managed-identity)
-* Explicit (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
-  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#-option-1-define-environment-variables)
+Supported authentication methods:
+
+* Implicit
+  * Plugin is authenticated by [Workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+  * To use this method:
+    1. Set Helm value `AzureValidator.auth.implicit` to `true`.
+    1. Ensure that Workload identity is set up for your AKS cluster, including the [managed identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) and [federated identity credential](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
+    1. Set Helm value `AzureValidator.auth.serviceAccountName` to the name of the Kubernetes ServiceAccount referenced in the federated identity credential. The Helm chart will create the ServiceAccount for you.
+    1. Set Helm value `AzureValidator.controllerManager.serviceAccount.annotations` such that the `azure.workload.identity/client-id` annotation is set to the Client ID of the Microsoft Entra ID managed identity.
+* Explicit
+  * Plugin is authenticated by values provided by a Kubernetes Secret.
+  * To use this method:
+    1. Set Helm value `AzureValidator.auth.implicit` to `false`.
+    1. Ensure that a Secret exists with `TENANT_ID`, `CLIENT_ID`, and `CLIENT_SECRET`.
+    1. If using a Secret name other than "azure-creds", set Helm value `Auth.secret.secretName`.
 
 > [!NOTE]
 > See [values.yaml](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
