@@ -20,17 +20,14 @@ See the [samples](https://github.com/spectrocloud-labs/validator-plugin-azure/tr
 
 ## Authn & Authz
 
-Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource.
-
-Supported authentication methods:
+Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
 
 * Implicit
-  * Plugin is authenticated by [Workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+  * Plugin is authenticated by [workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
   * To use this method:
     1. Set Helm value `AzureValidator.auth.implicit` to `true`.
-    1. Ensure that Workload identity is set up for your AKS cluster, including the [managed identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) and [federated identity credential](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
-    1. Set Helm value `AzureValidator.auth.serviceAccountName` to the name of the Kubernetes ServiceAccount referenced in the federated identity credential. The Helm chart will create the ServiceAccount for you.
-    1. Set Helm value `AzureValidator.controllerManager.serviceAccount.annotations` such that the `azure.workload.identity/client-id` annotation is set to the Client ID of the Microsoft Entra ID managed identity.
+    1. Ensure workload identity is set up for your AKS cluster, including the [managed identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-a-managed-identity) and [federated identity credential](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#establish-federated-identity-credential).
+    1. Create a Kubernetes ServiceAccount for use with the plugin that is [configured appropriately for workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-kubernetes-service-account) and set Helm value `AzureValidator.auth.serviceAccountName` to the name of this ServiceAccount.
 * Explicit
   * Plugin is authenticated by values provided by a Kubernetes Secret.
   * To use this method:
