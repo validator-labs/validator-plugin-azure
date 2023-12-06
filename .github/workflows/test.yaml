@@ -39,7 +39,7 @@ jobs:
   test-chart:
     name: Run Helm Chart Tests
     runs-on: ubuntu-latest
-    if: "!contains(github.ref, 'release-please')"
+    if: "!contains(github.head_ref, 'release-please')"
     steps:
       - name : machine echo github
         env : { CONTENT : "${{ toJson(github) }}" }
