@@ -25,16 +25,16 @@ Authentication details for the Azure validator controller are provided within ea
 * Implicit
   * Plugin is authenticated by [workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
   * To use this method:
-    1. Set Helm value `AzureValidator.auth.implicit` to `true`.
+    1. Set Helm value `auth.implicit` to `true`.
     1. Ensure workload identity is set up for your AKS cluster, including the [managed identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-a-managed-identity) and [federated identity credential](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#establish-federated-identity-credential).
-    1. Create a Kubernetes ServiceAccount for use with the plugin that is [configured appropriately for workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-kubernetes-service-account). The ServiceAccount must include [all required RBAC privileges](https://github.com/spectrocloud-labs/validator-plugin-azure/blob/main/chart/validator-plugin-azure/templates/manager-rbac.yaml). Set Helm value `AzureValidator.auth.serviceAccountName` to the name of this ServiceAccount.
-    1. Set Helm value `AzureValidator.controllerManager.podLabels` appropriately for workload identity. See [Azure docs](https://github.com/spectrocloud-labs/validator-plugin-aws/#authn--authz) for more information.
+    1. Create a Kubernetes ServiceAccount for use with the plugin that is [configured appropriately for workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-kubernetes-service-account). The ServiceAccount must include [all required RBAC privileges](https://github.com/spectrocloud-labs/validator-plugin-azure/blob/main/chart/validator-plugin-azure/templates/manager-rbac.yaml). Set Helm value `auth.serviceAccountName` to the name of this ServiceAccount.
+    1. Set Helm value `controllerManager.podLabels` appropriately for workload identity. See [Azure docs](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#deploy-your-application) for more information.
 * Explicit
   * Plugin is authenticated by values provided by a Kubernetes Secret.
   * To use this method:
-    1. Set Helm value `AzureValidator.auth.implicit` to `false`.
+    1. Set Helm value `auth.implicit` to `false`.
     1. Ensure that a Secret exists with `TENANT_ID`, `CLIENT_ID`, and `CLIENT_SECRET`.
-    1. If using a Secret name other than "azure-creds", set Helm value `Auth.secret.secretName`.
+    1. If using a Secret name other than "azure-creds", set Helm value `secret.secretName`.
 
 > [!NOTE]
 > See [values.yaml](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
