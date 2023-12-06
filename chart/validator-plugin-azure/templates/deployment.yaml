@@ -18,8 +18,10 @@ spec:
     metadata:
       labels:
         control-plane: controller-manager
-      {{- include "chart.selectorLabels" . | nindent 8 }}
-      {{- toYaml .Values.controllerManager.podLabels | nindent 8 }}
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+        {{- range $key, $value := .Values.controllerManager.podLabels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
       annotations:
         kubectl.kubernetes.io/default-container: manager
     spec:
