@@ -22,22 +22,14 @@ See the [samples](https://github.com/spectrocloud-labs/validator-plugin-azure/tr
 
 Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
 
-* Implicit
-  * Plugin is authenticated by [workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
-  * To use this method:
-    1. Set Helm value `auth.implicit` to `true`.
-    1. Ensure workload identity is set up for your AKS cluster, including the [managed identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-a-managed-identity) and [federated identity credential](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#establish-federated-identity-credential).
-    1. Create a Kubernetes ServiceAccount for use with the plugin that is [configured appropriately for workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#create-kubernetes-service-account). The ServiceAccount must include [all required RBAC privileges](https://github.com/spectrocloud-labs/validator-plugin-azure/blob/main/chart/validator-plugin-azure/templates/manager-rbac.yaml). Set Helm value `auth.serviceAccountName` to the name of this ServiceAccount.
-    1. Set Helm value `controllerManager.podLabels` appropriately for workload identity. See [Azure docs](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#deploy-your-application) for more information.
-* Explicit
-  * Plugin is authenticated by values provided by a Kubernetes Secret.
-  * To use this method:
-    1. Set Helm value `auth.implicit` to `false`.
-    1. Ensure that a Secret exists with `TENANT_ID`, `CLIENT_ID`, and `CLIENT_SECRET`.
-    1. If using a Secret name other than "azure-creds", set Helm value `secret.secretName`.
+* Implicit (`AzureValidator.auth.implicit == true`)
+  * [Workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+    * In this scenario, a valid ServiceAccount must be specified during plugin installation. See [values.yaml](chart/validator-plugin-azure/values.yaml) for details.
+* Explicit (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
+  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication#-option-1-define-environment-variables)
 
 > [!NOTE]
-> See [values.yaml](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
+> See [values.yaml](chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
 
 ### Minimal Azure RBAC permissions by validation type
 
