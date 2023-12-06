@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.3](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.2...v0.0.3) (2023-12-06)
+
+
+### Features
+
+* add implicit auth support to Helm chart ([#31](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/31)) ([7f0a707](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/7f0a707d7e851813d379450076bedee44fbb5247))
+* RBAC rules ([#21](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/21)) ([d532c56](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/d532c560ebe00a0597da00e9fe76449b94064900))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2 to v2.2.0 ([#24](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/24)) ([1b737ca](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/1b737ca14d82fb35165bc5b2a2b284aa0715030c))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.13.2 ([#26](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/26)) ([abb4784](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/abb478431b7937076bdd1cfc51d2274e831c0e25))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.26 ([#25](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/25)) ([fd6fc77](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/fd6fc7701a8b6535c55a9d5e9de4b131df89daf9))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.27 ([#28](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/28)) ([03575e7](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/03575e7638aab27d15919ccb510dfa114698cf0c))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.28 ([#32](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/32)) ([bca0a38](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/bca0a388b022ee860fdc47546299ffa0105e0b47))
+
+
+### Other
+
+* **deps:** update actions/setup-go action to v5 ([#34](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/34)) ([293a890](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/293a890c93e47fd23a33c8f2f34b9ace2bba2a3d))
+* **deps:** update actions/setup-python action to v5 ([#33](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/33)) ([169bdb5](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/169bdb5997d57f6452667fae7f76672068aedcbd))
+* **deps:** update anchore/sbom-action action to v0.15.1 ([#30](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/30)) ([47b0704](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/47b0704f763ee3d6cc62cf78eb654bc3f9ece3ff))
+* **deps:** update google-github-actions/release-please-action action to v4 ([#29](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/29)) ([35f91aa](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/35f91aa46e8bde9cd63509fdc7cd9958fde7d2b5))
+* release 0.0.3 ([272d22b](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/272d22b4a444cfd5449e83324de449ac0dc80d1f))
+
 ## [0.0.2](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.1...v0.0.2) (2023-11-22)
 
 
