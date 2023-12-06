@@ -18,32 +18,11 @@ defaults:
     shell: bash
 
 jobs:
-  release-please:
-    permissions:
-      contents: write  # for google-github-actions/release-please-action to create release commit
-      pull-requests: write  # for google-github-actions/release-please-action to create release PR
-    runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-    # Release-please creates a PR that tracks all changes
-    steps:
-      - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-
-      - uses: google-github-actions/release-please-action@a6d1fd9854c8c40688a72f7e4b072a1e965860a0 # v4
-        id: release
-        with:
-          command: manifest
-          token: ${{secrets.GITHUB_TOKEN}}
-          default-branch: main
-
   release-charts:
-    needs: release-please
+    if: github.event.head_commit.author.name == 'release-please[bot]'
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
-    if: needs.release-please.outputs.releases_created == 'true'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Publish Helm chart
@@ -57,9 +36,7 @@ jobs:
           commit_email: bot@noreply.spectrocloud-labs.io
           
   build-container:
-    if: needs.release-please.outputs.releases_created == 'true'
-    needs:
-      - release-please
+    if: github.event.head_commit.author.name == 'release-please[bot]'
     runs-on: ubuntu-22.04
     permissions:
       contents: write
