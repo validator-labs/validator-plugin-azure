@@ -18,6 +18,13 @@ defaults:
     shell: bash
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name : machine echo github
+        env : { CONTENT : "${{ toJson(github) }}" }
+        run : "echo $CONTENT"
+
   release-charts:
     if: "contains(github.head_ref, 'release-please')"
     runs-on: ubuntu-latest
