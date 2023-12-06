@@ -48,6 +48,8 @@ controllerManager:
   # Optionally specify a volume containing a private key to leverage Azure Service
   # principal with certificate authentication.
   volumes: []
+  # Optionally specify additional labels to use for the controller-manager Pods.
+  podLabels: {}
 kubernetesClusterDomain: cluster.local
 metricsService:
   ports:
