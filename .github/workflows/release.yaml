@@ -19,11 +19,10 @@ defaults:
 
 jobs:
   release-charts:
-    needs: release-please
+    if: "contains(github.head_ref, 'release-please')"
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
-    if: needs.release-please.outputs.releases_created == 'true'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Publish Helm chart
@@ -37,9 +36,7 @@ jobs:
           commit_email: bot@noreply.spectrocloud-labs.io
           
   build-container:
-    if: needs.release-please.outputs.releases_created == 'true'
-    needs:
-      - release-please
+    if: "contains(github.head_ref, 'release-please')"
     runs-on: ubuntu-22.04
     permissions:
       contents: write
