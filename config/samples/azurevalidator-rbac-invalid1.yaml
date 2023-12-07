@@ -7,7 +7,10 @@ spec:
     implicit: false
     secretName: azure-creds
   rbacRules:
-  - principalId: "a83574a7-53ef-4b37-b85e-99f956f0985a"
+  - name: rule-1
+    principalId: "a83574a7-53ef-4b37-b85e-99f956f0985a"
     permissionSets:
-    # Permission set is invalid because neither actions or dataActions are specified
+    # Permission set is invalid because neither actions or dataActions are specified.
+    # CR will be created but will result in failed validation results that report this problem at
+    # runtime. User would then fix and re-apply CR.
     - scope: "/subscriptions/9b16dd0b-1bea-4c9a-a291-65e6f44c4745"

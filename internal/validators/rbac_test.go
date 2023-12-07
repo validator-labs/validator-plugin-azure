@@ -72,6 +72,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Pass (required actions and data actions provided by role assignments and not denied by deny assignments)",
 			rule: v1alpha1.RBACRule{
+				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []string{"a"},
@@ -116,7 +117,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
+					ValidationRule: "validation-rule-1",
 					Message:        "Principal has all required permissions.",
 					Details:        []string{},
 					Failures:       []string{},
@@ -128,6 +129,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Fail (required actions and data actions provided by role assignments but denied by deny assignments)",
 			rule: v1alpha1.RBACRule{
+				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []string{"a"},
@@ -186,7 +188,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
+					ValidationRule: "validation-rule-1",
 					Message:        "Principal lacks required permissions. See failures for details.",
 					Details:        []string{},
 					Failures: []string{
@@ -201,6 +203,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Fail (required actions and data actions not provided by role assignments)",
 			rule: v1alpha1.RBACRule{
+				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []string{"a"},
@@ -245,7 +248,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			expectedResult: vapitypes.ValidationResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
-					ValidationRule: "validation-p_id",
+					ValidationRule: "validation-rule-1",
 					Message:        "Principal lacks required permissions. See failures for details.",
 					Details:        []string{},
 					Failures: []string{

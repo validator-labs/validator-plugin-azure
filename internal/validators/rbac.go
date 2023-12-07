@@ -57,7 +57,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
 	latestCondition.Message = "Principal has all required permissions."
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.PrincipalID)
+	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name)
 	latestCondition.ValidationType = constants.ValidationTypeRBAC
 	validationResult := &vapitypes.ValidationResult{Condition: &latestCondition, State: &state}
 
