@@ -2,6 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Build](https://github.com/spectrocloud-labs/validator-plugin-azure/actions/workflows/build_container.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/spectrocloud-labs/validator-plugin-azure)](https://goreportcard.com/report/github.com/spectrocloud-labs/validator-plugin-azure)
+[![codecov](https://codecov.io/gh/spectrocloud-labs/validator-plugin-azure/graph/badge.svg?token=QHR08U8SEQ)](https://codecov.io/gh/spectrocloud-labs/validator-plugin-azure)
 [![Go Reference](https://pkg.go.dev/badge/github.com/spectrocloud-labs/validator-plugin-azure.svg)](https://pkg.go.dev/github.com/spectrocloud-labs/validator-plugin-azure)
 
 # validator-plugin-azure
