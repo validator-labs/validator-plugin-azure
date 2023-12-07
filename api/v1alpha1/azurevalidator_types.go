@@ -24,6 +24,8 @@ import (
 type AzureValidatorSpec struct {
 	// Rules for validating that the correct role assignments have been created in Azure RBAC to
 	// provide needed permissions.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	RBACRules []RBACRule `json:"rbacRules"`
 	Auth      AzureAuth  `json:"auth"`
 }
@@ -37,6 +39,9 @@ func (s AzureValidatorSpec) ResultCount() int {
 // role assignments exist that the principal has all of the permissions and no deny assignments
 // exist that deny the permissions.
 type RBACRule struct {
+	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
+	// each other.
+	Name string `json:"name"`
 	// The permissions that the principal must have. If the principal has permissions less than
 	// this, validation will fail. If the principal has permissions equal to or more than this
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation

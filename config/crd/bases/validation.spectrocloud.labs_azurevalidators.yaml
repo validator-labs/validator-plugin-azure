@@ -60,6 +60,10 @@ spec:
                     exist that the principal has all of the permissions and no deny
                     assignments exist that deny the permissions.
                   properties:
+                    name:
+                      description: Unique identifier for the rule in the validator.
+                        Used to ensure conditions do not overwrite each other.
+                      type: string
                     permissionSets:
                       description: The permissions that the principal must have. If
                         the principal has permissions less than this, validation will
@@ -106,10 +110,15 @@ spec:
                         or User.
                       type: string
                   required:
+                  - name
                   - permissionSets
                   - principalId
                   type: object
+                maxItems: 5
                 type: array
+                x-kubernetes-validations:
+                - message: RBACRules must have unique names
+                  rule: self.all(e, size(self.filter(x, x.name == e.name)) == 1)
             required:
             - auth
             - rbacRules
