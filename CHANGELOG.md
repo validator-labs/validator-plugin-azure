@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.4](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.3...v0.0.4) (2023-12-07)
+
+
+### Features
+
+* CRD validation for rule name uniqueness ([#60](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/60)) ([132f303](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/132f303002a9f5f956305e49ee1be2b46658258c))
+
+
+### Bug Fixes
+
+* **deps:** update golang.org/x/exp digest to f3f8817 ([#43](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/43)) ([e8edd19](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/e8edd19f2e11bbbaa54355f56762ccb2e66f2e41))
+
 ## [0.0.3](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.2...v0.0.3) (2023-12-06)
 
 
