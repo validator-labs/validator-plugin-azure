@@ -82,16 +82,32 @@ spec:
                               If not specified, the role is assumed to already be
                               able to perform all required actions.
                             items:
+                              description: ActionStr is a type used for Action strings
+                                and DataAction strings. Alias exists to enable kubebuilder
+                                max string length validation for arrays of these.
+                              maxLength: 200
                               type: string
+                            maxItems: 1000
                             type: array
+                            x-kubernetes-validations:
+                            - message: Actions cannot have wildcards.
+                              rule: self.all(item, !item.contains('*'))
                           dataActions:
                             description: If provided, the data actions that the role
                               must be able to perform. Must not contain any wildcards.
                               If not provided, the role is assumed to already be able
                               to perform all required data actions.
                             items:
+                              description: ActionStr is a type used for Action strings
+                                and DataAction strings. Alias exists to enable kubebuilder
+                                max string length validation for arrays of these.
+                              maxLength: 200
                               type: string
+                            maxItems: 1000
                             type: array
+                            x-kubernetes-validations:
+                            - message: DataActions cannot have wildcards.
+                              rule: self.all(item, !item.contains('*'))
                           scope:
                             description: The minimum scope of the role. Role assignments
                               found at higher level scopes will satisfy this. For
@@ -102,7 +118,7 @@ spec:
                         required:
                         - scope
                         type: object
-                      maxItems: 10000
+                      maxItems: 20
                       minItems: 1
                       type: array
                       x-kubernetes-validations:

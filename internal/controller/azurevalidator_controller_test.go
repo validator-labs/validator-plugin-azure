@@ -41,7 +41,7 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 						Permissions: []v1alpha1.PermissionSet{
 							{
 								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								Actions: []string{"action_1"},
+								Actions: []v1alpha1.ActionStr{"action_1"},
 							},
 						},
 						PrincipalID: "p_id",
@@ -59,6 +59,62 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		}
 
 		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("Each permission set must have Actions, DataActions, or both defined")))
+	})
+
+	It("Should not create a ValidationResult when any Action has a wildcard", func() {
+		By("Attempting to create a new AzureValidator with one invalid permission set")
+
+		ctx := context.Background()
+
+		val := &v1alpha1.AzureValidator{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      azureValidatorName,
+				Namespace: validatorNamespace,
+			},
+			Spec: v1alpha1.AzureValidatorSpec{
+				RBACRules: []v1alpha1.RBACRule{
+					{
+						Permissions: []v1alpha1.PermissionSet{
+							{
+								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+								Actions: []v1alpha1.ActionStr{"things/*"},
+							},
+						},
+						PrincipalID: "p_id",
+					},
+				},
+			},
+		}
+
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("Actions cannot have wildcards")))
+	})
+
+	It("Should not create a ValidationResult when any DataAction has a wildcard", func() {
+		By("Attempting to create a new AzureValidator with one invalid permission set")
+
+		ctx := context.Background()
+
+		val := &v1alpha1.AzureValidator{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      azureValidatorName,
+				Namespace: validatorNamespace,
+			},
+			Spec: v1alpha1.AzureValidatorSpec{
+				RBACRules: []v1alpha1.RBACRule{
+					{
+						Permissions: []v1alpha1.PermissionSet{
+							{
+								Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+								DataActions: []v1alpha1.ActionStr{"things/*"},
+							},
+						},
+						PrincipalID: "p_id",
+					},
+				},
+			},
+		}
+
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("DataActions cannot have wildcards")))
 	})
 
 	It("Should create a ValidationResult and update its Status with a failed condition", func() {
@@ -93,7 +149,7 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 						Permissions: []v1alpha1.PermissionSet{
 							{
 								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								Actions: []string{"action_1"},
+								Actions: []v1alpha1.ActionStr{"action_1"},
 							},
 						},
 						PrincipalID: "p_id",

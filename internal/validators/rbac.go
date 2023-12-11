@@ -118,8 +118,18 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		roleDefinitions = append(roleDefinitions, roleDefinition)
 	}
 
+	// Convert from ActionStr to string.
+	setActions := []string{}
+	for _, a := range set.Actions {
+		setActions = append(setActions, string(a))
+	}
+	setDataActions := []string{}
+	for _, da := range set.DataActions {
+		setDataActions = append(setDataActions, string(da))
+	}
+
 	// Get the results and append failure messages if needed.
-	result, err := processAllCandidateActions(set.Actions, set.DataActions, denyAssignments, roleDefinitions)
+	result, err := processAllCandidateActions(setActions, setDataActions, denyAssignments, roleDefinitions)
 	if err != nil {
 		return fmt.Errorf("failed to determine which candidate Actions and DataActions were denied and/or unpermitted: %w", err)
 	}
