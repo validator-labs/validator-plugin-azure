@@ -30,50 +30,6 @@ func Test_processAllCandidateActions(t *testing.T) {
 
 		// Cases that test invalid input.
 		{
-			name: "candidate Action with wildcard",
-			args: args{
-				candidateActions:     []string{"*"},
-				candidateDataActions: []string{},
-				denyAssignments:      []*armauthorization.DenyAssignment{},
-				roles:                []*armauthorization.RoleDefinition{},
-			},
-			want:    result{},
-			wantErr: true,
-		},
-		{
-			name: "candidate Action with multiple wildcards",
-			args: args{
-				candidateActions:     []string{"*/*"},
-				candidateDataActions: []string{},
-				denyAssignments:      []*armauthorization.DenyAssignment{},
-				roles:                []*armauthorization.RoleDefinition{},
-			},
-			want:    result{},
-			wantErr: true,
-		},
-		{
-			name: "candidate DataAction with wildcard",
-			args: args{
-				candidateActions:     []string{"a"},
-				candidateDataActions: []string{"*"},
-				denyAssignments:      []*armauthorization.DenyAssignment{},
-				roles:                []*armauthorization.RoleDefinition{},
-			},
-			want:    result{},
-			wantErr: true,
-		},
-		{
-			name: "candidate DataAction with multiple wildcards",
-			args: args{
-				candidateActions:     []string{"a"},
-				candidateDataActions: []string{"*/*"},
-				denyAssignments:      []*armauthorization.DenyAssignment{},
-				roles:                []*armauthorization.RoleDefinition{},
-			},
-			want:    result{},
-			wantErr: true,
-		},
-		{
 			name: "nil deny assignment",
 			args: args{
 				candidateActions:     []string{},

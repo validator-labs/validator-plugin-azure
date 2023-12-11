@@ -54,6 +54,9 @@ type roleInfo struct {
 // processAllCandidateActions determines, based on a set of deny assignments and roles (associated
 // with role assignments), which required actions and data actions are denied by presence of deny
 // assignment and/or unpermitted by lack of role assignment.
+//
+// It is assumed that all required actions and data actions have no wildcards because of CRD
+// validation.
 func processAllCandidateActions(candidateActions, candidateDataActions []string, denyAssignments []*armauthorization.DenyAssignment, roles []*armauthorization.RoleDefinition) (result, error) {
 	errNil := func(subject string) error {
 		return fmt.Errorf("%s nil", subject)
@@ -66,19 +69,6 @@ func processAllCandidateActions(candidateActions, candidateDataActions []string,
 	}
 	appendRoleInfo := func(vals *[]roleInfo, val roleInfo) {
 		*vals = append(*vals, val)
-	}
-
-	// Validate the candidate Actions and DataActions specified by the user for our algorithm's
-	// constraints. They must not have any wildcards.
-	for _, c := range candidateActions {
-		if numWildcards(c) > 0 {
-			return result{}, fmt.Errorf("candidate Actions must not have wildcards")
-		}
-	}
-	for _, c := range candidateDataActions {
-		if numWildcards(c) > 0 {
-			return result{}, fmt.Errorf("candidate DataActions must not have wildcards")
-		}
 	}
 
 	// Dereference all the data from Azure, while validating it for our algorithm's constraints.

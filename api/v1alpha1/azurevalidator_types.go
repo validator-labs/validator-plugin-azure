@@ -47,6 +47,8 @@ type RBACRule struct {
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
 	// will pass.
 	//+kubebuilder:validation:MinItems=1
+	//+kubebuilder:validation:MaxItems=20
+	//+kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
 	Permissions []PermissionSet `json:"permissionSets" yaml:"permissionSets"`
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User.
@@ -63,6 +65,11 @@ type AzureAuth struct {
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
 }
 
+// ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
+// kubebuilder max string length validation for arrays of these.
+// +kubebuilder:validation:MaxLength=200
+type ActionStr string
+
 // Conveys that the security principal should be the member of a role assignment that provides the
 // specified role for the specified scope. Scope can be either subscription, resource group, or
 // resource.
@@ -70,11 +77,15 @@ type PermissionSet struct {
 	// If provided, the actions that the role must be able to perform. Must not contain any
 	// wildcards. If not specified, the role is assumed to already be able to perform all required
 	// actions.
-	Actions []string `json:"actions,omitempty" yaml:"actions,omitempty"`
+	//+kubebuilder:validation:MaxItems=1000
+	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
 	// If provided, the data actions that the role must be able to perform. Must not contain any
 	// wildcards. If not provided, the role is assumed to already be able to perform all required
 	// data actions.
-	DataActions []string `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
+	//+kubebuilder:validation:MaxItems=1000
+	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
 	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
 	// this. For example, a role assignment found with subscription scope will satisfy a permission
 	// set where the role scope specified is a resource group within that subscription.

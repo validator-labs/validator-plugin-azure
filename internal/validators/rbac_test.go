@@ -75,8 +75,8 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{"a"},
-						DataActions: []string{"b"},
+						Actions:     []v1alpha1.ActionStr{"a"},
+						DataActions: []v1alpha1.ActionStr{"b"},
 						Scope:       subscriptionScope,
 					},
 				},
@@ -132,8 +132,8 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{"a"},
-						DataActions: []string{"b"},
+						Actions:     []v1alpha1.ActionStr{"a"},
+						DataActions: []v1alpha1.ActionStr{"b"},
 						Scope:       subscriptionScope,
 					},
 				},
@@ -206,8 +206,8 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				Name: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
-						Actions:     []string{"a"},
-						DataActions: []string{"b"},
+						Actions:     []v1alpha1.ActionStr{"a"},
+						DataActions: []v1alpha1.ActionStr{"b"},
 						Scope:       subscriptionScope,
 					},
 				},
