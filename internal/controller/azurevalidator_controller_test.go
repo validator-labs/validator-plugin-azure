@@ -25,48 +25,85 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		}
 	})
 
-	authSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "azure-creds",
-			Namespace: validatorNamespace,
-		},
-		Data: map[string][]byte{
-			"AZURE_CLIENT_ID":     []byte("client_id"),
-			"AZURE_TENANT_ID":     []byte("tenant_id"),
-			"AZURE_CLIENT_SECRET": []byte("client_secret"),
-		},
-	}
+	It("Should not create a ValidationResult when neither Actions nor DataActions are defined in any permission set", func() {
+		By("Attempting to create a new AzureValidator with one invalid permission set")
 
-	val := &v1alpha1.AzureValidator{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      azureValidatorName,
-			Namespace: validatorNamespace,
-		},
-		Spec: v1alpha1.AzureValidatorSpec{
-			Auth: v1alpha1.AzureAuth{
-				Implicit:   false,
-				SecretName: "azure-creds",
+		ctx := context.Background()
+
+		val := &v1alpha1.AzureValidator{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      azureValidatorName,
+				Namespace: validatorNamespace,
 			},
-			RBACRules: []v1alpha1.RBACRule{
-				{
-					Permissions: []v1alpha1.PermissionSet{
-						{
-							Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+			Spec: v1alpha1.AzureValidatorSpec{
+				RBACRules: []v1alpha1.RBACRule{
+					{
+						Permissions: []v1alpha1.PermissionSet{
+							{
+								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+								Actions: []string{"action_1"},
+							},
 						},
+						PrincipalID: "p_id",
 					},
-					PrincipalID: "p_id",
+					{
+						Permissions: []v1alpha1.PermissionSet{
+							{
+								Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg2",
+							},
+						},
+						PrincipalID: "p_id",
+					},
 				},
 			},
-		},
-	}
+		}
 
-	vr := &vapi.ValidationResult{}
-	vrKey := types.NamespacedName{Name: validationResultName(val), Namespace: validatorNamespace}
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("Each permission set must have Actions, DataActions, or both defined")))
+	})
 
 	It("Should create a ValidationResult and update its Status with a failed condition", func() {
 		By("By creating a new AzureValidator")
 
 		ctx := context.Background()
+
+		authSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "azure-creds",
+				Namespace: validatorNamespace,
+			},
+			Data: map[string][]byte{
+				"AZURE_CLIENT_ID":     []byte("client_id"),
+				"AZURE_TENANT_ID":     []byte("tenant_id"),
+				"AZURE_CLIENT_SECRET": []byte("client_secret"),
+			},
+		}
+
+		val := &v1alpha1.AzureValidator{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      azureValidatorName,
+				Namespace: validatorNamespace,
+			},
+			Spec: v1alpha1.AzureValidatorSpec{
+				Auth: v1alpha1.AzureAuth{
+					Implicit:   false,
+					SecretName: "azure-creds",
+				},
+				RBACRules: []v1alpha1.RBACRule{
+					{
+						Permissions: []v1alpha1.PermissionSet{
+							{
+								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
+								Actions: []string{"action_1"},
+							},
+						},
+						PrincipalID: "p_id",
+					},
+				},
+			},
+		}
+
+		vr := &vapi.ValidationResult{}
+		vrKey := types.NamespacedName{Name: validationResultName(val), Namespace: validatorNamespace}
 
 		valEmptySecretName := val.DeepCopy()
 		valEmptySecretName.Name = fmt.Sprintf("%s-empty-secret-name", azureValidatorName)
@@ -90,5 +127,4 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 			return stateOk
 		}, timeout, interval).Should(BeTrue(), "failed to create a ValidationResult")
 	})
-
 })

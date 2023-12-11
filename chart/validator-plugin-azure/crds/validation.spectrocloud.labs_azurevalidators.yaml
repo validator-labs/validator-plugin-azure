@@ -102,8 +102,14 @@ spec:
                         required:
                         - scope
                         type: object
+                      maxItems: 10000
                       minItems: 1
                       type: array
+                      x-kubernetes-validations:
+                      - message: Each permission set must have Actions, DataActions,
+                          or both defined
+                        rule: self.all(item, size(item.actions) > 0 || size(item.dataActions)
+                          > 0)
                     principalId:
                       description: The principal being validated. This can be any
                         type of principal - Device, ForeignGroup, Group, ServicePrincipal,

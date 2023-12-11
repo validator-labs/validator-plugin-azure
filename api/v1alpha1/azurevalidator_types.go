@@ -47,6 +47,8 @@ type RBACRule struct {
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
 	// will pass.
 	//+kubebuilder:validation:MinItems=1
+	//+kubebuilder:validation:MaxItems=10000
+	//+kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
 	Permissions []PermissionSet `json:"permissionSets" yaml:"permissionSets"`
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User.
