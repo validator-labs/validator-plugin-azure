@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.5](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.4...v0.0.5) (2023-12-14)
+
+
+### Features
+
+* CRD validation for Actions and DataActions (inc. wildcards) ([#65](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/65)) ([a673414](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/a6734142ff4ed601197ff694afccd7376233b0ec))
+
+
+### Bug Fixes
+
+* **deps:** update golang.org/x/exp digest to aacd6d4 ([#67](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/67)) ([4e68f94](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/4e68f94448c1e76664b774e91f82469e4006fc42))
+
+
+### Other
+
+* **deps:** update google-github-actions/release-please-action digest to a2d8d68 ([#63](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/63)) ([faf6d5d](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/faf6d5d0dc0f4746b896e23c0d66133297254a30))
+
 ## [0.0.4](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.3...v0.0.4) (2023-12-07)
 
 
