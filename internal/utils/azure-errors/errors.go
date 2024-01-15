@@ -54,7 +54,7 @@ func AsAugmented(err error) error {
 		return fmt.Errorf("invalid client secret provided for client ID; %s: %w", authHelpMsg, err)
 	}
 	if authFailed(err) {
-		return fmt.Errorf("plugin authenticated as service principal successfully but principal was unauthorized; ensure principal has permissions for operations Microsoft.Authorization/roleAssignments/read and Microsoft.Authorization/denyAssignments/read via role assignments and that no deny assignments forbid them: %w", err)
+		return fmt.Errorf("plugin authenticated as service principal successfully but principal was unauthorized; ensure principal has permissions for operations Microsoft.Authorization/roleAssignments/read, Microsoft.Authorization/denyAssignments/read, and Microsoft.Authorization/roleDefinitions/read via role assignments and that no deny assignments forbid them: %w", err)
 	}
 
 	return err
