@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_errors "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure-errors"
@@ -35,15 +34,13 @@ type roleDefinitionAPI interface {
 }
 
 type RBACRuleService struct {
-	log   logr.Logger
 	daAPI denyAssignmentAPI
 	raAPI roleAssignmentAPI
 	rdAPI roleDefinitionAPI
 }
 
-func NewRBACRuleService(log logr.Logger, daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
+func NewRBACRuleService(daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
 	return &RBACRuleService{
-		log:   log,
 		daAPI: daAPI,
 		raAPI: raAPI,
 		rdAPI: rdAPI,
