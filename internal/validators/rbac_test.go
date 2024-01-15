@@ -1,10 +1,10 @@
 package validators
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	"github.com/go-logr/logr"
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/test"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
@@ -262,8 +262,160 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		},
 	}
 	for _, c := range cs {
-		svc := NewRBACRuleService(logr.Logger{}, c.daAPIMock, c.raAPIMock, c.rdAPIMock)
+		svc := NewRBACRuleService(c.daAPIMock, c.raAPIMock, c.rdAPIMock)
 		result, err := svc.ReconcileRBACRule(c.rule)
 		test.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
+	}
+}
+
+// fakeDAAPI is a daAPI implementation for testing.
+type fakeDAAPI struct {
+	d1 []*armauthorization.DenyAssignment
+	d2 error
+}
+
+func (api *fakeDAAPI) GetDenyAssignmentsForScope(_ string, _ *string) ([]*armauthorization.DenyAssignment, error) {
+	return api.d1, api.d2
+}
+
+// fakeRAAPI is a raAPI implementation for testing.
+type fakeRAAPI struct {
+	d1 []*armauthorization.RoleAssignment
+	d2 error
+}
+
+func (api *fakeRAAPI) GetRoleAssignmentsForScope(_ string, _ *string) ([]*armauthorization.RoleAssignment, error) {
+	return api.d1, api.d2
+}
+
+// fakeRDAPI is a rdAPI implementation for testing.
+type fakeRDAPI struct {
+	d1 *armauthorization.RoleDefinition
+	d2 error
+}
+
+func (api *fakeRDAPI) GetByID(_ string) (*armauthorization.RoleDefinition, error) {
+	return api.d1, api.d2
+}
+
+func TestRBACRuleService_processPermissionSet(t *testing.T) {
+
+	type fields struct {
+		daAPI denyAssignmentAPI
+		raAPI roleAssignmentAPI
+		rdAPI roleDefinitionAPI
+	}
+	type args struct {
+		set         v1alpha1.PermissionSet
+		principalID string
+		failures    *[]string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Returns an error when the deny assignments API returns an error.",
+			fields: fields{
+				daAPI: &fakeDAAPI{
+					d1: []*armauthorization.DenyAssignment{},
+					d2: errors.New("fail"),
+				},
+			},
+			args:    args{},
+			wantErr: true,
+		},
+		{
+			name: "Returns an error when the deny assignments API returns data but the role assignments API returns an error.",
+			fields: fields{
+				daAPI: &fakeDAAPI{
+					d1: []*armauthorization.DenyAssignment{},
+					d2: nil,
+				},
+				raAPI: &fakeRAAPI{
+					d1: []*armauthorization.RoleAssignment{},
+					d2: errors.New("fail"),
+				},
+			},
+			args:    args{},
+			wantErr: true,
+		},
+		{
+			name: "Returns an error when the deny assignments API and role assignments API return data but the role assignment has no properties.",
+			fields: fields{
+				daAPI: &fakeDAAPI{
+					d1: []*armauthorization.DenyAssignment{},
+					d2: nil,
+				},
+				raAPI: &fakeRAAPI{
+					d1: []*armauthorization.RoleAssignment{{}},
+					d2: nil,
+				},
+				rdAPI: &fakeRDAPI{
+					d1: &armauthorization.RoleDefinition{},
+					d2: nil,
+				},
+			},
+			args:    args{},
+			wantErr: true,
+		},
+		{
+			name: "Returns an error when the deny assignments API, role assignments API, and role definitions API return data but the role assignment has no role definition ID property.",
+			fields: fields{
+				daAPI: &fakeDAAPI{
+					d1: []*armauthorization.DenyAssignment{},
+					d2: nil,
+				},
+				raAPI: &fakeRAAPI{
+					d1: []*armauthorization.RoleAssignment{{
+						Properties: &armauthorization.RoleAssignmentProperties{},
+					}},
+					d2: nil,
+				},
+				rdAPI: &fakeRDAPI{
+					d1: &armauthorization.RoleDefinition{},
+					d2: nil,
+				},
+			},
+			args:    args{},
+			wantErr: true,
+		},
+		{
+			name: "Returns an error when the deny assignments API and role assignments API return data but the role definitions API returns an error.",
+			fields: fields{
+				daAPI: &fakeDAAPI{
+					d1: []*armauthorization.DenyAssignment{},
+					d2: nil,
+				},
+				raAPI: &fakeRAAPI{
+					d1: []*armauthorization.RoleAssignment{{
+						Properties: &armauthorization.RoleAssignmentProperties{
+							RoleDefinitionID: ptr.Ptr("abc123"),
+						},
+					}},
+					d2: nil,
+				},
+				rdAPI: &fakeRDAPI{
+					d1: &armauthorization.RoleDefinition{},
+					d2: errors.New("fail"),
+				},
+			},
+			args:    args{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &RBACRuleService{
+				daAPI: tt.fields.daAPI,
+				raAPI: tt.fields.raAPI,
+				rdAPI: tt.fields.rdAPI,
+			}
+			if err := s.processPermissionSet(tt.args.set, tt.args.principalID, tt.args.failures); (err != nil) != tt.wantErr {
+				t.Errorf("RBACRuleService.processPermissionSet() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }
