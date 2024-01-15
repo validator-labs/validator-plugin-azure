@@ -104,7 +104,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureAPI.RoleDefinitions)
 
 		// RBAC rules
-		svc := validators.NewRBACRuleService(r.Log, daClient, raClient, rdClient)
+		svc := validators.NewRBACRuleService(daClient, raClient, rdClient)
 		for _, rule := range validator.Spec.RBACRules {
 			validationResult, err := svc.ReconcileRBACRule(rule)
 			if err != nil {
