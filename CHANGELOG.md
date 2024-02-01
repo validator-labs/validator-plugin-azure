@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.6](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.5...v0.0.6) (2024-01-11)
+
+
+### Bug Fixes
+
+* **deps:** update golang.org/x/exp digest to 02704c9 ([#83](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/83)) ([ce252b1](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/ce252b13a408d537ccbd22962d442c4b36c0158e))
+* **deps:** update golang.org/x/exp digest to 0dcbfd6 ([#90](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/90)) ([d467b99](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/d467b996a8be3a781f3a73925461b69a3c01d6bb))
+* **deps:** update golang.org/x/exp digest to be819d1 ([#87](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/87)) ([8f9a749](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/8f9a7499e19021006706b83cfd03b813e94c56f0))
+* **deps:** update golang.org/x/exp digest to dc181d7 ([#79](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/79)) ([863e769](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/863e7690b0d95f62923635ff4f5fb8d0cc7ed764))
+* **deps:** update module github.com/go-logr/logr to v1.4.0 ([#81](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/81)) ([3656433](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/3656433d3316aefe8cdc338184de5154b76cb5ef))
+* **deps:** update module github.com/go-logr/logr to v1.4.1 ([#82](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/82)) ([d552896](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/d552896a9abefc79895505089865d6b1068c8534))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.30 ([#80](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/80)) ([1fbe4c6](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/1fbe4c6889fed88e28da0b36e6d3d8dc596de0ba))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.31 ([#84](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/84)) ([4588d3e](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/4588d3e6eec9b3f69a7f9a2309ee91e96ae1c45a))
+* **deps:** update module github.com/spectrocloud-labs/validator to v0.0.32 ([#85](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/85)) ([11832ca](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/11832caf4bce7ca20a03d55f9a760a70d28caaf4))
+
+
+### Other
+
+* **deps:** update actions/upload-artifact action to v4 ([#68](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/68)) ([6d63031](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/6d63031b58d10c89f02423dc43bf185115252baa))
+* **deps:** update anchore/sbom-action action to v0.15.2 ([#86](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/86)) ([29a19ac](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/29a19aca5d51790f5cd19e586dc60c14c3f5c748))
+* **deps:** update anchore/sbom-action action to v0.15.3 ([#88](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/88)) ([95965e7](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/95965e70a4e60c3374e663fdce21e81d0edd9e56))
+* **deps:** update gcr.io/spectro-images-public/golang docker tag to v1.22 ([#89](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/89)) ([9397d20](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/9397d20a6561aec20c5ea046a17b41e7c1af882a))
+* **deps:** update google-github-actions/release-please-action digest to cc61a07 ([#77](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/77)) ([18e976f](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/18e976f8f9747c57604300aaf8f6e4274adeefa8))
+
 ## [0.0.5](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.4...v0.0.5) (2023-12-15)
 
 
