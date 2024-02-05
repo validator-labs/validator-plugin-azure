@@ -110,7 +110,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			if err != nil {
 				r.Log.V(0).Error(err, "failed to reconcile RBAC rule")
 			}
-			vres.SafeUpdateValidationResult(r.Client, nn, validationResult, err, r.Log)
+			vres.SafeUpdateValidationResult(r.Client, nn, validationResult, validator.Spec.ResultCount(), err, r.Log)
 		}
 	}
 
