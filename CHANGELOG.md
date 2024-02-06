@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.8](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.7...v0.0.8) (2024-02-06)
+
+
+### Other
+
+* update validator ([48868d8](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/48868d88f039fff80e0fddaf9260479177afa429))
+
 ## [0.0.7](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.6...v0.0.7) (2024-02-05)
 
 
