@@ -1,6 +1,6 @@
 module github.com/spectrocloud-labs/validator-plugin-azure
 
-go 1.21.6
+go 1.22.0
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.2
