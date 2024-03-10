@@ -3,6 +3,17 @@ entries:
   validator-plugin-azure:
   - apiVersion: v2
     appVersion: 0.0.2
+    created: "2024-03-10T22:57:22.930453712Z"
+    description: Perform various Azure validations (Principal RBAC, AAD Application
+      API permissions, and Service Quotas)
+    digest: 263886f6b1f0ac034568f2cb268ec9b0c73593fe313453535957508cc8733ec2
+    name: validator-plugin-azure
+    type: application
+    urls:
+    - https://spectrocloud-labs.github.io/validator-plugin-azure/validator-plugin-azure-0.0.9.tgz
+    version: 0.0.9
+  - apiVersion: v2
+    appVersion: 0.0.2
     created: "2024-02-06T17:37:35.019556375Z"
     description: Perform various Azure validations (Principal RBAC, AAD Application
       API permissions, and Service Quotas)
@@ -78,4 +89,4 @@ entries:
     urls:
     - https://spectrocloud-labs.github.io/validator-plugin-azure/validator-plugin-azure-0.0.2.tgz
     version: 0.0.2
-generated: "2024-02-06T17:37:35.018882968Z"
+generated: "2024-03-10T22:57:22.928043178Z"
