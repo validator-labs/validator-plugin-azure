@@ -9,7 +9,7 @@ import (
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/test"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
-	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
+	"github.com/spectrocloud-labs/validator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -90,7 +90,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("role_id"),
+							RoleDefinitionID: util.Ptr("role_id"),
 						},
 					},
 				},
@@ -102,8 +102,8 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
-									DataActions:    []*string{ptr.Ptr("b")},
+									Actions:        []*string{util.Ptr("a")},
+									DataActions:    []*string{util.Ptr("b")},
 									NotActions:     []*string{},
 									NotDataActions: []*string{},
 								},
@@ -123,7 +123,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
 				},
-				State: ptr.Ptr(vapi.ValidationSucceeded),
+				State: util.Ptr(vapi.ValidationSucceeded),
 			},
 		},
 		{
@@ -145,14 +145,14 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
-									DataActions:    []*string{ptr.Ptr("b")},
+									Actions:        []*string{util.Ptr("a")},
+									DataActions:    []*string{util.Ptr("b")},
 									NotActions:     []*string{},
 									NotDataActions: []*string{},
 								},
 							},
 						},
-						ID: ptr.Ptr("d"),
+						ID: util.Ptr("d"),
 					},
 				},
 				err: nil,
@@ -161,7 +161,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("role_id"),
+							RoleDefinitionID: util.Ptr("role_id"),
 						},
 					},
 				},
@@ -173,8 +173,8 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
-									DataActions:    []*string{ptr.Ptr("b")},
+									Actions:        []*string{util.Ptr("a")},
+									DataActions:    []*string{util.Ptr("b")},
 									NotActions:     []*string{},
 									NotDataActions: []*string{},
 								},
@@ -197,7 +197,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 					},
 					Status: corev1.ConditionFalse,
 				},
-				State: ptr.Ptr(vapi.ValidationFailed),
+				State: util.Ptr(vapi.ValidationFailed),
 			},
 		},
 		{
@@ -221,7 +221,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				data: []*armauthorization.RoleAssignment{
 					{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("role_id"),
+							RoleDefinitionID: util.Ptr("role_id"),
 						},
 					},
 				},
@@ -257,7 +257,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 					},
 					Status: corev1.ConditionFalse,
 				},
-				State: ptr.Ptr(vapi.ValidationFailed),
+				State: util.Ptr(vapi.ValidationFailed),
 			},
 		},
 	}
@@ -392,7 +392,7 @@ func TestRBACRuleService_processPermissionSet(t *testing.T) {
 				raAPI: &fakeRAAPI{
 					d1: []*armauthorization.RoleAssignment{{
 						Properties: &armauthorization.RoleAssignmentProperties{
-							RoleDefinitionID: ptr.Ptr("abc123"),
+							RoleDefinitionID: util.Ptr("abc123"),
 						},
 					}},
 					d2: nil,

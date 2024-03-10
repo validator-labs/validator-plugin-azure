@@ -40,7 +40,7 @@ import (
 
 	v1alpha1 "github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
+	"github.com/spectrocloud-labs/validator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	kerrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -97,11 +97,11 @@ var _ = BeforeSuite(func() {
 		BinaryAssetsDirectory: filepath.Join(
 			"..", "..", "bin", "k8s", fmt.Sprintf("%s-%s-%s", k8sVersion, runtime.GOOS, runtime.GOARCH),
 		),
-		UseExistingCluster: ptr.Ptr(false),
+		UseExistingCluster: util.Ptr(false),
 	}
 
 	if os.Getenv("KUBECONFIG") != "" {
-		testEnv.UseExistingCluster = ptr.Ptr(true)
+		testEnv.UseExistingCluster = util.Ptr(true)
 	}
 
 	var err error
