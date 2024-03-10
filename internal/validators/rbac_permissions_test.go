@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	"github.com/spectrocloud-labs/validator/pkg/util/ptr"
+	"github.com/spectrocloud-labs/validator/pkg/util"
 )
 
 func Test_processAllCandidateActions(t *testing.T) {
@@ -63,7 +63,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 				denyAssignments: []*armauthorization.DenyAssignment{
 					{
 						Properties: nil,
-						ID:         ptr.Ptr("da"),
+						ID:         util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -81,7 +81,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: nil,
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -99,7 +99,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -120,7 +120,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 								{},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -142,7 +142,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -164,7 +164,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -182,11 +182,11 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions: []*string{ptr.Ptr("*/*")},
+									Actions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -204,12 +204,12 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
+									Actions:    []*string{util.Ptr("*")},
 									NotActions: nil,
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -227,12 +227,12 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
+									Actions:    []*string{util.Ptr("*")},
 									NotActions: []*string{nil},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -250,12 +250,12 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
-									NotActions: []*string{ptr.Ptr("*/*")},
+									Actions:    []*string{util.Ptr("*")},
+									NotActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -273,13 +273,13 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
 									DataActions: nil,
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -297,13 +297,13 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
 									DataActions: []*string{nil},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -321,13 +321,13 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
-									DataActions: []*string{ptr.Ptr("*/*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
+									DataActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -345,14 +345,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
 									NotDataActions: nil,
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -370,14 +370,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
 									NotDataActions: []*string{nil},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -395,14 +395,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*/*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{},
@@ -420,14 +420,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{nil},
@@ -445,14 +445,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -474,14 +474,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -505,14 +505,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -536,14 +536,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -570,14 +570,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -605,14 +605,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -640,14 +640,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -655,7 +655,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions: []*string{ptr.Ptr("*/*")},
+									Actions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
@@ -675,14 +675,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -690,7 +690,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
+									Actions:    []*string{util.Ptr("*")},
 									NotActions: nil,
 								},
 							},
@@ -711,14 +711,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -726,7 +726,7 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
+									Actions:    []*string{util.Ptr("*")},
 									NotActions: []*string{nil},
 								},
 							},
@@ -747,14 +747,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -762,8 +762,8 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:    []*string{ptr.Ptr("*")},
-									NotActions: []*string{ptr.Ptr("*/*")},
+									Actions:    []*string{util.Ptr("*")},
+									NotActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
@@ -783,14 +783,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -798,8 +798,8 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
 									DataActions: nil,
 								},
 							},
@@ -820,14 +820,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -835,8 +835,8 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
 									DataActions: []*string{nil},
 								},
 							},
@@ -857,14 +857,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -872,9 +872,9 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:     []*string{ptr.Ptr("*")},
-									NotActions:  []*string{ptr.Ptr("*")},
-									DataActions: []*string{ptr.Ptr("*/*")},
+									Actions:     []*string{util.Ptr("*")},
+									NotActions:  []*string{util.Ptr("*")},
+									DataActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
@@ -894,14 +894,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -909,9 +909,9 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
 									NotDataActions: nil,
 								},
 							},
@@ -932,14 +932,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -947,9 +947,9 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
 									NotDataActions: []*string{nil},
 								},
 							},
@@ -970,14 +970,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*")},
 								},
 							},
 						},
-						ID: ptr.Ptr("da"),
+						ID: util.Ptr("da"),
 					},
 				},
 				roles: []*armauthorization.RoleDefinition{
@@ -985,10 +985,10 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("*")},
-									NotActions:     []*string{ptr.Ptr("*")},
-									DataActions:    []*string{ptr.Ptr("*")},
-									NotDataActions: []*string{ptr.Ptr("*/*")},
+									Actions:        []*string{util.Ptr("*")},
+									NotActions:     []*string{util.Ptr("*")},
+									DataActions:    []*string{util.Ptr("*")},
+									NotDataActions: []*string{util.Ptr("*/*")},
 								},
 							},
 						},
@@ -1012,9 +1012,9 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
+									Actions:        []*string{util.Ptr("a")},
 									NotActions:     []*string{},
-									DataActions:    []*string{ptr.Ptr("b")},
+									DataActions:    []*string{util.Ptr("b")},
 									NotDataActions: []*string{},
 								},
 							},
@@ -1078,9 +1078,9 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
-									NotActions:     []*string{ptr.Ptr("a")},
-									DataActions:    []*string{ptr.Ptr("b")},
+									Actions:        []*string{util.Ptr("a")},
+									NotActions:     []*string{util.Ptr("a")},
+									DataActions:    []*string{util.Ptr("b")},
 									NotDataActions: []*string{},
 								},
 							},
@@ -1111,10 +1111,10 @@ func Test_processAllCandidateActions(t *testing.T) {
 						Properties: &armauthorization.RoleDefinitionProperties{
 							Permissions: []*armauthorization.Permission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
+									Actions:        []*string{util.Ptr("a")},
 									NotActions:     []*string{},
-									DataActions:    []*string{ptr.Ptr("b")},
-									NotDataActions: []*string{ptr.Ptr("b")},
+									DataActions:    []*string{util.Ptr("b")},
+									NotDataActions: []*string{util.Ptr("b")},
 								},
 							},
 						},
@@ -1143,14 +1143,14 @@ func Test_processAllCandidateActions(t *testing.T) {
 				candidateDataActions: []string{"b"},
 				denyAssignments: []*armauthorization.DenyAssignment{
 					{
-						ID: ptr.Ptr("da1"),
+						ID: util.Ptr("da1"),
 						Properties: &armauthorization.DenyAssignmentProperties{
 							Permissions: []*armauthorization.DenyAssignmentPermission{
 								{
-									Actions:        []*string{ptr.Ptr("a")},
-									NotActions:     []*string{ptr.Ptr("a")},
-									DataActions:    []*string{ptr.Ptr("b")},
-									NotDataActions: []*string{ptr.Ptr("b")},
+									Actions:        []*string{util.Ptr("a")},
+									NotActions:     []*string{util.Ptr("a")},
+									DataActions:    []*string{util.Ptr("b")},
+									NotDataActions: []*string{util.Ptr("b")},
 								},
 							},
 						},
