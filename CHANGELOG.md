@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.0.9](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.8...v0.0.9) (2024-03-10)
+
+
+### Bug Fixes
+
+* **deps:** update golang.org/x/exp digest to 814bf88 ([#132](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/132)) ([58d6002](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/58d60027a06d7186c5d6957ec54bc90d4badc340))
+* **deps:** update golang.org/x/exp digest to ec58324 ([#122](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/122)) ([ee01552](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/ee0155286ea048bd67282b76cf73dc5f9861cdfe))
+* **deps:** update kubernetes packages to v0.29.2 ([#128](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/128)) ([d56f1eb](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/d56f1ebced2f26393eb98b0d18a4b25732e38cd9))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azcore to v1.9.2 ([#123](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/123)) ([c1b428c](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/c1b428cb20d7251de74466537b217f9a9c3e80ed))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.17.1 ([#97](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/97)) ([f5656fb](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/f5656fba7c3cddfd4d5030d998cbce8c33e79ec0))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.17.2 ([#131](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/131)) ([aae720d](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/aae720d3150782f7d025c5c53570b4d6a66b2ca2))
+
+
+### Other
+
+* **deps:** update actions/upload-artifact digest to 5d5d22a ([#121](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/121)) ([996f2fc](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/996f2fcfdc68027590424d45e35f1340e55018c0))
+* **deps:** update azure/setup-helm action to v4 ([#136](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/136)) ([ebc4917](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/ebc4917fe2ceafbb3f006eda0ad62c445cc26ba8))
+* **deps:** update codecov/codecov-action digest to 54bcd87 ([#133](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/133)) ([3d197f7](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/3d197f7d4eed4e88b32fc3486c273e95d8877bf2))
+* **deps:** update docker/setup-buildx-action digest to 0d103c3 ([#134](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/134)) ([d5229ba](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/d5229ba410b527b223c194ab09cb87f0b2ef0d83))
+* **deps:** update helm/kind-action action to v1.9.0 ([#126](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/126)) ([bbddda4](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/bbddda4f34c00ad64dc928ed728e45760d055133))
+* fix broken build link in README ([#135](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/135)) ([cb8f7aa](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/cb8f7aaaf24c79635ca401b9a1355bf8de5844e2))
+* upgrade to validator v0.0.36 ([#143](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/143)) ([8c4d0d9](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/8c4d0d9a1208ad4ab794b87d4c23006560d30016))
+
 ## [0.0.8](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.7...v0.0.8) (2024-02-06)
 
 
