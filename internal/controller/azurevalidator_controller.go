@@ -116,9 +116,16 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if err != nil {
 		l.Error(err, "failed to create Azure API object")
 	} else {
-		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureAPI.DenyAssignments)
-		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureAPI.RoleAssignments)
-		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureAPI.RoleDefinitions)
+		azureCtx := context.WithoutCancel(ctx)
+		if os.Getenv("IS_TEST") == "true" {
+			var cancel context.CancelFunc
+			azureCtx, cancel = context.WithDeadline(ctx, time.Now().Add(azure_utils.TestClientTimeout))
+			defer cancel()
+		}
+
+		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignments)
+		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignments)
+		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitions)
 
 		// RBAC rules
 		svc := validators.NewRBACRuleService(daClient, raClient, rdClient)

@@ -104,6 +104,8 @@ var _ = BeforeSuite(func() {
 		testEnv.UseExistingCluster = util.Ptr(true)
 	}
 
+	os.Setenv("IS_TEST", "true")
+
 	var err error
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
