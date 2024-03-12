@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.10](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.9...v0.0.10) (2024-03-12)
+
+
+### Refactoring
+
+* use patch helpers; batch validation rule result updates ([#147](https://github.com/spectrocloud-labs/validator-plugin-azure/issues/147)) ([b707a2d](https://github.com/spectrocloud-labs/validator-plugin-azure/commit/b707a2d55f87c9343ac24dbded0d2573d990bc94))
+
 ## [0.0.9](https://github.com/spectrocloud-labs/validator-plugin-azure/compare/v0.0.8...v0.0.9) (2024-03-10)
 
 
