@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	map_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/maps"
 	"golang.org/x/exp/maps"
+
+	map_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/maps"
 )
 
 const (

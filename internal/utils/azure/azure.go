@@ -5,11 +5,18 @@ package azure
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 
+	armpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 )
+
+const TestClientTimeout = 10 * time.Second
 
 type AzureAPI struct {
 	DenyAssignments *armauthorization.DenyAssignmentsClient
@@ -27,18 +34,33 @@ func NewAzureAPI() (*AzureAPI, error) {
 		return nil, fmt.Errorf("failed to prepare default Azure credential: %w", err)
 	}
 
+	// Minimize retries/timeouts for tests
+	opts := &armpolicy.ClientOptions{
+		ClientOptions: policy.ClientOptions{
+			Retry: policy.RetryOptions{},
+		},
+	}
+	if os.Getenv("IS_TEST") == "true" {
+		httpClient := http.DefaultClient
+		httpClient.Timeout = TestClientTimeout
+
+		opts.ClientOptions.Retry.MaxRetries = -1
+		opts.ClientOptions.Retry.TryTimeout = TestClientTimeout
+		opts.ClientOptions.Transport = policy.Transporter(httpClient)
+	}
+
 	// The subscription ID parameter for deny assignment and role assignment clients isn't relevant
 	// because the plugin only uses methods where scope is specified for each query. Therefore, an
 	// empty string is used for the param.
-	daClient, err := armauthorization.NewDenyAssignmentsClient("", cred, nil)
+	daClient, err := armauthorization.NewDenyAssignmentsClient("", cred, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure deny assignments client: %w", err)
 	}
-	raClient, err := armauthorization.NewRoleAssignmentsClient("", cred, nil)
+	raClient, err := armauthorization.NewRoleAssignmentsClient("", cred, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
 	}
-	rdClient, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
+	rdClient, err := armauthorization.NewRoleDefinitionsClient(cred, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
 	}
@@ -53,82 +75,108 @@ func NewAzureAPI() (*AzureAPI, error) {
 // AzureDenyAssignmentsClient is a facade over the Azure deny assignments client. Exists to make our
 // code easier to test (it handles paging).
 type AzureDenyAssignmentsClient struct {
+	ctx    context.Context
 	client *armauthorization.DenyAssignmentsClient
 }
 
 // NewAzureDenyAssignmentsClient creates a new AzureDenyAssignmentsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureDenyAssignmentsClient(azClient *armauthorization.DenyAssignmentsClient) *AzureDenyAssignmentsClient {
+func NewAzureDenyAssignmentsClient(ctx context.Context, azClient *armauthorization.DenyAssignmentsClient) *AzureDenyAssignmentsClient {
 	return &AzureDenyAssignmentsClient{
+		ctx:    ctx,
 		client: azClient,
 	}
 }
 
 // GetDenyAssignmentsForScope gets all the deny assignments matching a scope and an optional filter.
 func (c *AzureDenyAssignmentsClient) GetDenyAssignmentsForScope(scope string, filter *string) ([]*armauthorization.DenyAssignment, error) {
+	var denyAssignments []*armauthorization.DenyAssignment
 	pager := c.client.NewListForScopePager(scope, &armauthorization.DenyAssignmentsClientListForScopeOptions{
 		Filter: filter,
 	})
 
-	var denyAssignments []*armauthorization.DenyAssignment
-	for pager.More() {
-		nextResult, err := pager.NextPage(context.TODO())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get next page of results: %w", err)
+	ch := make(chan error)
+	go func() {
+		defer close(ch)
+		for pager.More() {
+			nextResult, err := pager.NextPage(c.ctx)
+			if err != nil {
+				ch <- fmt.Errorf("failed to get next page of results: %w", err)
+			}
+			if nextResult.Value != nil {
+				denyAssignments = append(denyAssignments, nextResult.Value...)
+			}
 		}
-		if nextResult.Value != nil {
-			denyAssignments = append(denyAssignments, nextResult.Value...)
-		}
-	}
+		ch <- nil
+	}()
 
-	return denyAssignments, nil
+	select {
+	case err := <-ch:
+		return denyAssignments, err
+	case <-c.ctx.Done():
+		return denyAssignments, fmt.Errorf("context cancelled")
+	}
 }
 
 // AzureRoleAssignmentsClient is a facade over the Azure role assignments client. Exists to make our
 // code easier to test (it handles paging).
 type AzureRoleAssignmentsClient struct {
+	ctx    context.Context
 	client *armauthorization.RoleAssignmentsClient
 }
 
 // NewAzureRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureRoleAssignmentsClient(azClient *armauthorization.RoleAssignmentsClient) *AzureRoleAssignmentsClient {
+func NewAzureRoleAssignmentsClient(ctx context.Context, azClient *armauthorization.RoleAssignmentsClient) *AzureRoleAssignmentsClient {
 	return &AzureRoleAssignmentsClient{
+		ctx:    ctx,
 		client: azClient,
 	}
 }
 
 // GetRoleAssignmentsForScope gets all the role assignments matching a scope and an optional filter.
 func (c *AzureRoleAssignmentsClient) GetRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error) {
+	var roleAssignments []*armauthorization.RoleAssignment
 	pager := c.client.NewListForScopePager(scope, &armauthorization.RoleAssignmentsClientListForScopeOptions{
 		Filter: filter,
 	})
 
-	var roleAssignments []*armauthorization.RoleAssignment
-	for pager.More() {
-		nextResult, err := pager.NextPage(context.TODO())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get next page of results: %w", err)
+	ch := make(chan error)
+	go func() {
+		defer close(ch)
+		for pager.More() {
+			nextResult, err := pager.NextPage(c.ctx)
+			if err != nil {
+				ch <- fmt.Errorf("failed to get next page of results: %w", err)
+			}
+			if nextResult.Value != nil {
+				roleAssignments = append(roleAssignments, nextResult.Value...)
+			}
 		}
-		if nextResult.Value != nil {
-			roleAssignments = append(roleAssignments, nextResult.Value...)
-		}
-	}
+		ch <- nil
+	}()
 
-	return roleAssignments, nil
+	select {
+	case err := <-ch:
+		return roleAssignments, err
+	case <-c.ctx.Done():
+		return roleAssignments, fmt.Errorf("context cancelled")
+	}
 }
 
 // AzureRoleDefinitionsClient is a facade over the Azure role definitions client. Code that uses
 // this instead of the actual Azure client is easier to test because it won't need to deal with
 // finding the permissions part of the API response.
 type AzureRoleDefinitionsClient struct {
+	ctx    context.Context
 	client *armauthorization.RoleDefinitionsClient
 }
 
 // NewAzureRoleDefinitionsClient creates a new AzureRoleDefinitionsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureRoleDefinitionsClient(azClient *armauthorization.RoleDefinitionsClient) *AzureRoleDefinitionsClient {
+func NewAzureRoleDefinitionsClient(ctx context.Context, azClient *armauthorization.RoleDefinitionsClient) *AzureRoleDefinitionsClient {
 	return &AzureRoleDefinitionsClient{
+		ctx:    ctx,
 		client: azClient,
 	}
 }
@@ -136,11 +184,10 @@ func NewAzureRoleDefinitionsClient(azClient *armauthorization.RoleDefinitionsCli
 // GetByID gets the role definition associated with a role assignment because it uses the
 // fully-qualified role ID contained within the role assignment data to retrieve it from Azure.
 func (c *AzureRoleDefinitionsClient) GetByID(roleID string) (*armauthorization.RoleDefinition, error) {
-	roleDefinitionResp, err := c.client.GetByID(context.TODO(), roleID, nil)
+	roleDefinitionResp, err := c.client.GetByID(c.ctx, roleID, nil)
 	if err != nil {
 		return &armauthorization.RoleDefinition{}, fmt.Errorf("failed to get role definition for with ID %s: %w", roleID, err)
 	}
-
 	return &roleDefinitionResp.RoleDefinition, nil
 }
 
