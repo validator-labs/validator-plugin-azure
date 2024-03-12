@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+
 	"github.com/spectrocloud-labs/validator/pkg/util"
 )
 

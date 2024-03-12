@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/test"
 	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
 	"github.com/spectrocloud-labs/validator/pkg/util"
-	corev1 "k8s.io/api/core/v1"
 )
 
 type denyAssignmentAPIMock struct {
@@ -55,7 +55,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		raAPIMock      roleAssignmentAPIMock
 		rdAPIMock      roleDefinitionAPIMock
 		expectedError  error
-		expectedResult vapitypes.ValidationResult
+		expectedResult vapitypes.ValidationRuleResult
 	}
 
 	// Note that these test cases test code that calls code in rbac_permissions.go, which is already
@@ -114,7 +114,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				err: nil,
 			},
 			expectedError: nil,
-			expectedResult: vapitypes.ValidationResult{
+			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-rule-1",
@@ -185,7 +185,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				err: nil,
 			},
 			expectedError: nil,
-			expectedResult: vapitypes.ValidationResult{
+			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-rule-1",
@@ -245,7 +245,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 				err: nil,
 			},
 			expectedError: nil,
-			expectedResult: vapitypes.ValidationResult{
+			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-rbac",
 					ValidationRule: "validation-rule-1",
@@ -264,7 +264,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 	for _, c := range cs {
 		svc := NewRBACRuleService(c.daAPIMock, c.raAPIMock, c.rdAPIMock)
 		result, err := svc.ReconcileRBACRule(c.rule)
-		test.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
+		util.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
 	}
 }
 

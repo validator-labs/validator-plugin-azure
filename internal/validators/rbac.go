@@ -5,6 +5,8 @@ import (
 	"net/url"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
 	azure_errors "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure-errors"
@@ -12,7 +14,6 @@ import (
 	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
 	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
 	"github.com/spectrocloud-labs/validator/pkg/util"
-	corev1 "k8s.io/api/core/v1"
 )
 
 // denyAssignmentAPI contains methods that allow getting all deny assignments for a scope and
@@ -48,7 +49,7 @@ func NewRBACRuleService(daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI 
 }
 
 // ReconcileRBACRule reconciles a role assignment rule from a validation config.
-func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.ValidationResult, error) {
+func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.ValidationRuleResult, error) {
 
 	// Build the default ValidationResult for this role assignment rule.
 	state := vapi.ValidationSucceeded
@@ -57,7 +58,7 @@ func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.
 	latestCondition.Message = "Principal has all required permissions."
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name)
 	latestCondition.ValidationType = constants.ValidationTypeRBAC
-	validationResult := &vapitypes.ValidationResult{Condition: &latestCondition, State: &state}
+	validationResult := &vapitypes.ValidationRuleResult{Condition: &latestCondition, State: &state}
 
 	for _, set := range rule.Permissions {
 		if err := s.processPermissionSet(set, rule.PrincipalID, &latestCondition.Failures); err != nil {
