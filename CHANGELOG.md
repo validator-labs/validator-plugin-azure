@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.11](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.10...v0.0.11) (2024-05-17)
+
+
+### Other
+
+* migrate from spectrocloud-labs to validator-labs ([#152](https://github.com/validator-labs/validator-plugin-azure/issues/152)) ([b8eac2b](https://github.com/validator-labs/validator-plugin-azure/commit/b8eac2bedcebe483e1fd2762cb1bbb2d86b67ec8))
+
 ## [0.0.10](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.9...v0.0.10) (2024-03-12)
 
 
