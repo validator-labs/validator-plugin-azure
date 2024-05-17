@@ -6,8 +6,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
-	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
+	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
+	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
