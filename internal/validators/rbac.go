@@ -7,13 +7,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
-	azure_errors "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure-errors"
-	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	vapiconstants "github.com/spectrocloud-labs/validator/pkg/constants"
-	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
-	"github.com/spectrocloud-labs/validator/pkg/util"
+	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
+	"github.com/validator-labs/validator-plugin-azure/internal/constants"
+	azure_errors "github.com/validator-labs/validator-plugin-azure/internal/utils/azure-errors"
+	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	vapiconstants "github.com/validator-labs/validator/pkg/constants"
+	vapitypes "github.com/validator-labs/validator/pkg/types"
+	"github.com/validator-labs/validator/pkg/util"
 )
 
 // denyAssignmentAPI contains methods that allow getting all deny assignments for a scope and

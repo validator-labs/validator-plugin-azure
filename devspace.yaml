@@ -5,7 +5,7 @@ vars:
   GOARCH:
     command: go
     args: ["env", "GOARCH"]
-  IMAGE: quay.io/spectrocloud-labs/validator-plugin-azure
+  IMAGE: quay.io/validator-labs/validator-plugin-azure
 
 images:
   validator-plugin-azure:
