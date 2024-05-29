@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 
-	"github.com/spectrocloud-labs/validator/pkg/util"
+	"github.com/validator-labs/validator/pkg/util"
 )
 
 func Test_processAllCandidateActions(t *testing.T) {

@@ -33,14 +33,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator-plugin-azure/internal/constants"
-	azure_utils "github.com/spectrocloud-labs/validator-plugin-azure/internal/utils/azure"
-	"github.com/spectrocloud-labs/validator-plugin-azure/internal/validators"
-	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	"github.com/spectrocloud-labs/validator/pkg/types"
-	"github.com/spectrocloud-labs/validator/pkg/util"
-	vres "github.com/spectrocloud-labs/validator/pkg/validationresult"
+	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
+	"github.com/validator-labs/validator-plugin-azure/internal/constants"
+	azure_utils "github.com/validator-labs/validator-plugin-azure/internal/utils/azure"
+	"github.com/validator-labs/validator-plugin-azure/internal/validators"
+	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	"github.com/validator-labs/validator/pkg/types"
+	"github.com/validator-labs/validator/pkg/util"
+	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
 var ErrSecretNameRequired = errors.New("auth.secretName is required")
