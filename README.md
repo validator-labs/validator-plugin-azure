@@ -1,13 +1,13 @@
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/spectrocloud-labs/validator-plugin-azure/issues)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/validator-labs/validator-plugin-azure/issues)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![Test](https://github.com/spectrocloud-labs/validator-plugin-azure/actions/workflows/test.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/spectrocloud-labs/validator-plugin-azure)](https://goreportcard.com/report/github.com/spectrocloud-labs/validator-plugin-azure)
-[![codecov](https://codecov.io/gh/spectrocloud-labs/validator-plugin-azure/graph/badge.svg?token=QHR08U8SEQ)](https://codecov.io/gh/spectrocloud-labs/validator-plugin-azure)
-[![Go Reference](https://pkg.go.dev/badge/github.com/spectrocloud-labs/validator-plugin-azure.svg)](https://pkg.go.dev/github.com/spectrocloud-labs/validator-plugin-azure)
+![Test](https://github.com/validator-labs/validator-plugin-azure/actions/workflows/test.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/validator-labs/validator-plugin-azure)](https://goreportcard.com/report/github.com/validator-labs/validator-plugin-azure)
+[![codecov](https://codecov.io/gh/validator-labs/validator-plugin-azure/graph/badge.svg?token=QHR08U8SEQ)](https://codecov.io/gh/validator-labs/validator-plugin-azure)
+[![Go Reference](https://pkg.go.dev/badge/github.com/validator-labs/validator-plugin-azure.svg)](https://pkg.go.dev/github.com/validator-labs/validator-plugin-azure)
 
 # validator-plugin-azure
 
-The Azure [validator](https://github.com/spectrocloud-labs/validator) plugin ensures that your Azure environment matches a user-configurable expected state.
+The Azure [validator](https://github.com/validator-labs/validator) plugin ensures that your Azure environment matches a user-configurable expected state.
 
 ## Description
 
@@ -17,7 +17,7 @@ The Azure validator plugin reconciles `AzureValidator` custom resources to perfo
 
 Each `AzureValidator` CR is (re)-processed every two minutes to continuously ensure that your Azure environment matches the expected state.
 
-See the [samples](https://github.com/spectrocloud-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations.
+See the [samples](https://github.com/validator-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations.
 
 ## Authn & Authz
 
@@ -44,10 +44,10 @@ If you want to use a built-in role instead of a custom role to provide these per
 
 ## Installation
 
-The Azure validator plugin is meant to be [installed by validator](https://github.com/spectrocloud-labs/validator/tree/gh_pages#installation) (via a ValidatorConfig), but it can also be installed directly as follows:
+The Azure validator plugin is meant to be [installed by validator](https://github.com/validator-labs/validator/tree/gh_pages#installation) (via a ValidatorConfig), but it can also be installed directly as follows:
 
 ```bash
-helm repo add validator-plugin-azure https://spectrocloud-labs.github.io/validator-plugin-azure
+helm repo add validator-plugin-azure https://validator-labs.github.io/validator-plugin-azure
 helm repo update
 helm install validator-plugin-azure validator-plugin-azure/validator-plugin-azure -n validator-plugin-azure --create-namespace
 ```
