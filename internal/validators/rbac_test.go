@@ -7,10 +7,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/spectrocloud-labs/validator-plugin-azure/api/v1alpha1"
-	vapi "github.com/spectrocloud-labs/validator/api/v1alpha1"
-	vapitypes "github.com/spectrocloud-labs/validator/pkg/types"
-	"github.com/spectrocloud-labs/validator/pkg/util"
+	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
+	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	vapitypes "github.com/validator-labs/validator/pkg/types"
+	"github.com/validator-labs/validator/pkg/util"
 )
 
 type denyAssignmentAPIMock struct {
