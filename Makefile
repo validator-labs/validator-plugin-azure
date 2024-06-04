@@ -151,7 +151,8 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
 CHART_VERSION=v0.0.1 # x-release-please-version
-CONTROLLER_TOOLS_VERSION ?= v0.12.0
+# Version recommended by kubebuilder maintainers to use with controller-runtime 0.18.x.
+CONTROLLER_TOOLS_VERSION ?= v0.15.0
 ENVTEST_K8S_VERSION = 1.27.1
 HELM_VERSION=v3.10.1
 KUSTOMIZE_VERSION ?= v5.0.1
