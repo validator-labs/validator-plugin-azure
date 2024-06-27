@@ -58,6 +58,7 @@ type roleInfo struct {
 //
 // It is assumed that all required actions and data actions have no wildcards because of CRD
 // validation.
+// nolint:gocyclo
 func processAllCandidateActions(candidateActions, candidateDataActions []string, denyAssignments []*armauthorization.DenyAssignment, roles []*armauthorization.RoleDefinition) (result, error) {
 	errNil := func(subject string) error {
 		return fmt.Errorf("%s nil", subject)
