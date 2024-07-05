@@ -27,11 +27,14 @@ type AzureValidatorSpec struct {
 	// +kubebuilder:validation:MaxItems=5
 	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	RBACRules []RBACRule `json:"rbacRules" yaml:"rbacRules"`
-	Auth      AzureAuth  `json:"auth" yaml:"auth"`
+	// Rules for validating that images exist in an Azure Compute Gallery published as a community
+	// gallery.
+	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules" yaml:"communityGalleryImageRules"`
+	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
 
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
 }
 
 // Conveys that a specified security principal (aka principal) should have the specified
@@ -53,6 +56,31 @@ type RBACRule struct {
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User.
 	PrincipalID string `json:"principalId" yaml:"principalId"`
+}
+
+// Conveys that one or more images in a community gallery exist.
+type CommunityGalleryImageRule struct {
+	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
+	// each other.
+	Name string `json:"name" yaml:"name"`
+	// Gallery is the community gallery.
+	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
+	// Images are the names of the images to check for in the gallery.
+	//+kubebuilder:validation:MinItems=1
+	//+kubebuilder:validation:MaxItems=20
+	Images []string `json:"images" yaml:"images"`
+	// The subscription ID to verify that the community galleries are available to. Used in API
+	// calls to URL
+	// `subscriptions/<subscription>/providers/Microsoft.Compute/locations/<location>/communityGalleries/<gallery>/images`.
+	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
+}
+
+// CommunityGallery is a community gallery in a particular location.
+type CommunityGallery struct {
+	// Location is the location of the community gallery.
+	Location string `json:"location" yaml:"location"`
+	// Name is the name of the community gallery.
+	Name string `json:"name" yaml:"name"`
 }
 
 type AzureAuth struct {

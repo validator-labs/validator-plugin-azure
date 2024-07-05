@@ -55,6 +55,53 @@ spec:
                 required:
                 - implicit
                 type: object
+              communityGalleryImageRules:
+                description: |-
+                  Rules for validating that images exist in an Azure Compute Gallery published as a community
+                  gallery.
+                items:
+                  description: Conveys that one or more images in a community gallery
+                    exist.
+                  properties:
+                    gallery:
+                      description: Gallery is the community gallery.
+                      properties:
+                        location:
+                          description: Location is the location of the community gallery.
+                          type: string
+                        name:
+                          description: Name is the name of the community gallery.
+                          type: string
+                      required:
+                      - location
+                      - name
+                      type: object
+                    images:
+                      description: Images are the names of the images to check for
+                        in the gallery.
+                      items:
+                        type: string
+                      maxItems: 20
+                      minItems: 1
+                      type: array
+                    name:
+                      description: |-
+                        Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
+                        each other.
+                      type: string
+                    subscriptionID:
+                      description: |-
+                        The subscription ID to verify that the community galleries are available to. Used in API
+                        calls to URL
+                        `subscriptions/<subscription>/providers/Microsoft.Compute/locations/<location>/communityGalleries/<gallery>/images`.
+                      type: string
+                  required:
+                  - gallery
+                  - images
+                  - name
+                  - subscriptionID
+                  type: object
+                type: array
               rbacRules:
                 description: |-
                   Rules for validating that the correct role assignments have been created in Azure RBAC to
@@ -149,6 +196,7 @@ spec:
                   rule: self.all(e, size(self.filter(x, x.name == e.name)) == 1)
             required:
             - auth
+            - communityGalleryImageRules
             - rbacRules
             type: object
           status:
