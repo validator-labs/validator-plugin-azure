@@ -1,6 +1,6 @@
 module github.com/validator-labs/validator-plugin-azure
 
-go 1.22.4
+go 1.22.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0
@@ -20,6 +20,7 @@ require (
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.9.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.7.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
