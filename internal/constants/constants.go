@@ -5,5 +5,5 @@ const (
 
 	ValidationTypeRBAC string = "azure-rbac"
 
-	ValidationTypeCommunityGalleryImages string = "azure-community-gallery-images"
+	ValidationTypeCommunityGalleryImages string = "azure-community-gallery-image"
 )

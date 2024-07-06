@@ -53,7 +53,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			expectedError: nil,
 			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-community-gallery-images",
+					ValidationType: "azure-community-gallery-image",
 					ValidationRule: "validation-rule-1",
 					Message:        "All required images present in community gallery.",
 					Details:        []string{},
@@ -87,7 +87,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			expectedError: nil,
 			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-community-gallery-images",
+					ValidationType: "azure-community-gallery-image",
 					ValidationRule: "validation-rule-1",
 					Message:        "All required images present in community gallery.",
 					Details:        []string{},
@@ -118,7 +118,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			expectedError: nil,
 			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-community-gallery-images",
+					ValidationType: "azure-community-gallery-image",
 					ValidationRule: "validation-rule-1",
 					Message:        "Community gallery lacks one or more required images. See failures for details.",
 					Details:        []string{},
@@ -148,7 +148,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			expectedError: errors.New("community gallery gallery1 not found in location location1 using subscription sub"),
 			expectedResult: vapitypes.ValidationRuleResult{
 				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-community-gallery-images",
+					ValidationType: "azure-community-gallery-image",
 					ValidationRule: "validation-rule-1",
 					Message:        "All required images present in community gallery.",
 					Details:        []string{},
