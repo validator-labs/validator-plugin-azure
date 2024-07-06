@@ -54,9 +54,9 @@ func NewAzureAPI() (*AzureAPI, error) {
 		opts.ClientOptions.Transport = policy.Transporter(httpClient)
 	}
 
-	// The subscription ID parameter of these New8Client calls is only required if you intend to
-	// make API calls that involve subscription ID while not providing it in the API call. This is
-	// not relevant to us.
+	// For clients we create with empty subscription ID args, these are clients where the
+	// subscription ID is only used in some API calls. We don't use those API calls, so we don't
+	// need to provide it.
 	daClient, err := armauthorization.NewDenyAssignmentsClient("", cred, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure deny assignments client: %w", err)
@@ -69,6 +69,12 @@ func NewAzureAPI() (*AzureAPI, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
 	}
+
+	// Some API calls we make require subscription ID, but it's possible to use the validator plugin
+	// in a way where more than one subscription is used during validation. For these API calls, we
+	// use API client producers which allow the subscription ID to be specified during validation
+	// rule reconciliation, at which point a new client with the required subscription ID is
+	// produced.
 	cgiClientProducer := func(subscriptionID string) (*armcompute.CommunityGalleryImagesClient, error) {
 		return armcompute.NewCommunityGalleryImagesClient(subscriptionID, cred, opts)
 	}
