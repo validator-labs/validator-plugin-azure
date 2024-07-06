@@ -37,9 +37,9 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
-	latestCondition.Message = "All required images found in community gallery."
+	latestCondition.Message = "All required images present in community gallery."
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name)
-	latestCondition.ValidationType = constants.ValidationTypeRBAC
+	latestCondition.ValidationType = constants.ValidationTypeCommunityGalleryImages
 	validationResult := &vapitypes.ValidationRuleResult{Condition: &latestCondition, State: &state}
 
 	imagesInGallery, err := s.api.GetImagesForGallery(rule.Gallery.Location, rule.Gallery.Name, rule.SubscriptionID)
@@ -60,11 +60,14 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 	// Find out which of the images in the rule are not present in the gallery.
 	for _, image := range rule.Images {
 		if _, ok := images[image]; !ok {
-			state = vapi.ValidationFailed
-			latestCondition.Message = "Community gallery lacks required images. See failures for details."
 			latestCondition.Failures = append(latestCondition.Failures, fmt.Sprintf("Image %s not present in community gallery.", image))
-			latestCondition.Status = corev1.ConditionFalse
 		}
+	}
+
+	if len(latestCondition.Failures) > 0 {
+		state = vapi.ValidationFailed
+		latestCondition.Message = "Community gallery lacks one or more required images. See failures for details."
+		latestCondition.Status = corev1.ConditionFalse
 	}
 
 	return validationResult, nil
