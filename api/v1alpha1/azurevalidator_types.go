@@ -37,10 +37,8 @@ func (s AzureValidatorSpec) ResultCount() int {
 	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
 }
 
-// Conveys that a specified security principal (aka principal) should have the specified
-// permissions, via roles. It doesn't matter which roles provide the permissions as long as enough
-// role assignments exist that the principal has all of the permissions and no deny assignments
-// exist that deny the permissions.
+// RBACRule verifies that a security principal has permissions via role assignments and that no deny
+// assignments deny the permissions.
 type RBACRule struct {
 	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
 	// each other.
@@ -58,20 +56,19 @@ type RBACRule struct {
 	PrincipalID string `json:"principalId" yaml:"principalId"`
 }
 
-// Conveys that one or more images in a community gallery exist.
+// CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
+// accessible by a particular subscription.
 type CommunityGalleryImageRule struct {
-	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
-	// each other.
+	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+	// overwrite each other.
 	Name string `json:"name" yaml:"name"`
 	// Gallery is the community gallery.
 	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
-	// Images are the names of the images to check for in the gallery.
+	// Images is a list of image names.
 	//+kubebuilder:validation:MinItems=1
 	//+kubebuilder:validation:MaxItems=20
 	Images []string `json:"images" yaml:"images"`
-	// The subscription ID to verify that the community galleries are available to. Used in API
-	// calls to URL
-	// `subscriptions/<subscription>/providers/Microsoft.Compute/locations/<location>/communityGalleries/<gallery>/images`.
+	// SubscriptionID is the ID of the subscription.
 	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
 }
 
