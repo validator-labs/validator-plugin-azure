@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/go-logr/logr"
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
@@ -161,7 +162,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 	}
 
 	for _, tc := range testCases {
-		svc := NewCommunityGalleryImageRuleService(tc.apiMock)
+		svc := NewCommunityGalleryImageRuleService(tc.apiMock, logr.Logger{})
 		result, err := svc.ReconcileCommunityGalleryImageRule(tc.rule)
 		util.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
 	}

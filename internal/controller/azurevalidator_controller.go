@@ -139,7 +139,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 
 		// Community gallery image rules
-		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient)
+		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
 		for _, rule := range validator.Spec.CommunityGalleryImageRules {
 			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
 			if err != nil {

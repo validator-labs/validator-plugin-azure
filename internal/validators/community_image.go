@@ -1,11 +1,11 @@
 package validators
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
@@ -23,11 +23,13 @@ type communityGalleryImageAPI interface {
 
 type CommunityGalleryImageRuleService struct {
 	api communityGalleryImageAPI
+	log logr.Logger
 }
 
-func NewCommunityGalleryImageRuleService(api communityGalleryImageAPI) *CommunityGalleryImageRuleService {
+func NewCommunityGalleryImageRuleService(api communityGalleryImageAPI, log logr.Logger) *CommunityGalleryImageRuleService {
 	return &CommunityGalleryImageRuleService{
 		api: api,
+		log: log,
 	}
 }
 
@@ -52,7 +54,8 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 	images := map[string]bool{}
 	for _, image := range imagesInGallery {
 		if image.Name == nil {
-			return validationResult, errors.New("image from API response had no name")
+			s.log.Error(nil, "Image name in API response was nil.", "rule", rule.Name)
+			continue
 		}
 		images[*image.Name] = true
 	}
