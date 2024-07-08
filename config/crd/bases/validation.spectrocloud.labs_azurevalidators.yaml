@@ -68,10 +68,13 @@ spec:
                       description: Gallery is the community gallery.
                       properties:
                         location:
-                          description: Location is the location of the community gallery.
+                          description: Location is the location of the community gallery
+                            (e.g. "westus").
+                          maxLength: 50
                           type: string
                         name:
                           description: Name is the name of the community gallery.
+                          maxLength: 200
                           type: string
                       required:
                       - location
@@ -81,13 +84,14 @@ spec:
                       description: Images is a list of image names.
                       items:
                         type: string
-                      maxItems: 20
+                      maxItems: 1000
                       minItems: 1
                       type: array
                     name:
                       description: |-
                         Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
                         overwrite each other.
+                      maxLength: 200
                       type: string
                     subscriptionID:
                       description: SubscriptionID is the ID of the subscription.

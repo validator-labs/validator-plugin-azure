@@ -61,12 +61,13 @@ type RBACRule struct {
 type CommunityGalleryImageRule struct {
 	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
 	// overwrite each other.
+	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 	// Gallery is the community gallery.
 	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
 	// Images is a list of image names.
 	//+kubebuilder:validation:MinItems=1
-	//+kubebuilder:validation:MaxItems=20
+	//+kubebuilder:validation:MaxItems=1000
 	Images []string `json:"images" yaml:"images"`
 	// SubscriptionID is the ID of the subscription.
 	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
@@ -74,9 +75,11 @@ type CommunityGalleryImageRule struct {
 
 // CommunityGallery is a community gallery in a particular location.
 type CommunityGallery struct {
-	// Location is the location of the community gallery.
+	// Location is the location of the community gallery (e.g. "westus").
+	// +kubebuilder:validation:MaxLength=50
 	Location string `json:"location" yaml:"location"`
 	// Name is the name of the community gallery.
+	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 }
 
