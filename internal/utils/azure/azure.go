@@ -14,17 +14,22 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 )
 
 const TestClientTimeout = 10 * time.Second
 
+// AzureAPI is an container that aggregates Azure service clients.
 type AzureAPI struct {
-	DenyAssignments *armauthorization.DenyAssignmentsClient
-	RoleAssignments *armauthorization.RoleAssignmentsClient
-	RoleDefinitions *armauthorization.RoleDefinitionsClient
+	DenyAssignmentsClient *armauthorization.DenyAssignmentsClient
+	RoleAssignmentsClient *armauthorization.RoleAssignmentsClient
+	RoleDefinitionsClient *armauthorization.RoleDefinitionsClient
+	// Subscription ID is needed per API call for this client, so the client can't be created until
+	// right before it's used while reconciling a rule.
+	CommunityGalleryImagesClientProducer func(string) (*armcompute.CommunityGalleryImagesClient, error)
 }
 
-// NewAzureAPI creates an AzureAPI object that aggregates Azure service clients.
+// NewAzureAPI creates an AzureAPI.
 func NewAzureAPI() (*AzureAPI, error) {
 	// Get credentials from the three env vars. For more info on default auth, see:
 	// https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication
@@ -49,9 +54,9 @@ func NewAzureAPI() (*AzureAPI, error) {
 		opts.ClientOptions.Transport = policy.Transporter(httpClient)
 	}
 
-	// The subscription ID parameter for deny assignment and role assignment clients isn't relevant
-	// because the plugin only uses methods where scope is specified for each query. Therefore, an
-	// empty string is used for the param.
+	// For clients we create with empty subscription ID args, these are clients where the
+	// subscription ID is only used in some API calls. We don't use those API calls, so we don't
+	// need to provide it.
 	daClient, err := armauthorization.NewDenyAssignmentsClient("", cred, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Azure deny assignments client: %w", err)
@@ -65,10 +70,20 @@ func NewAzureAPI() (*AzureAPI, error) {
 		return nil, fmt.Errorf("failed to create Azure role assignments client: %w", err)
 	}
 
+	// Some API calls we make require subscription ID, but it's possible to use the validator plugin
+	// in a way where more than one subscription is used during validation. For these API calls, we
+	// use API client producers which allow the subscription ID to be specified during validation
+	// rule reconciliation, at which point a new client with the required subscription ID is
+	// produced.
+	cgiClientProducer := func(subscriptionID string) (*armcompute.CommunityGalleryImagesClient, error) {
+		return armcompute.NewCommunityGalleryImagesClient(subscriptionID, cred, opts)
+	}
+
 	return &AzureAPI{
-		DenyAssignments: daClient,
-		RoleAssignments: raClient,
-		RoleDefinitions: rdClient,
+		DenyAssignmentsClient:                daClient,
+		RoleAssignmentsClient:                raClient,
+		RoleDefinitionsClient:                rdClient,
+		CommunityGalleryImagesClientProducer: cgiClientProducer,
 	}, err
 }
 
@@ -197,4 +212,53 @@ func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
 	split := strings.Split(roleDefinitionID, "/")
 	roleName := split[len(split)-1]
 	return roleName
+}
+
+// AzureCommunityGalleryImagesClient is a facade over the Azure community gallery images client.
+// Exists to make our code easier to test (it handles paging).
+type AzureCommunityGalleryImagesClient struct {
+	ctx            context.Context
+	clientProducer func(string) (*armcompute.CommunityGalleryImagesClient, error)
+}
+
+// NewAzureCommunityGalleryImagesClient creates a new AzureRoleDefinitionsClient (our facade
+// client) from a client from the Azure SDK.
+func NewAzureCommunityGalleryImagesClient(ctx context.Context, azClientProducer func(subscriptionID string) (*armcompute.CommunityGalleryImagesClient, error)) *AzureCommunityGalleryImagesClient {
+	return &AzureCommunityGalleryImagesClient{
+		ctx:            ctx,
+		clientProducer: azClientProducer,
+	}
+}
+
+// GetImagesForGallery gets all the images in a community gallery.
+func (c *AzureCommunityGalleryImagesClient) GetImagesForGallery(location, name, subscriptionID string) ([]*armcompute.CommunityGalleryImage, error) {
+	client, err := c.clientProducer(subscriptionID)
+	if err != nil {
+		return []*armcompute.CommunityGalleryImage{}, fmt.Errorf("failed to produce client with subscription ID %s: %w", subscriptionID, err)
+	}
+
+	var images []*armcompute.CommunityGalleryImage
+	pager := client.NewListPager(location, name, &armcompute.CommunityGalleryImagesClientListOptions{})
+
+	ch := make(chan error)
+	go func() {
+		defer close(ch)
+		for pager.More() {
+			nextResult, err := pager.NextPage(c.ctx)
+			if err != nil {
+				ch <- fmt.Errorf("failed to get next page of results: %w", err)
+			}
+			if nextResult.Value != nil {
+				images = append(images, nextResult.Value...)
+			}
+		}
+		ch <- nil
+	}()
+
+	select {
+	case err := <-ch:
+		return images, err
+	case <-c.ctx.Done():
+		return images, fmt.Errorf("context cancelled")
+	}
 }

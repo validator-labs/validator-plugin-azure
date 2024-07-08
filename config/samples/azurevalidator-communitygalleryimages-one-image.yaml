@@ -1,0 +1,17 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-communitygalleryimages-one-image
+spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
+  rbacRules: []
+  communityGalleryImageRules:
+  - name: rule-1
+    gallery:
+      location: westus
+      name: AKSUbuntu-38d80f77-467a-481f-a8d4-09b6d4220bd2
+    images:
+    - 1804gen2gpucontainerd
+    subscriptionID: <subscription>

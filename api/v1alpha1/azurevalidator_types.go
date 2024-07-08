@@ -26,18 +26,19 @@ type AzureValidatorSpec struct {
 	// provide needed permissions.
 	// +kubebuilder:validation:MaxItems=5
 	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
-	RBACRules []RBACRule `json:"rbacRules" yaml:"rbacRules"`
-	Auth      AzureAuth  `json:"auth" yaml:"auth"`
+	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
+	// Rules for validating that images exist in an Azure Compute Gallery published as a community
+	// gallery.
+	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
+	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
 
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
 }
 
-// Conveys that a specified security principal (aka principal) should have the specified
-// permissions, via roles. It doesn't matter which roles provide the permissions as long as enough
-// role assignments exist that the principal has all of the permissions and no deny assignments
-// exist that deny the permissions.
+// RBACRule verifies that a security principal has permissions via role assignments and that no deny
+// assignments deny the permissions.
 type RBACRule struct {
 	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
 	// each other.
@@ -53,6 +54,33 @@ type RBACRule struct {
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User.
 	PrincipalID string `json:"principalId" yaml:"principalId"`
+}
+
+// CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
+// accessible by a particular subscription.
+type CommunityGalleryImageRule struct {
+	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+	// overwrite each other.
+	// +kubebuilder:validation:MaxLength=200
+	Name string `json:"name" yaml:"name"`
+	// Gallery is the community gallery.
+	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
+	// Images is a list of image names.
+	//+kubebuilder:validation:MinItems=1
+	//+kubebuilder:validation:MaxItems=1000
+	Images []string `json:"images" yaml:"images"`
+	// SubscriptionID is the ID of the subscription.
+	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
+}
+
+// CommunityGallery is a community gallery in a particular location.
+type CommunityGallery struct {
+	// Location is the location of the community gallery (e.g. "westus").
+	// +kubebuilder:validation:MaxLength=50
+	Location string `json:"location" yaml:"location"`
+	// Name is the name of the community gallery.
+	// +kubebuilder:validation:MaxLength=200
+	Name string `json:"name" yaml:"name"`
 }
 
 type AzureAuth struct {

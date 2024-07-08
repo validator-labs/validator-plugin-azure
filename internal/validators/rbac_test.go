@@ -19,7 +19,6 @@ type denyAssignmentAPIMock struct {
 }
 
 func (m denyAssignmentAPIMock) GetDenyAssignmentsForScope(_ string, _ *string) ([]*armauthorization.DenyAssignment, error) {
-	// TODO: Fill in with what we need for tests
 	return m.data, nil
 }
 
@@ -68,7 +67,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 	// when scope should inherit or not inherit an assignment because of the subscription->resource
 	// group etc hierarchy.
 
-	cs := []testCase{
+	testCases := []testCase{
 		{
 			name: "Pass (required actions and data actions provided by role assignments and not denied by deny assignments)",
 			rule: v1alpha1.RBACRule{
@@ -261,10 +260,10 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 			},
 		},
 	}
-	for _, c := range cs {
-		svc := NewRBACRuleService(c.daAPIMock, c.raAPIMock, c.rdAPIMock)
-		result, err := svc.ReconcileRBACRule(c.rule)
-		util.CheckTestCase(t, result, c.expectedResult, err, c.expectedError)
+	for _, tc := range testCases {
+		svc := NewRBACRuleService(tc.daAPIMock, tc.raAPIMock, tc.rdAPIMock)
+		result, err := svc.ReconcileRBACRule(tc.rule)
+		util.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
 	}
 }
 

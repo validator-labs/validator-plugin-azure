@@ -55,16 +55,62 @@ spec:
                 required:
                 - implicit
                 type: object
+              communityGalleryImageRules:
+                description: |-
+                  Rules for validating that images exist in an Azure Compute Gallery published as a community
+                  gallery.
+                items:
+                  description: |-
+                    CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
+                    accessible by a particular subscription.
+                  properties:
+                    gallery:
+                      description: Gallery is the community gallery.
+                      properties:
+                        location:
+                          description: Location is the location of the community gallery
+                            (e.g. "westus").
+                          maxLength: 50
+                          type: string
+                        name:
+                          description: Name is the name of the community gallery.
+                          maxLength: 200
+                          type: string
+                      required:
+                      - location
+                      - name
+                      type: object
+                    images:
+                      description: Images is a list of image names.
+                      items:
+                        type: string
+                      maxItems: 1000
+                      minItems: 1
+                      type: array
+                    name:
+                      description: |-
+                        Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+                        overwrite each other.
+                      maxLength: 200
+                      type: string
+                    subscriptionID:
+                      description: SubscriptionID is the ID of the subscription.
+                      type: string
+                  required:
+                  - gallery
+                  - images
+                  - name
+                  - subscriptionID
+                  type: object
+                type: array
               rbacRules:
                 description: |-
                   Rules for validating that the correct role assignments have been created in Azure RBAC to
                   provide needed permissions.
                 items:
                   description: |-
-                    Conveys that a specified security principal (aka principal) should have the specified
-                    permissions, via roles. It doesn't matter which roles provide the permissions as long as enough
-                    role assignments exist that the principal has all of the permissions and no deny assignments
-                    exist that deny the permissions.
+                    RBACRule verifies that a security principal has permissions via role assignments and that no deny
+                    assignments deny the permissions.
                   properties:
                     name:
                       description: |-
@@ -149,7 +195,6 @@ spec:
                   rule: self.all(e, size(self.filter(x, x.name == e.name)) == 1)
             required:
             - auth
-            - rbacRules
             type: object
           status:
             description: AzureValidatorStatus defines the observed state of AzureValidator

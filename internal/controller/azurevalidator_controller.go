@@ -123,16 +123,27 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			defer cancel()
 		}
 
-		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignments)
-		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignments)
-		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitions)
+		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
+		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
+		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
+		cgiClient := azure_utils.NewAzureCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
 
 		// RBAC rules
-		svc := validators.NewRBACRuleService(daClient, raClient, rdClient)
+		rbacSvc := validators.NewRBACRuleService(daClient, raClient, rdClient)
 		for _, rule := range validator.Spec.RBACRules {
-			vrr, err := svc.ReconcileRBACRule(rule)
+			vrr, err := rbacSvc.ReconcileRBACRule(rule)
 			if err != nil {
 				l.Error(err, "failed to reconcile RBAC rule")
+			}
+			resp.AddResult(vrr, err)
+		}
+
+		// Community gallery image rules
+		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
+		for _, rule := range validator.Spec.CommunityGalleryImageRules {
+			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
+			if err != nil {
+				l.Error(err, "failed to reconcile community gallery image rule")
 			}
 			resp.AddResult(vrr, err)
 		}
