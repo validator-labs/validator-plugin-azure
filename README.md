@@ -14,10 +14,11 @@ The Azure [validator](https://github.com/validator-labs/validator) plugin ensure
 The Azure validator plugin reconciles `AzureValidator` custom resources to perform the following validations against your Azure environment:
 
 1. Compare the Azure RBAC permissions associated with a [security principal](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview#security-principal) against an expected permission set.
+1. Verify that images in [community image galleries](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-community) exist.
 
 Each `AzureValidator` CR is (re)-processed every two minutes to continuously ensure that your Azure environment matches the expected state.
 
-See the [samples](https://github.com/validator-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations.
+See the [samples](https://github.com/validator-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations. Some samples require you to add data to the rules configured in them such as the Azure subscription to use.
 
 ## Authn & Authz
 
@@ -34,13 +35,23 @@ Authentication details for the Azure validator controller are provided within ea
 
 ### Minimal Azure RBAC permissions by validation type
 
-For validation to succeed, certain Azure RBAC permissions must be assigned to the principal used via role assignments. The minimal required [operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) that must be listed under `Actions` in the role assignments are as follows:
+For validation to succeed, certain Azure RBAC permissions must be assigned to the principal used via role assignments. The minimal required [operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) that must be listed under `Actions` in the role assignments, by rule, are as follows.
 
-* `Microsoft.Authorization/denyAssignments/read`
-* `Microsoft.Authorization/roleAssignments/read`
-* `Microsoft.Authorization/roleDefinitions/read`
+#### RBAC rule
 
-If you want to use a built-in role instead of a custom role to provide these permissions, you can use [`Managed Identity Operator`](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator).
+Create a custom role with the following permissions:
+
+    Microsoft.Authorization/denyAssignments/read
+    Microsoft.Authorization/roleAssignments/read
+    Microsoft.Authorization/roleDefinitions/read
+
+Alternatively, you can use the built-in [Managed Identity Operator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator), which includes these permissions.
+
+#### Community gallery image rule
+
+Create a custom role with the permission `Microsoft.Compute/locations/communityGalleries/images/read`.
+
+If you prefer to use a built-in role, the [Virtual Machine Contributor role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor) includes the necessary permissions to read community gallery images. However, be aware that this role also grants permissions to modify and delete virtual machines and other compute resources. If you only need read-only access, consider creating a custom role as described above.
 
 ## Installation
 
