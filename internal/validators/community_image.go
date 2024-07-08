@@ -53,36 +53,21 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 		}
 		return validationResult, fmt.Errorf("failed to get all images in community gallery: %w", err)
 	}
-	images := map[string]*armcompute.CommunityGalleryImage{}
+	images := map[string]bool{}
 	for _, image := range imagesInGallery {
 		if image.Name == nil {
 			log.Error(nil, "Image name in API response was nil.")
 			continue
 		}
-		images[*image.Name] = image
+		images[*image.Name] = true
 	}
 
 	// Find out which of the images in the rule are not present in the gallery.
 	for _, ruleImageName := range rule.Images {
-		if image, ok := images[ruleImageName]; !ok {
-			latestCondition.Failures = append(latestCondition.Failures, fmt.Sprintf("Image %s not present in community gallery.", ruleImageName))
+		if _, ok := images[ruleImageName]; !ok {
+			latestCondition.Failures = append(latestCondition.Failures, fmt.Sprintf("Image '%s' not present in community gallery.", ruleImageName))
 		} else {
-			var detailsMsg string
-			if image.Properties == nil || image.Properties.Identifier == nil ||
-				image.Properties.Identifier.Offer == nil || image.Properties.Identifier.Publisher == nil ||
-				image.Properties.Identifier.SKU == nil || image.Location == nil || image.Type == nil {
-				log.Error(nil, "One or more detailed properties in API response were nil.")
-				detailsMsg = fmt.Sprintf("Found image; Name: '%s'", ruleImageName)
-			} else {
-				detailsMsg = fmt.Sprintf("Found image; Name: '%s'; Offer: '%s'; Publisher: '%s'; SKU: '%s'; Location: '%s'; Type: '%s'",
-					ruleImageName,
-					*image.Properties.Identifier.Offer,
-					*image.Properties.Identifier.Publisher,
-					*image.Properties.Identifier.SKU,
-					*image.Location,
-					*image.Type)
-			}
-			latestCondition.Details = append(latestCondition.Details, detailsMsg)
+			latestCondition.Details = append(latestCondition.Details, fmt.Sprintf("Found image; Name: '%s'", ruleImageName))
 		}
 	}
 

@@ -47,16 +47,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			apiMock: apiMock{
 				data: []*armcompute.CommunityGalleryImage{
 					{
-						Properties: &armcompute.CommunityGalleryImageProperties{
-							Identifier: &armcompute.CommunityGalleryImageIdentifier{
-								Offer:     util.Ptr("offer1"),
-								Publisher: util.Ptr("publisher1"),
-								SKU:       util.Ptr("sku1"),
-							},
-						},
-						Location: util.Ptr("location1"),
-						Name:     util.Ptr("image1"),
-						Type:     util.Ptr("type1"),
+						Name: util.Ptr("image1"),
 					},
 				},
 			},
@@ -66,7 +57,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 					ValidationType: "azure-community-gallery-image",
 					ValidationRule: "validation-rule-1",
 					Message:        "All required images present in community gallery.",
-					Details:        []string{"Found image; Name: 'image1'; Offer: 'offer1'; Publisher: 'publisher1'; SKU: 'sku1'; Location: 'location1'; Type: 'type1'"},
+					Details:        []string{"Found image; Name: 'image1'"},
 					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
 				},
@@ -87,28 +78,10 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 			apiMock: apiMock{
 				data: []*armcompute.CommunityGalleryImage{
 					{
-						Properties: &armcompute.CommunityGalleryImageProperties{
-							Identifier: &armcompute.CommunityGalleryImageIdentifier{
-								Offer:     util.Ptr("offer1"),
-								Publisher: util.Ptr("publisher1"),
-								SKU:       util.Ptr("sku1"),
-							},
-						},
-						Location: util.Ptr("location1"),
-						Name:     util.Ptr("image1"),
-						Type:     util.Ptr("type1"),
+						Name: util.Ptr("image1"),
 					},
 					{
-						Properties: &armcompute.CommunityGalleryImageProperties{
-							Identifier: &armcompute.CommunityGalleryImageIdentifier{
-								Offer:     util.Ptr("offer2"),
-								Publisher: util.Ptr("publisher2"),
-								SKU:       util.Ptr("sku2"),
-							},
-						},
-						Location: util.Ptr("location1"),
-						Name:     util.Ptr("image2"),
-						Type:     util.Ptr("type1"),
+						Name: util.Ptr("image2"),
 					},
 				},
 			},
@@ -119,44 +92,11 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 					ValidationRule: "validation-rule-1",
 					Message:        "All required images present in community gallery.",
 					Details: []string{
-						"Found image; Name: 'image1'; Offer: 'offer1'; Publisher: 'publisher1'; SKU: 'sku1'; Location: 'location1'; Type: 'type1'",
-						"Found image; Name: 'image2'; Offer: 'offer2'; Publisher: 'publisher2'; SKU: 'sku2'; Location: 'location1'; Type: 'type1'",
+						"Found image; Name: 'image1'",
+						"Found image; Name: 'image2'",
 					},
 					Failures: []string{},
 					Status:   corev1.ConditionTrue,
-				},
-				State: util.Ptr(vapi.ValidationSucceeded),
-			},
-		},
-		{
-			name: "Pass (detail message fall back when API response has nil values)",
-			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
-				Gallery: v1alpha1.CommunityGallery{
-					Location: "location1",
-					Name:     "gallery1",
-				},
-				Images:         []string{"image1"},
-				SubscriptionID: "sub",
-			},
-			apiMock: apiMock{
-				data: []*armcompute.CommunityGalleryImage{
-					{
-						Location: util.Ptr("location1"),
-						Name:     util.Ptr("image1"),
-						Type:     util.Ptr("type1"),
-					},
-				},
-			},
-			expectedError: nil,
-			expectedResult: vapitypes.ValidationRuleResult{
-				Condition: &vapi.ValidationCondition{
-					ValidationType: "azure-community-gallery-image",
-					ValidationRule: "validation-rule-1",
-					Message:        "All required images present in community gallery.",
-					Details:        []string{"Found image; Name: 'image1'"},
-					Failures:       []string{},
-					Status:         corev1.ConditionTrue,
 				},
 				State: util.Ptr(vapi.ValidationSucceeded),
 			},
@@ -190,7 +130,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 						"Found image; Name: 'image2'",
 					},
 					Failures: []string{
-						"Image image1 not present in community gallery.",
+						"Image 'image1' not present in community gallery.",
 					},
 					Status: corev1.ConditionFalse,
 				},
@@ -223,7 +163,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 					Message:        "Community gallery lacks one or more required images. See failures for details.",
 					Details:        []string{},
 					Failures: []string{
-						"Image image2 not present in community gallery.",
+						"Image 'image2' not present in community gallery.",
 					},
 					Status: corev1.ConditionFalse,
 				},
