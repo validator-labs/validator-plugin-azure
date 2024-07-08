@@ -26,10 +26,10 @@ type AzureValidatorSpec struct {
 	// provide needed permissions.
 	// +kubebuilder:validation:MaxItems=5
 	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
-	RBACRules []RBACRule `json:"rbacRules" yaml:"rbacRules"`
+	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
 	// Rules for validating that images exist in an Azure Compute Gallery published as a community
 	// gallery.
-	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules" yaml:"communityGalleryImageRules"`
+	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
 	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
 
