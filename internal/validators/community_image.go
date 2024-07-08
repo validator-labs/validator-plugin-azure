@@ -71,7 +71,7 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 			if image.Properties == nil || image.Properties.Identifier == nil ||
 				image.Properties.Identifier.Offer == nil || image.Properties.Identifier.Publisher == nil ||
 				image.Properties.Identifier.SKU == nil || image.Location == nil || image.Type == nil {
-				log.Error(nil, "One or more detailed properties in API repsonse were nil.")
+				log.Error(nil, "One or more detailed properties in API response were nil.")
 				detailsMsg = fmt.Sprintf("Found image; Name: '%s'", *image.Name)
 			} else {
 				detailsMsg = fmt.Sprintf("Found image; Name: '%s'; Offer: '%s'; Publisher: '%s'; SKU: '%s'; Location: '%s'; Type: '%s'",
