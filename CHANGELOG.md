@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.0.12](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.11...v0.0.12) (2024-07-09)
+
+
+### Bug Fixes
+
+* **deps:** update golang.org/x/exp digest to 7f521ea ([#182](https://github.com/validator-labs/validator-plugin-azure/issues/182)) ([1275836](https://github.com/validator-labs/validator-plugin-azure/commit/1275836884da81a7b5d9b42603386efa0297c788))
+* **deps:** update golang.org/x/exp digest to fc45aab ([#172](https://github.com/validator-labs/validator-plugin-azure/issues/172)) ([8292ecf](https://github.com/validator-labs/validator-plugin-azure/commit/8292ecf54fd918aa68fdc6710c9c3ca3d03fe6c5))
+* **deps:** update golang.org/x/exp digest to fd00a4e ([#162](https://github.com/validator-labs/validator-plugin-azure/issues/162)) ([a17bb30](https://github.com/validator-labs/validator-plugin-azure/commit/a17bb307610bd3a7476f613ddbb3e28c77972b69))
+* **deps:** update kubernetes packages to v0.30.2 ([#181](https://github.com/validator-labs/validator-plugin-azure/issues/181)) ([d126336](https://github.com/validator-labs/validator-plugin-azure/commit/d126336529ae95374dc75ab8010bae26bdc4c050))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azcore to v1.11.1 ([#137](https://github.com/validator-labs/validator-plugin-azure/issues/137)) ([fee1387](https://github.com/validator-labs/validator-plugin-azure/commit/fee13876e9f21557d54cace1b1aba7bba3356824))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azcore to v1.12.0 ([#178](https://github.com/validator-labs/validator-plugin-azure/issues/178)) ([05a4c91](https://github.com/validator-labs/validator-plugin-azure/commit/05a4c9170c143d2e524689a799b8258c35e1eccc))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azidentity to v1.5.2 ([#163](https://github.com/validator-labs/validator-plugin-azure/issues/163)) ([964185e](https://github.com/validator-labs/validator-plugin-azure/commit/964185e6f9428027e3b5e4696dc4f80435660a00))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azidentity to v1.6.0 ([#179](https://github.com/validator-labs/validator-plugin-azure/issues/179)) ([ffdc6f5](https://github.com/validator-labs/validator-plugin-azure/commit/ffdc6f5294a11188c110cb5c2938a1808ef850d9))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azidentity to v1.7.0 ([#186](https://github.com/validator-labs/validator-plugin-azure/issues/186)) ([cf7d54a](https://github.com/validator-labs/validator-plugin-azure/commit/cf7d54a93d223481e302061a24f6833cfed0799e))
+* **deps:** update module github.com/go-logr/logr to v1.4.2 ([#164](https://github.com/validator-labs/validator-plugin-azure/issues/164)) ([7cbd912](https://github.com/validator-labs/validator-plugin-azure/commit/7cbd9127e4d6f129780aeb013f9b7c34713e7a27))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.19.0 ([#169](https://github.com/validator-labs/validator-plugin-azure/issues/169)) ([6ba7fbc](https://github.com/validator-labs/validator-plugin-azure/commit/6ba7fbce70cebe9fed6bc34d739d8f15168c4097))
+* **deps:** update module github.com/onsi/gomega to v1.33.1 ([#170](https://github.com/validator-labs/validator-plugin-azure/issues/170)) ([adb319e](https://github.com/validator-labs/validator-plugin-azure/commit/adb319eee76111a6d8ba9000340f2252f57a5862))
+* **deps:** update module github.com/validator-labs/validator to v0.0.41 ([#165](https://github.com/validator-labs/validator-plugin-azure/issues/165)) ([19b2204](https://github.com/validator-labs/validator-plugin-azure/commit/19b220423d5d4d4e2e07f46ea67be0b52e1e1487))
+* **deps:** update module github.com/validator-labs/validator to v0.0.42 ([#177](https://github.com/validator-labs/validator-plugin-azure/issues/177)) ([9231fcb](https://github.com/validator-labs/validator-plugin-azure/commit/9231fcb98135eba11dc8211a6117fe1839394f19))
+* **deps:** update module github.com/validator-labs/validator to v0.0.43 ([#187](https://github.com/validator-labs/validator-plugin-azure/issues/187)) ([ef90b92](https://github.com/validator-labs/validator-plugin-azure/commit/ef90b92318987df19f577bff0a89cb90907827fa))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.7.2 ([#148](https://github.com/validator-labs/validator-plugin-azure/issues/148)) ([2599bec](https://github.com/validator-labs/validator-plugin-azure/commit/2599bec1a7f5a5857c92a748750a02bbbb8ca5f0))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.7.3 ([#180](https://github.com/validator-labs/validator-plugin-azure/issues/180)) ([238686a](https://github.com/validator-labs/validator-plugin-azure/commit/238686a6a70532ad93edac279b7214245ee79ba1))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.18.3 ([#171](https://github.com/validator-labs/validator-plugin-azure/issues/171)) ([b98fc2c](https://github.com/validator-labs/validator-plugin-azure/commit/b98fc2cbdf773a361d99dc6ea85ab54b22cfe2b0))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.18.4 ([#175](https://github.com/validator-labs/validator-plugin-azure/issues/175)) ([7d666ca](https://github.com/validator-labs/validator-plugin-azure/commit/7d666cad96f4b00b3e3b52c08f3570241fd7a729))
+
+
+### Other
+
+* **deps:** pin googleapis/release-please-action action to f3969c0 ([#155](https://github.com/validator-labs/validator-plugin-azure/issues/155)) ([357443a](https://github.com/validator-labs/validator-plugin-azure/commit/357443a131b98ce9ee7e1bab419233623fc1fcdb))
+* **deps:** update actions/checkout digest to a5ac7e5 ([#156](https://github.com/validator-labs/validator-plugin-azure/issues/156)) ([f44fa39](https://github.com/validator-labs/validator-plugin-azure/commit/f44fa39cc81377fc19411ddbe6329ef0b8fdb3b4))
+* **deps:** update actions/setup-go digest to cdcb360 ([#159](https://github.com/validator-labs/validator-plugin-azure/issues/159)) ([5cbad1e](https://github.com/validator-labs/validator-plugin-azure/commit/5cbad1e2ffff6ba0599835ac659c9b8e23fc2f67))
+* **deps:** update actions/setup-python digest to 82c7e63 ([#160](https://github.com/validator-labs/validator-plugin-azure/issues/160)) ([ca80de9](https://github.com/validator-labs/validator-plugin-azure/commit/ca80de9e36ece5d7d6bf5809fff68b7b6c13f76b))
+* **deps:** update anchore/sbom-action action to v0.15.11 ([#139](https://github.com/validator-labs/validator-plugin-azure/issues/139)) ([c4722ec](https://github.com/validator-labs/validator-plugin-azure/commit/c4722ecaaf27ec56751aca151edd8f20b79e93ac))
+* **deps:** update anchore/sbom-action action to v0.16.0 ([#158](https://github.com/validator-labs/validator-plugin-azure/issues/158)) ([a83aacb](https://github.com/validator-labs/validator-plugin-azure/commit/a83aacb15bc6d0ad045cefc2f7902be095d356a6))
+* **deps:** update azure/setup-helm digest to fe7b79c ([#140](https://github.com/validator-labs/validator-plugin-azure/issues/140)) ([c2321b0](https://github.com/validator-labs/validator-plugin-azure/commit/c2321b05d6dc04339b50941d9f2bc5dd8ebdb260))
+* **deps:** update codecov/codecov-action digest to 125fc84 ([#161](https://github.com/validator-labs/validator-plugin-azure/issues/161)) ([073048f](https://github.com/validator-labs/validator-plugin-azure/commit/073048f7d1b5c56176aa81bab526f09d2d138be3))
+* **deps:** update docker/build-push-action digest to 2cdde99 ([#141](https://github.com/validator-labs/validator-plugin-azure/issues/141)) ([8121406](https://github.com/validator-labs/validator-plugin-azure/commit/812140657804e8f45a3cb61182fb385339fa1f0c))
+* **deps:** update docker/login-action digest to 0d4c9c5 ([#157](https://github.com/validator-labs/validator-plugin-azure/issues/157)) ([548f1b4](https://github.com/validator-labs/validator-plugin-azure/commit/548f1b4e1455b19f8b22bed011b410f73a7dbf18))
+* **deps:** update docker/login-action digest to e92390c ([#150](https://github.com/validator-labs/validator-plugin-azure/issues/150)) ([82b4951](https://github.com/validator-labs/validator-plugin-azure/commit/82b4951ec6423a3a36231e9d42b6a62423354a76))
+* **deps:** update docker/setup-buildx-action digest to d70bba7 ([#151](https://github.com/validator-labs/validator-plugin-azure/issues/151)) ([960e0ee](https://github.com/validator-labs/validator-plugin-azure/commit/960e0ee4356fb103fc32c46442f26f6529a03e50))
+* **deps:** update gcr.io/kubebuilder/kube-rbac-proxy docker tag to v0.16.0 ([#166](https://github.com/validator-labs/validator-plugin-azure/issues/166)) ([f97fd34](https://github.com/validator-labs/validator-plugin-azure/commit/f97fd34e2942eeb52879af084257f674b573d2b9))
+* **deps:** update helm/kind-action action to v1.10.0 ([#167](https://github.com/validator-labs/validator-plugin-azure/issues/167)) ([2b183df](https://github.com/validator-labs/validator-plugin-azure/commit/2b183df1becc8df8aa35e1789d1f0b3f5be81f49))
+* **deps:** update softprops/action-gh-release action to v2 ([#142](https://github.com/validator-labs/validator-plugin-azure/issues/142)) ([4256df9](https://github.com/validator-labs/validator-plugin-azure/commit/4256df9e4d1cf697d32dcc3cf1f46dbb21b0cc22))
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 46b0784 ([#191](https://github.com/validator-labs/validator-plugin-azure/issues/191)) ([123bd86](https://github.com/validator-labs/validator-plugin-azure/commit/123bd86c875b14b22d56a973bc2574d12e6e37ea))
+
 ## [0.0.11](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.10...v0.0.11) (2024-05-17)
 
 
