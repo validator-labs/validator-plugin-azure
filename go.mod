@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
-	github.com/validator-labs/validator v0.0.43
+	github.com/validator-labs/validator v0.0.44
 	golang.org/x/exp v0.0.0-20240707233637-46b078467d37
 	k8s.io/api v0.30.2
 	k8s.io/apimachinery v0.30.2
