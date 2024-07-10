@@ -284,12 +284,11 @@ candidateActions:
 				// Move on to next deny assignment because this NotAction matching means the deny
 				// assignment does not deny the candidate Action.
 				continue
-			} else {
-				// Does any Action in the deny assignment match the candidate Action?
-				if matches, _ := candidateActionMatches(candidateAction, denyAssignment.actions); matches {
-					// Mark candidate action as "denied by deny assignment {denyAssignmentId}".
-					denied[candidateAction] = denyAssignment.id
-				}
+			}
+			// Does any Action in the deny assignment match the candidate Action?
+			if matches, _ := candidateActionMatches(candidateAction, denyAssignment.actions); matches {
+				// Mark candidate action as "denied by deny assignment {denyAssignmentId}".
+				denied[candidateAction] = denyAssignment.id
 			}
 		}
 		for _, role := range roles {
@@ -298,15 +297,14 @@ candidateActions:
 				// Move on to next role because this NotAction matching means the role does not
 				// permit the candidate Action.
 				continue
-			} else {
-				// Does any Action in the role match the candidate Action?
-				if matches, _ := candidateActionMatches(candidateAction, role.actions); matches {
-					// Mark candidate action as permitted.
-					delete(unpermitted, candidateAction)
-					// Move on to next candidate Action because this Action matching means the role
-					// permits the candidate Action.
-					continue candidateActions
-				}
+			}
+			// Does any Action in the role match the candidate Action?
+			if matches, _ := candidateActionMatches(candidateAction, role.actions); matches {
+				// Mark candidate action as permitted.
+				delete(unpermitted, candidateAction)
+				// Move on to next candidate Action because this Action matching means the role
+				// permits the candidate Action.
+				continue candidateActions
 			}
 		}
 	}

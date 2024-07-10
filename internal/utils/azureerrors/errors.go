@@ -1,4 +1,6 @@
-package azure_errors
+// Package azureerrors contains helpers for detecting various known error types from Azure API
+// responses and wrapping them.
+package azureerrors
 
 import (
 	"errors"
@@ -39,11 +41,7 @@ func authFailed(err error) bool {
 
 // AsAugmented checks whether an error returned by the Azure SDK matched some known Azure errors. If
 // the error matches, it produces a new, augmented error by adding information we think will help
-// the user use the plugin correctly. If it didn't match, it returns the error as is.
-//
-// This is useful for how we want to do error handling in the plugin. We don't need to know which
-// errors occurred. We just want to log them. But, when we log them, we want as much helpful
-// information as possible to be logged.
+// the user use the plugin correctly. If it didn't match, it returns the error as is.//
 //   - err: An error returned by the Azure SDK.
 func AsAugmented(err error) error {
 	// This is the order Azure returns various errors in. We check them in that order.

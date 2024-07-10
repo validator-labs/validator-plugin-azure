@@ -1,5 +1,5 @@
 /*
-Copyright 2023.
+Copyright 2024.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package controller defines a controller for reconciling AzureValidator objects.
 package controller
 
 import (
@@ -43,6 +44,7 @@ import (
 	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
+// ErrSecretNameRequired is returned when the auth.secretName field is empty.
 var ErrSecretNameRequired = errors.New("auth.secretName is required")
 
 // AzureValidatorReconciler reconciles an AzureValidator object
@@ -123,10 +125,10 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			defer cancel()
 		}
 
-		daClient := azure_utils.NewAzureDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
-		raClient := azure_utils.NewAzureRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
-		rdClient := azure_utils.NewAzureRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
-		cgiClient := azure_utils.NewAzureCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
+		daClient := azure_utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
+		raClient := azure_utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
+		rdClient := azure_utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
+		cgiClient := azure_utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
 
 		// RBAC rules
 		rbacSvc := validators.NewRBACRuleService(daClient, raClient, rdClient)

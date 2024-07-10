@@ -1,3 +1,4 @@
+// Package validators contains services that reconcile the validation rules supported by the plugin.
 package validators
 
 import (
@@ -21,11 +22,14 @@ type communityGalleryImageAPI interface {
 	GetImagesForGallery(location, name, subscriptionID string) ([]*armcompute.CommunityGalleryImage, error)
 }
 
+// CommunityGalleryImageRuleService reconciles community gallery image rules.
 type CommunityGalleryImageRuleService struct {
 	api communityGalleryImageAPI
 	log logr.Logger
 }
 
+// NewCommunityGalleryImageRuleService creates a new CommunityGalleryImageRuleService. Requires an
+// Azure client facade that supports getting all images for a gallery.
 func NewCommunityGalleryImageRuleService(api communityGalleryImageAPI, log logr.Logger) *CommunityGalleryImageRuleService {
 	return &CommunityGalleryImageRuleService{
 		api: api,
@@ -33,6 +37,7 @@ func NewCommunityGalleryImageRuleService(api communityGalleryImageAPI, log logr.
 	}
 }
 
+// ReconcileCommunityGalleryImageRule reconciles a community gallery image rule.
 func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(rule v1alpha1.CommunityGalleryImageRule) (*vapitypes.ValidationRuleResult, error) {
 
 	log := s.log.WithValues("rule", rule.Name, "image", rule.Images, "gallery", rule.Gallery.Name, "location", rule.Gallery.Location, "subscription", rule.SubscriptionID)

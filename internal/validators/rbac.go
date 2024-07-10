@@ -9,7 +9,7 @@ import (
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/validator-labs/validator-plugin-azure/internal/constants"
-	azure_errors "github.com/validator-labs/validator-plugin-azure/internal/utils/azure-errors"
+	azerr "github.com/validator-labs/validator-plugin-azure/internal/utils/azureerrors"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
@@ -34,12 +34,15 @@ type roleDefinitionAPI interface {
 	GetByID(roleID string) (*armauthorization.RoleDefinition, error)
 }
 
+// RBACRuleService reconciles RBAC rules.
 type RBACRuleService struct {
 	daAPI denyAssignmentAPI
 	raAPI roleAssignmentAPI
 	rdAPI roleDefinitionAPI
 }
 
+// NewRBACRuleService creates a new RBACRuleService. Requires Azure client facades that support
+// getting deny assignments, role assignments, and role definitions.
 func NewRBACRuleService(daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
 	return &RBACRuleService{
 		daAPI: daAPI,
@@ -48,7 +51,7 @@ func NewRBACRuleService(daAPI denyAssignmentAPI, raAPI roleAssignmentAPI, rdAPI 
 	}
 }
 
-// ReconcileRBACRule reconciles a role assignment rule from a validation config.
+// ReconcileRBACRule reconciles an RBAC rule.
 func (s *RBACRuleService) ReconcileRBACRule(rule v1alpha1.RBACRule) (*vapitypes.ValidationRuleResult, error) {
 
 	// Build the default ValidationResult for this role assignment rule.
@@ -86,7 +89,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	daFilter := util.Ptr(fmt.Sprintf("principalId eq '%s'", principalID))
 	denyAssignments, err := s.daAPI.GetDenyAssignmentsForScope(set.Scope, daFilter)
 	if err != nil {
-		return fmt.Errorf("failed to get deny assignments: %w", azure_errors.AsAugmented(err))
+		return fmt.Errorf("failed to get deny assignments: %w", azerr.AsAugmented(err))
 	}
 	// Note that Azure's Go SDK for their API has a bug where it doesn't escape the filter string
 	// for the role assignments call we do here, so we manually escape it ourselves.
@@ -94,7 +97,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	raFilter := util.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
 	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, raFilter)
 	if err != nil {
-		return fmt.Errorf("failed to get role assignments: %w", azure_errors.AsAugmented(err))
+		return fmt.Errorf("failed to get role assignments: %w", azerr.AsAugmented(err))
 	}
 
 	// For each role assignment found, get its role definition, because that's what we actually need
@@ -112,7 +115,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		// ID", but in the role definitions API, it is called "role ID".
 		roleDefinition, err := s.rdAPI.GetByID(rdID)
 		if err != nil {
-			return fmt.Errorf("failed to get role definition using role definition ID of role assignment: %w", azure_errors.AsAugmented(err))
+			return fmt.Errorf("failed to get role definition using role definition ID of role assignment: %w", azerr.AsAugmented(err))
 		}
 		roleDefinitions = append(roleDefinitions, roleDefinition)
 	}
