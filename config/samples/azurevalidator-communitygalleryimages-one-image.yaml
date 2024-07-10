@@ -14,4 +14,4 @@ spec:
       name: AKSUbuntu-38d80f77-467a-481f-a8d4-09b6d4220bd2
     images:
     - 1804gen2gpucontainerd
-    subscriptionID: <subscription>
+    subscriptionID: 9b16dd0b-1bea-4c9a-a291-65e6f44c4745

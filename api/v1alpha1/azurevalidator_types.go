@@ -1,5 +1,5 @@
 /*
-Copyright 2023.
+Copyright 2024.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ type AzureValidatorSpec struct {
 	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
 
+// ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
 	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
 }
@@ -83,6 +84,7 @@ type CommunityGallery struct {
 	Name string `json:"name" yaml:"name"`
 }
 
+// AzureAuth defines authentication configuration for an AzureValidator.
 type AzureAuth struct {
 	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
 	// Set to true if using WorkloadIdentityCredentials.
@@ -98,25 +100,25 @@ type AzureAuth struct {
 // +kubebuilder:validation:MaxLength=200
 type ActionStr string
 
-// Conveys that the security principal should be the member of a role assignment that provides the
-// specified role for the specified scope. Scope can be either subscription, resource group, or
-// resource.
+// PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
+// permissions (via role assignments) at the specified scope. Scope can be either subscription,
+// resource group, or resource.
 type PermissionSet struct {
-	// If provided, the actions that the role must be able to perform. Must not contain any
+	// Actions is a list of actions that the role must be able to perform. Must not contain any
 	// wildcards. If not specified, the role is assumed to already be able to perform all required
 	// actions.
 	//+kubebuilder:validation:MaxItems=1000
 	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
 	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
-	// If provided, the data actions that the role must be able to perform. Must not contain any
-	// wildcards. If not provided, the role is assumed to already be able to perform all required
-	// data actions.
+	// DataActions is a list of data actions that the role must be able to perform. Must not
+	// contain any wildcards. If not provided, the role is assumed to already be able to perform
+	// all required data actions.
 	//+kubebuilder:validation:MaxItems=1000
 	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
 	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
-	// The minimum scope of the role. Role assignments found at higher level scopes will satisfy
-	// this. For example, a role assignment found with subscription scope will satisfy a permission
-	// set where the role scope specified is a resource group within that subscription.
+	// Scope is the minimum scope of the role. Role assignments found at higher level scopes will
+	// satisfy this. For example, a role assignment found with subscription scope will satisfy a
+	// permission set where the role scope specified is a resource group within that subscription.
 	Scope string `json:"scope" yaml:"scope"`
 }
 

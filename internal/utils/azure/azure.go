@@ -17,10 +17,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 )
 
+// TestClientTimeout is the timeout used for Azure clients during tests.
 const TestClientTimeout = 10 * time.Second
 
-// AzureAPI is an container that aggregates Azure service clients.
-type AzureAPI struct {
+// API is an container that aggregates Azure service clients.
+type API struct {
 	DenyAssignmentsClient *armauthorization.DenyAssignmentsClient
 	RoleAssignmentsClient *armauthorization.RoleAssignmentsClient
 	RoleDefinitionsClient *armauthorization.RoleDefinitionsClient
@@ -30,7 +31,7 @@ type AzureAPI struct {
 }
 
 // NewAzureAPI creates an AzureAPI.
-func NewAzureAPI() (*AzureAPI, error) {
+func NewAzureAPI() (*API, error) {
 	// Get credentials from the three env vars. For more info on default auth, see:
 	// https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication
 	var cred *azidentity.DefaultAzureCredential
@@ -79,7 +80,7 @@ func NewAzureAPI() (*AzureAPI, error) {
 		return armcompute.NewCommunityGalleryImagesClient(subscriptionID, cred, opts)
 	}
 
-	return &AzureAPI{
+	return &API{
 		DenyAssignmentsClient:                daClient,
 		RoleAssignmentsClient:                raClient,
 		RoleDefinitionsClient:                rdClient,
@@ -87,24 +88,24 @@ func NewAzureAPI() (*AzureAPI, error) {
 	}, err
 }
 
-// AzureDenyAssignmentsClient is a facade over the Azure deny assignments client. Exists to make our
+// DenyAssignmentsClient is a facade over the Azure deny assignments client. Exists to make our
 // code easier to test (it handles paging).
-type AzureDenyAssignmentsClient struct {
+type DenyAssignmentsClient struct {
 	ctx    context.Context
 	client *armauthorization.DenyAssignmentsClient
 }
 
-// NewAzureDenyAssignmentsClient creates a new AzureDenyAssignmentsClient (our facade client) from a
+// NewDenyAssignmentsClient creates a new AzureDenyAssignmentsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureDenyAssignmentsClient(ctx context.Context, azClient *armauthorization.DenyAssignmentsClient) *AzureDenyAssignmentsClient {
-	return &AzureDenyAssignmentsClient{
+func NewDenyAssignmentsClient(ctx context.Context, azClient *armauthorization.DenyAssignmentsClient) *DenyAssignmentsClient {
+	return &DenyAssignmentsClient{
 		ctx:    ctx,
 		client: azClient,
 	}
 }
 
 // GetDenyAssignmentsForScope gets all the deny assignments matching a scope and an optional filter.
-func (c *AzureDenyAssignmentsClient) GetDenyAssignmentsForScope(scope string, filter *string) ([]*armauthorization.DenyAssignment, error) {
+func (c *DenyAssignmentsClient) GetDenyAssignmentsForScope(scope string, filter *string) ([]*armauthorization.DenyAssignment, error) {
 	var denyAssignments []*armauthorization.DenyAssignment
 	pager := c.client.NewListForScopePager(scope, &armauthorization.DenyAssignmentsClientListForScopeOptions{
 		Filter: filter,
@@ -133,24 +134,24 @@ func (c *AzureDenyAssignmentsClient) GetDenyAssignmentsForScope(scope string, fi
 	}
 }
 
-// AzureRoleAssignmentsClient is a facade over the Azure role assignments client. Exists to make our
+// RoleAssignmentsClient is a facade over the Azure role assignments client. Exists to make our
 // code easier to test (it handles paging).
-type AzureRoleAssignmentsClient struct {
+type RoleAssignmentsClient struct {
 	ctx    context.Context
 	client *armauthorization.RoleAssignmentsClient
 }
 
-// NewAzureRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from a
+// NewRoleAssignmentsClient creates a new AzureRoleAssignmentsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureRoleAssignmentsClient(ctx context.Context, azClient *armauthorization.RoleAssignmentsClient) *AzureRoleAssignmentsClient {
-	return &AzureRoleAssignmentsClient{
+func NewRoleAssignmentsClient(ctx context.Context, azClient *armauthorization.RoleAssignmentsClient) *RoleAssignmentsClient {
+	return &RoleAssignmentsClient{
 		ctx:    ctx,
 		client: azClient,
 	}
 }
 
 // GetRoleAssignmentsForScope gets all the role assignments matching a scope and an optional filter.
-func (c *AzureRoleAssignmentsClient) GetRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error) {
+func (c *RoleAssignmentsClient) GetRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error) {
 	var roleAssignments []*armauthorization.RoleAssignment
 	pager := c.client.NewListForScopePager(scope, &armauthorization.RoleAssignmentsClientListForScopeOptions{
 		Filter: filter,
@@ -179,18 +180,18 @@ func (c *AzureRoleAssignmentsClient) GetRoleAssignmentsForScope(scope string, fi
 	}
 }
 
-// AzureRoleDefinitionsClient is a facade over the Azure role definitions client. Code that uses
+// RoleDefinitionsClient is a facade over the Azure role definitions client. Code that uses
 // this instead of the actual Azure client is easier to test because it won't need to deal with
 // finding the permissions part of the API response.
-type AzureRoleDefinitionsClient struct {
+type RoleDefinitionsClient struct {
 	ctx    context.Context
 	client *armauthorization.RoleDefinitionsClient
 }
 
-// NewAzureRoleDefinitionsClient creates a new AzureRoleDefinitionsClient (our facade client) from a
+// NewRoleDefinitionsClient creates a new AzureRoleDefinitionsClient (our facade client) from a
 // client from the Azure SDK.
-func NewAzureRoleDefinitionsClient(ctx context.Context, azClient *armauthorization.RoleDefinitionsClient) *AzureRoleDefinitionsClient {
-	return &AzureRoleDefinitionsClient{
+func NewRoleDefinitionsClient(ctx context.Context, azClient *armauthorization.RoleDefinitionsClient) *RoleDefinitionsClient {
+	return &RoleDefinitionsClient{
 		ctx:    ctx,
 		client: azClient,
 	}
@@ -198,7 +199,7 @@ func NewAzureRoleDefinitionsClient(ctx context.Context, azClient *armauthorizati
 
 // GetByID gets the role definition associated with a role assignment because it uses the
 // fully-qualified role ID contained within the role assignment data to retrieve it from Azure.
-func (c *AzureRoleDefinitionsClient) GetByID(roleID string) (*armauthorization.RoleDefinition, error) {
+func (c *RoleDefinitionsClient) GetByID(roleID string) (*armauthorization.RoleDefinition, error) {
 	roleDefinitionResp, err := c.client.GetByID(c.ctx, roleID, nil)
 	if err != nil {
 		return &armauthorization.RoleDefinition{}, fmt.Errorf("failed to get role definition for with ID %s: %w", roleID, err)
@@ -214,24 +215,24 @@ func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
 	return roleName
 }
 
-// AzureCommunityGalleryImagesClient is a facade over the Azure community gallery images client.
+// CommunityGalleryImagesClient is a facade over the Azure community gallery images client.
 // Exists to make our code easier to test (it handles paging).
-type AzureCommunityGalleryImagesClient struct {
+type CommunityGalleryImagesClient struct {
 	ctx            context.Context
 	clientProducer func(string) (*armcompute.CommunityGalleryImagesClient, error)
 }
 
-// NewAzureCommunityGalleryImagesClient creates a new AzureRoleDefinitionsClient (our facade
+// NewCommunityGalleryImagesClient creates a new AzureRoleDefinitionsClient (our facade
 // client) from a client from the Azure SDK.
-func NewAzureCommunityGalleryImagesClient(ctx context.Context, azClientProducer func(subscriptionID string) (*armcompute.CommunityGalleryImagesClient, error)) *AzureCommunityGalleryImagesClient {
-	return &AzureCommunityGalleryImagesClient{
+func NewCommunityGalleryImagesClient(ctx context.Context, azClientProducer func(subscriptionID string) (*armcompute.CommunityGalleryImagesClient, error)) *CommunityGalleryImagesClient {
+	return &CommunityGalleryImagesClient{
 		ctx:            ctx,
 		clientProducer: azClientProducer,
 	}
 }
 
 // GetImagesForGallery gets all the images in a community gallery.
-func (c *AzureCommunityGalleryImagesClient) GetImagesForGallery(location, name, subscriptionID string) ([]*armcompute.CommunityGalleryImage, error) {
+func (c *CommunityGalleryImagesClient) GetImagesForGallery(location, name, subscriptionID string) ([]*armcompute.CommunityGalleryImage, error) {
 	client, err := c.clientProducer(subscriptionID)
 	if err != nil {
 		return []*armcompute.CommunityGalleryImage{}, fmt.Errorf("failed to produce client with subscription ID %s: %w", subscriptionID, err)

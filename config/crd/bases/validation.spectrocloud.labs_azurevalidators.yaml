@@ -40,6 +40,8 @@ spec:
             description: AzureValidatorSpec defines the desired state of AzureValidator
             properties:
               auth:
+                description: AzureAuth defines authentication configuration for an
+                  AzureValidator.
                 properties:
                   implicit:
                     description: |-
@@ -125,13 +127,13 @@ spec:
                         will pass.
                       items:
                         description: |-
-                          Conveys that the security principal should be the member of a role assignment that provides the
-                          specified role for the specified scope. Scope can be either subscription, resource group, or
-                          resource.
+                          PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
+                          permissions (via role assignments) at the specified scope. Scope can be either subscription,
+                          resource group, or resource.
                         properties:
                           actions:
                             description: |-
-                              If provided, the actions that the role must be able to perform. Must not contain any
+                              Actions is a list of actions that the role must be able to perform. Must not contain any
                               wildcards. If not specified, the role is assumed to already be able to perform all required
                               actions.
                             items:
@@ -147,9 +149,9 @@ spec:
                               rule: self.all(item, !item.contains('*'))
                           dataActions:
                             description: |-
-                              If provided, the data actions that the role must be able to perform. Must not contain any
-                              wildcards. If not provided, the role is assumed to already be able to perform all required
-                              data actions.
+                              DataActions is a list of data actions that the role must be able to perform. Must not
+                              contain any wildcards. If not provided, the role is assumed to already be able to perform
+                              all required data actions.
                             items:
                               description: |-
                                 ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
@@ -163,9 +165,9 @@ spec:
                               rule: self.all(item, !item.contains('*'))
                           scope:
                             description: |-
-                              The minimum scope of the role. Role assignments found at higher level scopes will satisfy
-                              this. For example, a role assignment found with subscription scope will satisfy a permission
-                              set where the role scope specified is a resource group within that subscription.
+                              Scope is the minimum scope of the role. Role assignments found at higher level scopes will
+                              satisfy this. For example, a role assignment found with subscription scope will satisfy a
+                              permission set where the role scope specified is a resource group within that subscription.
                             type: string
                         required:
                         - scope
