@@ -22,20 +22,22 @@ import (
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	// Rules for validating that the correct role assignments have been created in Azure RBAC to
-	// provide needed permissions.
+	// RBACRules is a list of RBAC rules for the validator.
 	// +kubebuilder:validation:MaxItems=5
 	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
-	// Rules for validating that images exist in an Azure Compute Gallery published as a community
-	// gallery.
+	// CommunityGalleryImageRules is a list of community gallery image rules for the validator.
+	// +kubebuilder:validation:MaxItems=1000
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
-	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
+	// PublicBlobRules is a list of public blob rules for the validator.
+	// +kubebuilder:validation:MaxItems=1000
+	PublicBlobRules []PublicBlobRule `json:"publicBlobRules,omitempty" yaml:"publicBlobRules,omitempty"`
+	Auth            AzureAuth        `json:"auth" yaml:"auth"`
 }
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules) + len(s.PublicBlobRules)
 }
 
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
@@ -82,6 +84,23 @@ type CommunityGallery struct {
 	// Name is the name of the community gallery.
 	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
+}
+
+// PublicBlobRule verifies that one or more blobs exist in an Azure Blob Storage blob container and
+// that they are publicly accessible via HTTPS.
+type PublicBlobRule struct {
+	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+	// overwrite each other.
+	// +kubebuilder:validation:MaxLength=200
+	Name string `json:"name" yaml:"name"`
+	// StorageAccount is the name of the storage account.
+	// +kubebuilder:validation:MaxLength=50
+	StorageAccount string `json:"storageAccount" yaml:"storageAccount"`
+	// Container is the name of the blob container. It is prepended to the path.
+	Container string `json:"container" yaml:"container"`
+	// Paths is a list of paths to the blobs. Each is used to check for a blob, and during each
+	// check, the path is appended to the container name.
+	Paths []string `json:"path" yaml:"path"`
 }
 
 // AzureAuth defines authentication configuration for an AzureValidator.

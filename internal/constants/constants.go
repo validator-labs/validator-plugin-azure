@@ -10,4 +10,7 @@ const (
 
 	// ValidationTypeCommunityGalleryImages is the validation type for community gallery image rules.
 	ValidationTypeCommunityGalleryImages string = "azure-community-gallery-image"
+
+	// ValidationTypePublicBlob is the validation type for public blob rules.
+	ValidationTypePublicBlob string = "azure-public-blob"
 )
