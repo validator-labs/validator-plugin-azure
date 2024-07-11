@@ -58,9 +58,8 @@ spec:
                 - implicit
                 type: object
               communityGalleryImageRules:
-                description: |-
-                  Rules for validating that images exist in an Azure Compute Gallery published as a community
-                  gallery.
+                description: CommunityGalleryImageRules is a list of community gallery
+                  image rules for the validator.
                 items:
                   description: |-
                     CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
@@ -104,11 +103,47 @@ spec:
                   - name
                   - subscriptionID
                   type: object
+                maxItems: 1000
+                type: array
+              publicBlobRules:
+                description: PublicBlobRules is a list of public blob rules for the
+                  validator.
+                items:
+                  description: |-
+                    PublicBlobRule verifies that one or more blobs exist in an Azure Blob Storage blob container and
+                    that they are publicly accessible via HTTPS.
+                  properties:
+                    container:
+                      description: Container is the name of the blob container. It
+                        is prepended to the path.
+                      type: string
+                    name:
+                      description: |-
+                        Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+                        overwrite each other.
+                      maxLength: 200
+                      type: string
+                    paths:
+                      description: |-
+                        Paths is a list of paths to the blobs. Each is used to check for a blob, and during each
+                        check, the path is appended to the container name.
+                      items:
+                        type: string
+                      type: array
+                    storageAccount:
+                      description: StorageAccount is the name of the storage account.
+                      maxLength: 50
+                      type: string
+                  required:
+                  - container
+                  - name
+                  - paths
+                  - storageAccount
+                  type: object
+                maxItems: 1000
                 type: array
               rbacRules:
-                description: |-
-                  Rules for validating that the correct role assignments have been created in Azure RBAC to
-                  provide needed permissions.
+                description: RBACRules is a list of RBAC rules for the validator.
                 items:
                   description: |-
                     RBACRule verifies that a security principal has permissions via role assignments and that no deny

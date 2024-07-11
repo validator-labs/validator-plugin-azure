@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -146,6 +147,16 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
 			if err != nil {
 				l.Error(err, "failed to reconcile community gallery image rule")
+			}
+			resp.AddResult(vrr, err)
+		}
+
+		// Public blob rules
+		pbSvc := validators.NewPublicBlobRuleService(&http.Client{})
+		for _, rule := range validator.Spec.PublicBlobRules {
+			vrr, err := pbSvc.ReconcilePublicBlobRule(rule)
+			if err != nil {
+				l.Error(err, "failed to reconcile public blob rule")
 			}
 			resp.AddResult(vrr, err)
 		}

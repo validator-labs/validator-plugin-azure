@@ -1,0 +1,14 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-public-blob-one-blob
+spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
+  publicBlobRules:
+  - name: rule-1
+    storageAccount: spectroimageprod
+    container: system
+    paths:
+    - "Microsoft.Compute/Images/spectroimages/c-77-0-k-11611-0-osDisk.8ed00fe6-11e0-42e9-8da9-28ea8bbf2046.vhd"

@@ -9,6 +9,7 @@ import (
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // httpClient defines the interface for the HTTP client used by the PublicBlobRuleService.
@@ -49,7 +50,7 @@ func (s *PublicBlobRuleService) ReconcilePublicBlobRule(rule v1alpha1.PublicBlob
 		}
 		if errMsg != "" {
 			latestCondition.Failures = append(latestCondition.Failures,
-				fmt.Sprintf("blob '%s' in container '%s' in storage account '%s' is not publicly accessible: %s",
+				fmt.Sprintf("blob '%s' in container '%s' in storage account '%s' is not publicly accessible; %s",
 					path, rule.Container, rule.StorageAccount, errMsg))
 			state = vapi.ValidationFailed
 		} else {
@@ -57,6 +58,12 @@ func (s *PublicBlobRuleService) ReconcilePublicBlobRule(rule v1alpha1.PublicBlob
 				fmt.Sprintf("Blob '%s' in container '%s' in storage account '%s' is publicly accessible.",
 					path, rule.Container, rule.StorageAccount))
 		}
+	}
+
+	if len(latestCondition.Failures) > 0 {
+		state = vapi.ValidationFailed
+		latestCondition.Message = "One or more blobs not publicly accessible. See failures for details."
+		latestCondition.Status = corev1.ConditionFalse
 	}
 
 	return validationResult, nil
@@ -80,9 +87,11 @@ func (s *PublicBlobRuleService) checkBlob(storageAccount, container, path string
 	if err != nil {
 		return "", fmt.Errorf("failed to send HTTP request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Sprintf("'%s' status in HEAD request response", resp.Status), nil
+		return fmt.Sprintf("'%d' status code in response to HEAD request", resp.StatusCode), nil
 	}
 
 	// Blob accessible.

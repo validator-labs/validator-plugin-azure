@@ -100,7 +100,7 @@ type PublicBlobRule struct {
 	Container string `json:"container" yaml:"container"`
 	// Paths is a list of paths to the blobs. Each is used to check for a blob, and during each
 	// check, the path is appended to the container name.
-	Paths []string `json:"path" yaml:"path"`
+	Paths []string `json:"paths" yaml:"paths"`
 }
 
 // AzureAuth defines authentication configuration for an AzureValidator.
