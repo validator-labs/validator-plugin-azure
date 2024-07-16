@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.0.13](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.12...v0.0.13) (2024-07-15)
+
+
+### Other
+
+* update chart (community gallery image rules) ([#199](https://github.com/validator-labs/validator-plugin-azure/issues/199)) ([ca90bd5](https://github.com/validator-labs/validator-plugin-azure/commit/ca90bd56626ca0dff7f02dc8b15e9844f4e07673))
+
+
+### Dependency Updates
+
+* **deps:** update module github.com/validator-labs/validator to v0.0.44 ([#195](https://github.com/validator-labs/validator-plugin-azure/issues/195)) ([dd1e5e6](https://github.com/validator-labs/validator-plugin-azure/commit/dd1e5e68c336fd37b4f4105f5ed23bf18f9892d8))
+* **deps:** update module github.com/validator-labs/validator to v0.0.46 ([#197](https://github.com/validator-labs/validator-plugin-azure/issues/197)) ([42122ed](https://github.com/validator-labs/validator-plugin-azure/commit/42122edf9e590f255c72232a34f3d95e5b87de82))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.7.4 ([#192](https://github.com/validator-labs/validator-plugin-azure/issues/192)) ([7fc64d1](https://github.com/validator-labs/validator-plugin-azure/commit/7fc64d1d241b43b1e33bb2c939b2279a158a11f0))
+
+
+### Refactoring
+
+* enable revive, resolve all lints, remove unused code ([#194](https://github.com/validator-labs/validator-plugin-azure/issues/194)) ([93a1886](https://github.com/validator-labs/validator-plugin-azure/commit/93a18860a76c4b836921243ef5a388806e1033e6))
+
 ## [0.0.12](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.11...v0.0.12) (2024-07-09)
 
 
