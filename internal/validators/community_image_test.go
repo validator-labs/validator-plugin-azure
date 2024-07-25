@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6"
 	"github.com/go-logr/logr"
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
