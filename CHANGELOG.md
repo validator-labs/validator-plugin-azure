@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.0.14](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.13...v0.0.14) (2024-07-26)
+
+
+### Bug Fixes
+
+* add reviewable-ext target to Makefile ([#214](https://github.com/validator-labs/validator-plugin-azure/issues/214)) ([792c5b0](https://github.com/validator-labs/validator-plugin-azure/commit/792c5b03902f2e04f5daa3022c2eda6b6a3f4400))
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 8a7402a ([#204](https://github.com/validator-labs/validator-plugin-azure/issues/204)) ([21d492c](https://github.com/validator-labs/validator-plugin-azure/commit/21d492c3c56996eb5d0788462236ab74e14349b2))
+* **deps:** update golang.org/x/exp digest to e3f2596 ([#200](https://github.com/validator-labs/validator-plugin-azure/issues/200)) ([75ab79a](https://github.com/validator-labs/validator-plugin-azure/commit/75ab79a61e3a9804fc3df3fa6bad3cdad1e7f93c))
+* **deps:** update kubernetes packages to v0.30.3 ([#203](https://github.com/validator-labs/validator-plugin-azure/issues/203)) ([e15a2c7](https://github.com/validator-labs/validator-plugin-azure/commit/e15a2c75ab21d5893ab3f0821c72a418f605f0b6))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azcore to v1.13.0 ([#202](https://github.com/validator-labs/validator-plugin-azure/issues/202)) ([69e91e8](https://github.com/validator-labs/validator-plugin-azure/commit/69e91e8d4b1e6c5b7ae97c775bd1a8ef2fc889eb))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 to v6 ([#211](https://github.com/validator-labs/validator-plugin-azure/issues/211)) ([bb8c597](https://github.com/validator-labs/validator-plugin-azure/commit/bb8c5975e22f95cfa8c713367772d1b677c8faf1))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.19.1 ([#213](https://github.com/validator-labs/validator-plugin-azure/issues/213)) ([637334f](https://github.com/validator-labs/validator-plugin-azure/commit/637334f8598e9db0b46ac944ad8a8f5e61e5214d))
+* **deps:** update module github.com/onsi/gomega to v1.34.0 ([#212](https://github.com/validator-labs/validator-plugin-azure/issues/212)) ([08f7c31](https://github.com/validator-labs/validator-plugin-azure/commit/08f7c3106a6bb652cc9a9342918353a831d90b7e))
+* **deps:** update module github.com/validator-labs/validator to v0.0.47 ([#205](https://github.com/validator-labs/validator-plugin-azure/issues/205)) ([b632e2d](https://github.com/validator-labs/validator-plugin-azure/commit/b632e2db4db3b7c7868013452571236f89d165e5))
+* **deps:** update module github.com/validator-labs/validator to v0.0.48 ([#206](https://github.com/validator-labs/validator-plugin-azure/issues/206)) ([4b2a7dd](https://github.com/validator-labs/validator-plugin-azure/commit/4b2a7ddca5656bf15911ad1f6d9a07e8b76b95b9))
+* **deps:** update module github.com/validator-labs/validator to v0.0.49 ([#207](https://github.com/validator-labs/validator-plugin-azure/issues/207)) ([576b41b](https://github.com/validator-labs/validator-plugin-azure/commit/576b41b9cd5998ebaeb28e658519c47fdac034a8))
+
 ## [0.0.13](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.12...v0.0.13) (2024-07-15)
 
 
