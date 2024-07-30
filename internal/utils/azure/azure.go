@@ -6,8 +6,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	armpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy"
@@ -207,14 +207,6 @@ func (c *RoleDefinitionsClient) GetByID(roleID string) (*armauthorization.RoleDe
 	return &roleDefinitionResp.RoleDefinition, nil
 }
 
-// RoleNameFromRoleDefinitionID extracts the name of a role (aka the non-fully-qualified ID of the
-// role) from an Azure role definition ID (aka the fully-qualified ID of the role definition).
-func RoleNameFromRoleDefinitionID(roleDefinitionID string) string {
-	split := strings.Split(roleDefinitionID, "/")
-	roleName := split[len(split)-1]
-	return roleName
-}
-
 // CommunityGalleryImagesClient is a facade over the Azure community gallery images client.
 // Exists to make our code easier to test (it handles paging).
 type CommunityGalleryImagesClient struct {
@@ -262,4 +254,12 @@ func (c *CommunityGalleryImagesClient) GetImagesForGallery(location, name, subsc
 	case <-c.ctx.Done():
 		return images, fmt.Errorf("context cancelled")
 	}
+}
+
+// RoleAssignmentRequestFilter returns a filter string for Azure role assignments API calls.
+func RoleAssignmentRequestFilter(principalID string) string {
+	// Azure's Go SDK for their API has a bug where it doesn't escape the filter string for the role
+	// assignments call we do here, so we manually escape it ourselves.
+	// https://github.com/Azure/azure-sdk-for-go/issues/20847
+	return url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID))
 }

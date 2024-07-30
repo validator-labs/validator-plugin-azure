@@ -38,6 +38,17 @@ func (s AzureValidatorSpec) ResultCount() int {
 	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
 }
 
+// AzureAuth defines authentication configuration for an AzureValidator.
+type AzureAuth struct {
+	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
+	// Set to true if using WorkloadIdentityCredentials.
+	Implicit bool `json:"implicit" yaml:"implicit"`
+	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
+	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
+	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
+	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
+}
+
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
 // assignments deny the permissions.
 type RBACRule struct {
@@ -56,6 +67,33 @@ type RBACRule struct {
 	// Group, ServicePrincipal, or User.
 	PrincipalID string `json:"principalId" yaml:"principalId"`
 }
+
+// PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
+// permissions (via role assignments) at the specified scope. Scope can be either subscription,
+// resource group, or resource.
+type PermissionSet struct {
+	// Actions is a list of actions that the role must be able to perform. Must not contain any
+	// wildcards. If not specified, the role is assumed to already be able to perform all required
+	// actions.
+	//+kubebuilder:validation:MaxItems=1000
+	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
+	// DataActions is a list of data actions that the role must be able to perform. Must not
+	// contain any wildcards. If not provided, the role is assumed to already be able to perform
+	// all required data actions.
+	//+kubebuilder:validation:MaxItems=1000
+	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
+	// Scope is the minimum scope of the role. Role assignments found at higher level scopes will
+	// satisfy this. For example, a role assignment found with subscription scope will satisfy a
+	// permission set where the role scope specified is a resource group within that subscription.
+	Scope string `json:"scope" yaml:"scope"`
+}
+
+// ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
+// kubebuilder max string length validation for arrays of these.
+// +kubebuilder:validation:MaxLength=200
+type ActionStr string
 
 // CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
 // accessible by a particular subscription.
@@ -84,42 +122,49 @@ type CommunityGallery struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-// AzureAuth defines authentication configuration for an AzureValidator.
-type AzureAuth struct {
-	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
-	// Set to true if using WorkloadIdentityCredentials.
-	Implicit bool `json:"implicit" yaml:"implicit"`
-	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
-	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
-	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
-	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
+// RBACRoleRule verifies that a role definition with a role type, role name, and set of permissions
+// exists, and that it is assigned at a scope to a security principal.
+type RBACRoleRule struct {
+	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
+	// overwrite each other.
+	Name string `json:"name" yaml:"name"`
+	// PrincipalID is the security principal being validated. This can be any type of principal -
+	// Device, ForeignGroup, Group, ServicePrincipal, or User.
+	PrincipalID string `json:"principalId" yaml:"principalId"`
+	// RoleAssignments are combinations of scope and role data.
+	RoleAssignments []RoleAssignment `json:"roleAssignments" yaml:"roleAssignments"`
 }
 
-// ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-// kubebuilder max string length validation for arrays of these.
-// +kubebuilder:validation:MaxLength=200
-type ActionStr string
-
-// PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
-// permissions (via role assignments) at the specified scope. Scope can be either subscription,
-// resource group, or resource.
-type PermissionSet struct {
-	// Actions is a list of actions that the role must be able to perform. Must not contain any
-	// wildcards. If not specified, the role is assumed to already be able to perform all required
-	// actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
-	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
-	// DataActions is a list of data actions that the role must be able to perform. Must not
-	// contain any wildcards. If not provided, the role is assumed to already be able to perform
-	// all required data actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
-	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
-	// Scope is the minimum scope of the role. Role assignments found at higher level scopes will
-	// satisfy this. For example, a role assignment found with subscription scope will satisfy a
-	// permission set where the role scope specified is a resource group within that subscription.
+// RoleAssignment is a combination of scope and role data.
+type RoleAssignment struct {
+	// Scope is the exact scope the role is assigned to the security principal at.
 	Scope string `json:"scope" yaml:"scope"`
+	// Role is the role data.
+	Role Role `json:"role" yaml:"role"`
+}
+
+// Role is role data in a role assignment. Is it a subset of a role definition.
+type Role struct {
+	// Name is the role name property of the role definition.
+	Name string `json:"name" yaml:"name"`
+	// Type is the role type property of the role definition. Must be "BuiltInRole" or "Custom".
+	// Required to disambiguate built in roles and custom roles with the same name.
+	Type string `json:"type" yaml:"type"`
+	// Permissions is the permissions of the role definition -
+	Permissions Permissions `json:"permissions" yaml:"permissions"`
+}
+
+// Permissions is the permissions data in a role definition - actions, data actions, not actions,
+// not data actions.
+type Permissions struct {
+	// Actions is the "actions" of the role definition.
+	Actions []ActionStr `json:"actions" yaml:"actions"`
+	// DataActions is the "dataActions" of the role definition.
+	DataActions []ActionStr `json:"dataActions" yaml:"dataActions"`
+	// NotActions is the "notActions" of the role definition.
+	NotActions []ActionStr `json:"notActions" yaml:"notActions"`
+	// NotDataActions is the "notDataActions" of the role definition.
+	NotDataActions []ActionStr `json:"notDataActions" yaml:"notDataActions"`
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator

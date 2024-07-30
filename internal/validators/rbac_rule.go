@@ -2,37 +2,19 @@ package validators
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/validator-labs/validator-plugin-azure/internal/constants"
+	"github.com/validator-labs/validator-plugin-azure/internal/utils/azure"
 	azerr "github.com/validator-labs/validator-plugin-azure/internal/utils/azureerrors"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
 	"github.com/validator-labs/validator/pkg/util"
 )
-
-// denyAssignmentAPI contains methods that allow getting all deny assignments for a scope and
-// optional filter.
-type denyAssignmentAPI interface {
-	GetDenyAssignmentsForScope(scope string, filter *string) ([]*armauthorization.DenyAssignment, error)
-}
-
-// roleAssignmentAPI contains methods that allow getting all role assignments for a scope and
-// optional filter.
-type roleAssignmentAPI interface {
-	GetRoleAssignmentsForScope(scope string, filter *string) ([]*armauthorization.RoleAssignment, error)
-}
-
-// roleDefinitionAPI contains methods that allow getting all the information we need for an existing
-// role definition.
-type roleDefinitionAPI interface {
-	GetByID(roleID string) (*armauthorization.RoleDefinition, error)
-}
 
 // RBACRuleService reconciles RBAC rules.
 type RBACRuleService struct {
@@ -91,11 +73,8 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	if err != nil {
 		return fmt.Errorf("failed to get deny assignments: %w", azerr.AsAugmented(err))
 	}
-	// Note that Azure's Go SDK for their API has a bug where it doesn't escape the filter string
-	// for the role assignments call we do here, so we manually escape it ourselves.
-	// https://github.com/Azure/azure-sdk-for-go/issues/20847
-	raFilter := util.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
-	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, raFilter)
+	raFilter := azure.RoleAssignmentRequestFilter(principalID)
+	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, &raFilter)
 	if err != nil {
 		return fmt.Errorf("failed to get role assignments: %w", azerr.AsAugmented(err))
 	}
