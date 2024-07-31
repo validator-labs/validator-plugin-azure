@@ -149,6 +149,16 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			}
 			resp.AddResult(vrr, err)
 		}
+
+		// RBAC role rules
+		roleSvc := validators.NewRBACRoleRuleService(raClient, rdClient)
+		for _, rule := range validator.Spec.RBACRoleRules {
+			vrr, err := roleSvc.ReconcileRBACRoleRule(rule)
+			if err != nil {
+				l.Error(err, "failed to reconcile RBAC role rule")
+			}
+			resp.AddResult(vrr, err)
+		}
 	}
 
 	// Patch the ValidationResult with the latest ValidationRuleResults

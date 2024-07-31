@@ -30,12 +30,13 @@ type AzureValidatorSpec struct {
 	// Rules for validating that images exist in an Azure Compute Gallery published as a community
 	// gallery.
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
+	RBACRoleRules              []RBACRoleRule              `json:"rbacRoleRules,omitempty" yaml:"rbacRoleRules,omitempty"`
 	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules) + len(s.RBACRoleRules)
 }
 
 // AzureAuth defines authentication configuration for an AzureValidator.

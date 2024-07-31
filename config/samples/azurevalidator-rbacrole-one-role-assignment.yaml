@@ -1,0 +1,22 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-rbacrole-one-role-assignment
+spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
+  rbacRoleRules:
+  - name: rule-1
+    principalId: 1765687d-2f89-46d4-8d42-ad39b160d31c
+    roleAssignments:
+    - scope: /subscriptions/9b16dd0b-1bea-4c9a-a291-65e6f44c4745
+      role:
+        name: MyCustomRole
+        type: CustomRole
+        permissions:
+          actions:
+          - Microsoft.Compute/virtualMachines/write
+          dataActions: []
+          notActions: []
+          notDataActions: []

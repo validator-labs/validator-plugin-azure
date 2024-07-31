@@ -18,5 +18,4 @@ type roleAssignmentAPI interface {
 // role definition.
 type roleDefinitionAPI interface {
 	GetByID(roleID string) (*armauthorization.RoleDefinition, error)
-	GetRoleDefinitionsForScope(scope string) ([]*armauthorization.RoleDefinition, error)
 }

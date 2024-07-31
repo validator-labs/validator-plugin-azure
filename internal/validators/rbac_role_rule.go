@@ -24,8 +24,8 @@ type RBACRoleRuleService struct {
 
 // NewRBACRoleRuleService creates a new RBACRuleRoleService. Requires Azure client facades that
 // support, role assignments, and role definitions.
-func NewRBACRoleRuleService(raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRuleService {
-	return &RBACRuleService{
+func NewRBACRoleRuleService(raAPI roleAssignmentAPI, rdAPI roleDefinitionAPI) *RBACRoleRuleService {
+	return &RBACRoleRuleService{
 		raAPI: raAPI,
 		rdAPI: rdAPI,
 	}
@@ -63,7 +63,7 @@ func (s *RBACRoleRuleService) ReconcileRBACRoleRule(rule v1alpha1.RBACRoleRule) 
 func (s *RBACRoleRuleService) processRoleAssignment(raSpec v1alpha1.RoleAssignment, principalID string, failures *[]string) error {
 	// Get all role assignments for principal at scope.
 	raFilter := azure.RoleAssignmentRequestFilter(principalID)
-	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(principalID, &raFilter)
+	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(raSpec.Scope, &raFilter)
 	if err != nil {
 		return fmt.Errorf("failed to get role assignments for principal '%s' at scope '%s': %w", principalID, principalID, err)
 	}
@@ -74,19 +74,25 @@ func (s *RBACRoleRuleService) processRoleAssignment(raSpec v1alpha1.RoleAssignme
 	// assigned at a scope greater than required), validation passes.
 	for _, ra := range roleAssignments {
 		// Check role assignment API response for nils. Not expected, but theoretically possible.
-		if ra.Properties == nil {
-			return fmt.Errorf("role assignment '%s' does not have properties", *ra.Properties.RoleDefinitionID)
-		}
-		if ra.Properties.RoleDefinitionID == nil {
-			return fmt.Errorf("role assignment '%s' does not have a role definition ID", ra.ID)
-		}
-		if ra.Properties.Scope == nil {
-			return fmt.Errorf("role assignment '%s' does not have a scope", ra.ID)
+		if ra == nil || ra.ID == nil || ra.Properties == nil || ra.Properties.RoleDefinitionID == nil || ra.Properties.Scope == nil {
+			return fmt.Errorf("role assignment from API response missing required fields")
 		}
 
+		// Get role definition for role assignment.
+		//
+		// This happens within the loop, so it results in sequential API calls (until a suitable
+		// role is found), and it would be nice to be able to get all role definitions we need at
+		// once so that it finishes making API calls sooner. But, that won't work for our use case.
+		// To list role definitions, we need to know their scope (which means whether they're at the
+		// subscription or tenant level, and which subscriptions or tenants those are). It's
+		// impossible to know all of the roles that could be assigned to the principal, but it's
+		// possible to start from the role assignments and use the role definition IDs in them to
+		// see which roles are assigned. So, we do it that way instead. In the real world, Azure
+		// users typically assign fewer, larger roles instead of many, smaller roles, so the issue
+		// of time to complete sequential API calls should be negligible.
 		roleDef, err := s.rdAPI.GetByID(*ra.Properties.RoleDefinitionID)
 		if err != nil {
-			return fmt.Errorf("failed to get role definition for role assignment '%s': %w", ra.ID, err)
+			return fmt.Errorf("failed to get role definition for role assignment '%s': %w", *ra.ID, err)
 		}
 
 		// Check role def API response for nils. Not expected, but theoretically possible.
@@ -102,7 +108,7 @@ func (s *RBACRoleRuleService) processRoleAssignment(raSpec v1alpha1.RoleAssignme
 
 		permsMatch, err := permissionsMatch(*roleDef.Properties.Permissions[0], raSpec.Role.Permissions)
 		if err != nil {
-			return fmt.Errorf("failed to compare permissions for role assignment '%s': %w", ra.ID, err)
+			return fmt.Errorf("failed to compare permissions for role assignment '%s': %w", *ra.ID, err)
 		}
 		typeMatches := *roleDef.Properties.RoleType == raSpec.Role.Type
 		nameMatches := *roleDef.Properties.RoleName == raSpec.Role.Name
@@ -114,7 +120,14 @@ func (s *RBACRoleRuleService) processRoleAssignment(raSpec v1alpha1.RoleAssignme
 		}
 	}
 
-	// Otherwise, validation fails.
+	// If no role assignments that match were found, validation fails.
+	//
+	// It would be nice if we could report different failure messages for each issue that could
+	// occur, like the role type not matching or it lacking the permissions. However, we need to
+	// check all role assignments because just because one role assignment has at least one
+	// issue doesn't mean there isn't a role assignment with no issues. After iterating through
+	// each role assignment, if we don't encounter one with no issues, we report a failure
+	// message that tells the user no suitable role assignment was found.
 	*failures = append(*failures, fmt.Sprintf("Principal '%s' does not have role with type '%s' and role name '%s' assigned at scope '%s' with required permissions.",
 		principalID, raSpec.Role.Type, raSpec.Role.Name, raSpec.Scope))
 	return nil
