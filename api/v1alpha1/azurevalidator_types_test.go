@@ -25,10 +25,10 @@ import (
 
 func TestPermission_Equal(t *testing.T) {
 	type fields struct {
-		Actions        []ActionStr
-		DataActions    []ActionStr
-		NotActions     []ActionStr
-		NotDataActions []ActionStr
+		Actions        []string
+		DataActions    []string
+		NotActions     []string
+		NotDataActions []string
 	}
 	type args struct {
 		other armauthorization.Permission
@@ -50,10 +50,10 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns true when equal.",
 			fields: fields{
-				Actions:        []ActionStr{"a", "b"},
-				DataActions:    []ActionStr{"c", "d"},
-				NotActions:     []ActionStr{"d", "e"},
-				NotDataActions: []ActionStr{"f", "g"},
+				Actions:        []string{"a", "b"},
+				DataActions:    []string{"c", "d"},
+				NotActions:     []string{"d", "e"},
+				NotDataActions: []string{"f", "g"},
 			},
 			args: args{
 				other: armauthorization.Permission{
@@ -68,7 +68,7 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns true when equal (some slices omitted).",
 			fields: fields{
-				Actions: []ActionStr{"a", "b"},
+				Actions: []string{"a", "b"},
 			},
 			args: args{
 				other: armauthorization.Permission{
@@ -80,7 +80,7 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns false when inequal (1).",
 			fields: fields{
-				Actions: []ActionStr{"a", "b"},
+				Actions: []string{"a", "b"},
 			},
 			args: args{
 				other: armauthorization.Permission{
@@ -92,7 +92,7 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns false when inequal (2).",
 			fields: fields{
-				Actions: []ActionStr{"a", "b"},
+				Actions: []string{"a", "b"},
 			},
 			args: args{
 				other: armauthorization.Permission{
@@ -104,7 +104,7 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns false when inequal (3).",
 			fields: fields{
-				Actions: []ActionStr{"a", "b"},
+				Actions: []string{"a", "b"},
 			},
 			args: args{
 				other: armauthorization.Permission{},
@@ -114,7 +114,7 @@ func TestPermission_Equal(t *testing.T) {
 		{
 			name: "Returns false when inequal (4).",
 			fields: fields{
-				Actions: []ActionStr{"a", "b"},
+				Actions: []string{"a", "b"},
 			},
 			args: args{
 				other: armauthorization.Permission{

@@ -53,11 +53,6 @@ type AzureAuth struct {
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
 }
 
-// ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-// kubebuilder max string length validation for arrays of these.
-// +kubebuilder:validation:MaxLength=200
-type ActionStr string
-
 // CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
 // accessible by a particular subscription.
 type CommunityGalleryImageRule struct {
@@ -121,29 +116,28 @@ type Role struct {
 // Permission is the permission data in a role definition.
 type Permission struct {
 	// Actions is the "actions" of the role definition.
-	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
+	Actions []string `json:"actions,omitempty" yaml:"actions,omitempty"`
 	// DataActions is the "dataActions" of the role definition.
-	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
+	DataActions []string `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
 	// NotActions is the "notActions" of the role definition.
-	NotActions []ActionStr `json:"notActions,omitempty" yaml:"notActions,omitempty"`
+	NotActions []string `json:"notActions,omitempty" yaml:"notActions,omitempty"`
 	// NotDataActions is the "notDataActions" of the role definition.
-	NotDataActions []ActionStr `json:"notDataActions,omitempty" yaml:"notDataActions,omitempty"`
+	NotDataActions []string `json:"notDataActions,omitempty" yaml:"notDataActions,omitempty"`
 }
 
 // Equal compares a Permission (from the spec) to an armauthorization.Permission (from the Azure API
 // response).
 func (p Permission) Equal(other armauthorization.Permission) bool {
-	compareSlices := func(a []ActionStr, b []*string) bool {
+	compareSlices := func(a []string, b []*string) bool {
 		if len(a) != len(b) {
 			return false
 		}
 		for i, val := range a {
-			aVal := string(val)
 			if b[i] == nil {
 				return false
 			}
 			bVal := *b[i]
-			if aVal != bVal {
+			if val != bVal {
 				return false
 			}
 		}

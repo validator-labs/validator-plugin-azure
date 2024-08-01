@@ -184,22 +184,22 @@ func (in *Permission) DeepCopyInto(out *Permission) {
 	*out = *in
 	if in.Actions != nil {
 		in, out := &in.Actions, &out.Actions
-		*out = make([]ActionStr, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 	if in.DataActions != nil {
 		in, out := &in.DataActions, &out.DataActions
-		*out = make([]ActionStr, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 	if in.NotActions != nil {
 		in, out := &in.NotActions, &out.NotActions
-		*out = make([]ActionStr, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 	if in.NotDataActions != nil {
 		in, out := &in.NotDataActions, &out.NotDataActions
-		*out = make([]ActionStr, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 }

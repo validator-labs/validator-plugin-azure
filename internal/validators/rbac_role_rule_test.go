@@ -82,7 +82,7 @@ func TestRBACRoleRuleService_ReconcileRBACRoleRule(t *testing.T) {
 							Type: testRoleType,
 							Name: testRoleName,
 							Permission: v1alpha1.Permission{
-								Actions: []v1alpha1.ActionStr{testAction},
+								Actions: []string{testAction},
 							},
 						},
 					},
@@ -142,7 +142,7 @@ func TestRBACRoleRuleService_ReconcileRBACRoleRule(t *testing.T) {
 							Type: testRoleType,
 							Name: testRoleName,
 							Permission: v1alpha1.Permission{
-								Actions: []v1alpha1.ActionStr{testAction},
+								Actions: []string{testAction},
 							},
 						},
 					},
@@ -378,9 +378,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},
@@ -450,9 +448,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},
@@ -501,9 +497,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},
@@ -553,9 +547,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},
@@ -605,9 +597,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},
@@ -657,9 +647,7 @@ func TestRBACRoleRuleService_processRoleAssignment(t *testing.T) {
 						Type: testRoleType,
 						Name: testRoleName,
 						Permission: v1alpha1.Permission{
-							Actions: []v1alpha1.ActionStr{
-								v1alpha1.ActionStr(testAction),
-							},
+							Actions: []string{},
 						},
 					},
 				},

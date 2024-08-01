@@ -149,40 +149,24 @@ spec:
                                     description: Actions is the "actions" of the role
                                       definition.
                                     items:
-                                      description: |-
-                                        ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                        kubebuilder max string length validation for arrays of these.
-                                      maxLength: 200
                                       type: string
                                     type: array
                                   dataActions:
                                     description: DataActions is the "dataActions"
                                       of the role definition.
                                     items:
-                                      description: |-
-                                        ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                        kubebuilder max string length validation for arrays of these.
-                                      maxLength: 200
                                       type: string
                                     type: array
                                   notActions:
                                     description: NotActions is the "notActions" of
                                       the role definition.
                                     items:
-                                      description: |-
-                                        ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                        kubebuilder max string length validation for arrays of these.
-                                      maxLength: 200
                                       type: string
                                     type: array
                                   notDataActions:
                                     description: NotDataActions is the "notDataActions"
                                       of the role definition.
                                     items:
-                                      description: |-
-                                        ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                        kubebuilder max string length validation for arrays of these.
-                                      maxLength: 200
                                       type: string
                                     type: array
                                 type: object
