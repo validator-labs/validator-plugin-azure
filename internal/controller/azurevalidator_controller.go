@@ -125,20 +125,9 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			defer cancel()
 		}
 
-		daClient := azure_utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
 		raClient := azure_utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
 		rdClient := azure_utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
 		cgiClient := azure_utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
-
-		// RBAC rules
-		rbacSvc := validators.NewRBACRuleService(daClient, raClient, rdClient)
-		for _, rule := range validator.Spec.RBACRules {
-			vrr, err := rbacSvc.ReconcileRBACRule(rule)
-			if err != nil {
-				l.Error(err, "failed to reconcile RBAC rule")
-			}
-			resp.AddResult(vrr, err)
-		}
 
 		// Community gallery image rules
 		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient, r.Log)

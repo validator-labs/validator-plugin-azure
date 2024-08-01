@@ -104,8 +104,15 @@ spec:
                   - name
                   - subscriptionID
                   type: object
+                maxItems: 5
                 type: array
+                x-kubernetes-validations:
+                - message: CommunityGalleryImageRules must have unique names
+                  rule: self.all(e, size(self.filter(x, x.name == e.name)) == 1)
               rbacRoleRules:
+                description: |-
+                  RBACRoleRules validate that a security principal has permissions at a specified scope via
+                  role assignments and role definitions.
                 items:
                   description: |-
                     RBACRoleRule verifies that a role definition with a role type, role name, and set of permissions
@@ -115,11 +122,13 @@ spec:
                       description: |-
                         Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
                         overwrite each other.
+                      maxLength: 200
                       type: string
                     principalId:
                       description: |-
                         PrincipalID is the security principal being validated. This can be any type of principal -
                         Device, ForeignGroup, Group, ServicePrincipal, or User.
+                      maxLength: 200
                       type: string
                     roleAssignments:
                       description: RoleAssignments are combinations of scope and role
@@ -134,10 +143,11 @@ spec:
                               name:
                                 description: Name is the role name property of the
                                   role definition.
+                                maxLength: 200
                                 type: string
                               permissions:
-                                description: Permissions is the permissions of the
-                                  role definition -
+                                description: Permission is the permissions data of
+                                  the role definition.
                                 properties:
                                   actions:
                                     description: Actions is the "actions" of the role
@@ -179,16 +189,14 @@ spec:
                                       maxLength: 200
                                       type: string
                                     type: array
-                                required:
-                                - actions
-                                - dataActions
-                                - notActions
-                                - notDataActions
                                 type: object
                               type:
                                 description: |-
                                   Type is the role type property of the role definition. Must be "BuiltInRole" or "Custom".
                                   Required to disambiguate built in roles and custom roles with the same name.
+                                enum:
+                                - BuiltInRole
+                                - CustomRole
                                 type: string
                             required:
                             - name
@@ -198,107 +206,23 @@ spec:
                           scope:
                             description: Scope is the exact scope the role is assigned
                               to the security principal at.
+                            maxLength: 200
                             type: string
                         required:
                         - role
                         - scope
                         type: object
+                      minItems: 1
                       type: array
                   required:
                   - name
                   - principalId
                   - roleAssignments
                   type: object
-                type: array
-              rbacRules:
-                description: |-
-                  Rules for validating that the correct role assignments have been created in Azure RBAC to
-                  provide needed permissions.
-                items:
-                  description: |-
-                    RBACRule verifies that a security principal has permissions via role assignments and that no deny
-                    assignments deny the permissions.
-                  properties:
-                    name:
-                      description: |-
-                        Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
-                        each other.
-                      type: string
-                    permissionSets:
-                      description: |-
-                        The permissions that the principal must have. If the principal has permissions less than
-                        this, validation will fail. If the principal has permissions equal to or more than this
-                        (e.g., inherited permissions from higher level scope, more roles than needed) validation
-                        will pass.
-                      items:
-                        description: |-
-                          PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
-                          permissions (via role assignments) at the specified scope. Scope can be either subscription,
-                          resource group, or resource.
-                        properties:
-                          actions:
-                            description: |-
-                              Actions is a list of actions that the role must be able to perform. Must not contain any
-                              wildcards. If not specified, the role is assumed to already be able to perform all required
-                              actions.
-                            items:
-                              description: |-
-                                ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                kubebuilder max string length validation for arrays of these.
-                              maxLength: 200
-                              type: string
-                            maxItems: 1000
-                            type: array
-                            x-kubernetes-validations:
-                            - message: Actions cannot have wildcards.
-                              rule: self.all(item, !item.contains('*'))
-                          dataActions:
-                            description: |-
-                              DataActions is a list of data actions that the role must be able to perform. Must not
-                              contain any wildcards. If not provided, the role is assumed to already be able to perform
-                              all required data actions.
-                            items:
-                              description: |-
-                                ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
-                                kubebuilder max string length validation for arrays of these.
-                              maxLength: 200
-                              type: string
-                            maxItems: 1000
-                            type: array
-                            x-kubernetes-validations:
-                            - message: DataActions cannot have wildcards.
-                              rule: self.all(item, !item.contains('*'))
-                          scope:
-                            description: |-
-                              Scope is the minimum scope of the role. Role assignments found at higher level scopes will
-                              satisfy this. For example, a role assignment found with subscription scope will satisfy a
-                              permission set where the role scope specified is a resource group within that subscription.
-                            type: string
-                        required:
-                        - scope
-                        type: object
-                      maxItems: 20
-                      minItems: 1
-                      type: array
-                      x-kubernetes-validations:
-                      - message: Each permission set must have Actions, DataActions,
-                          or both defined
-                        rule: self.all(item, size(item.actions) > 0 || size(item.dataActions)
-                          > 0)
-                    principalId:
-                      description: |-
-                        The principal being validated. This can be any type of principal - Device, ForeignGroup,
-                        Group, ServicePrincipal, or User.
-                      type: string
-                  required:
-                  - name
-                  - permissionSets
-                  - principalId
-                  type: object
                 maxItems: 5
                 type: array
                 x-kubernetes-validations:
-                - message: RBACRules must have unique names
+                - message: RBACRoleRules must have unique names
                   rule: self.all(e, size(self.filter(x, x.name == e.name)) == 1)
             required:
             - auth

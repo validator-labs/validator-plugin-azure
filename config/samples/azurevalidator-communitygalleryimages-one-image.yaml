@@ -6,7 +6,6 @@ spec:
   auth:
     implicit: false
     secretName: azure-creds
-  rbacRules: []
   communityGalleryImageRules:
   - name: rule-1
     gallery:

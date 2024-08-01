@@ -17,26 +17,29 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // AzureValidatorSpec defines the desired state of AzureValidator
 type AzureValidatorSpec struct {
-	// Rules for validating that the correct role assignments have been created in Azure RBAC to
-	// provide needed permissions.
-	// +kubebuilder:validation:MaxItems=5
-	// +kubebuilder:validation:XValidation:message="RBACRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
-	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
 	// Rules for validating that images exist in an Azure Compute Gallery published as a community
 	// gallery.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="CommunityGalleryImageRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
-	RBACRoleRules              []RBACRoleRule              `json:"rbacRoleRules,omitempty" yaml:"rbacRoleRules,omitempty"`
-	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
+	// RBACRoleRules validate that a security principal has permissions at a specified scope via
+	// role assignments and role definitions.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="RBACRoleRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
+	RBACRoleRules []RBACRoleRule `json:"rbacRoleRules,omitempty" yaml:"rbacRoleRules,omitempty"`
+	Auth          AzureAuth      `json:"auth" yaml:"auth"`
 }
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules) + len(s.CommunityGalleryImageRules) + len(s.RBACRoleRules)
+	return len(s.CommunityGalleryImageRules) + len(s.RBACRoleRules)
 }
 
 // AzureAuth defines authentication configuration for an AzureValidator.
@@ -48,47 +51,6 @@ type AzureAuth struct {
 	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
 	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
-}
-
-// RBACRule verifies that a security principal has permissions via role assignments and that no deny
-// assignments deny the permissions.
-type RBACRule struct {
-	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
-	// each other.
-	Name string `json:"name" yaml:"name"`
-	// The permissions that the principal must have. If the principal has permissions less than
-	// this, validation will fail. If the principal has permissions equal to or more than this
-	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
-	// will pass.
-	//+kubebuilder:validation:MinItems=1
-	//+kubebuilder:validation:MaxItems=20
-	//+kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
-	Permissions []PermissionSet `json:"permissionSets" yaml:"permissionSets"`
-	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
-	// Group, ServicePrincipal, or User.
-	PrincipalID string `json:"principalId" yaml:"principalId"`
-}
-
-// PermissionSet is part of an RBAC rule and verifies that a security principal has the specified
-// permissions (via role assignments) at the specified scope. Scope can be either subscription,
-// resource group, or resource.
-type PermissionSet struct {
-	// Actions is a list of actions that the role must be able to perform. Must not contain any
-	// wildcards. If not specified, the role is assumed to already be able to perform all required
-	// actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
-	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
-	// DataActions is a list of data actions that the role must be able to perform. Must not
-	// contain any wildcards. If not provided, the role is assumed to already be able to perform
-	// all required data actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
-	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
-	// Scope is the minimum scope of the role. Role assignments found at higher level scopes will
-	// satisfy this. For example, a role assignment found with subscription scope will satisfy a
-	// permission set where the role scope specified is a resource group within that subscription.
-	Scope string `json:"scope" yaml:"scope"`
 }
 
 // ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
@@ -128,17 +90,21 @@ type CommunityGallery struct {
 type RBACRoleRule struct {
 	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
 	// overwrite each other.
+	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 	// PrincipalID is the security principal being validated. This can be any type of principal -
 	// Device, ForeignGroup, Group, ServicePrincipal, or User.
+	// +kubebuilder:validation:MaxLength=200
 	PrincipalID string `json:"principalId" yaml:"principalId"`
 	// RoleAssignments are combinations of scope and role data.
+	// +kubebuilder:validation:MinItems=1
 	RoleAssignments []RoleAssignment `json:"roleAssignments" yaml:"roleAssignments"`
 }
 
 // RoleAssignment is a combination of scope and role data.
 type RoleAssignment struct {
 	// Scope is the exact scope the role is assigned to the security principal at.
+	// +kubebuilder:validation:MaxLength=200
 	Scope string `json:"scope" yaml:"scope"`
 	// Role is the role data.
 	Role Role `json:"role" yaml:"role"`
@@ -147,25 +113,52 @@ type RoleAssignment struct {
 // Role is role data in a role assignment. Is it a subset of a role definition.
 type Role struct {
 	// Name is the role name property of the role definition.
+	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 	// Type is the role type property of the role definition. Must be "BuiltInRole" or "Custom".
 	// Required to disambiguate built in roles and custom roles with the same name.
+	// +kubebuilder:validation:Enum=BuiltInRole;CustomRole
 	Type string `json:"type" yaml:"type"`
-	// Permissions is the permissions of the role definition -
-	Permissions Permissions `json:"permissions" yaml:"permissions"`
+	// Permission is the permissions data of the role definition.
+	Permission Permission `json:"permissions" yaml:"permissions"`
 }
 
-// Permissions is the permissions data in a role definition - actions, data actions, not actions,
-// not data actions.
-type Permissions struct {
+// Permission is the permission data in a role definition.
+type Permission struct {
 	// Actions is the "actions" of the role definition.
-	Actions []ActionStr `json:"actions" yaml:"actions"`
+	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
 	// DataActions is the "dataActions" of the role definition.
-	DataActions []ActionStr `json:"dataActions" yaml:"dataActions"`
+	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
 	// NotActions is the "notActions" of the role definition.
-	NotActions []ActionStr `json:"notActions" yaml:"notActions"`
+	NotActions []ActionStr `json:"notActions,omitempty" yaml:"notActions,omitempty"`
 	// NotDataActions is the "notDataActions" of the role definition.
-	NotDataActions []ActionStr `json:"notDataActions" yaml:"notDataActions"`
+	NotDataActions []ActionStr `json:"notDataActions,omitempty" yaml:"notDataActions,omitempty"`
+}
+
+// Equal compares a Permission (from the spec) to an armauthorization.Permission (from the Azure API
+// response).
+func (p Permission) Equal(other armauthorization.Permission) bool {
+	compareSlices := func(a []ActionStr, b []*string) bool {
+		if len(a) != len(b) {
+			return false
+		}
+		for i, val := range a {
+			aVal := string(val)
+			if b[i] == nil {
+				return false
+			}
+			bVal := *b[i]
+			if aVal != bVal {
+				return false
+			}
+		}
+		return true
+	}
+
+	return compareSlices(p.Actions, other.Actions) &&
+		compareSlices(p.DataActions, other.DataActions) &&
+		compareSlices(p.NotActions, other.NotActions) &&
+		compareSlices(p.NotDataActions, other.NotDataActions)
 }
 
 // AzureValidatorStatus defines the observed state of AzureValidator

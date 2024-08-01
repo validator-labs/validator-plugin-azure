@@ -25,8 +25,8 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		}
 	})
 
-	It("Should not create a ValidationResult when neither Actions nor DataActions are defined in any permission set", func() {
-		By("Attempting to create a new AzureValidator with one invalid permission set")
+	It("Should not create a ValidationResult when an invalid RBACRoleRule is applied (missing principal ID)", func() {
+		By("Attempting to create a new AzureValidator")
 
 		ctx := context.Background()
 
@@ -36,33 +36,29 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 				Namespace: validatorNamespace,
 			},
 			Spec: v1alpha1.AzureValidatorSpec{
-				RBACRules: []v1alpha1.RBACRule{
+				RBACRoleRules: []v1alpha1.RBACRoleRule{
 					{
-						Permissions: []v1alpha1.PermissionSet{
+						Name: "rule-1",
+						RoleAssignments: []v1alpha1.RoleAssignment{
 							{
-								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								Actions: []v1alpha1.ActionStr{"action_1"},
+								Scope: "test-scope",
+								Role: v1alpha1.Role{
+									Name: "test-role-name",
+									Type: "test-role-type",
+								},
 							},
 						},
-						PrincipalID: "p_id",
-					},
-					{
-						Permissions: []v1alpha1.PermissionSet{
-							{
-								Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg2",
-							},
-						},
-						PrincipalID: "p_id",
 					},
 				},
 			},
 		}
 
-		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("Each permission set must have Actions, DataActions, or both defined")))
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring(
+			"spec.rbacRoleRules[0].principalId: Required value")))
 	})
 
-	It("Should not create a ValidationResult when any Action has a wildcard", func() {
-		By("Attempting to create a new AzureValidator with one invalid permission set")
+	It("Should not create a ValidationResult when an invalid RBACRoleRule is applied (missing role assignments)", func() {
+		By("Attempting to create a new AzureValidator")
 
 		ctx := context.Background()
 
@@ -72,24 +68,20 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 				Namespace: validatorNamespace,
 			},
 			Spec: v1alpha1.AzureValidatorSpec{
-				RBACRules: []v1alpha1.RBACRule{
+				RBACRoleRules: []v1alpha1.RBACRoleRule{
 					{
-						Permissions: []v1alpha1.PermissionSet{
-							{
-								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								Actions: []v1alpha1.ActionStr{"things/*"},
-							},
-						},
-						PrincipalID: "p_id",
+						Name:        "rule-1",
+						PrincipalID: "test-principal-id",
 					},
 				},
 			},
 		}
 
-		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("Actions cannot have wildcards")))
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring(
+			"spec.rbacRoleRules[0].roleAssignments: Required value")))
 	})
 
-	It("Should not create a ValidationResult when any DataAction has a wildcard", func() {
+	It("Should not create a ValidationResult when an invalid RBACRoleRule is applied (empty role assignments)", func() {
 		By("Attempting to create a new AzureValidator with one invalid permission set")
 
 		ctx := context.Background()
@@ -100,21 +92,18 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 				Namespace: validatorNamespace,
 			},
 			Spec: v1alpha1.AzureValidatorSpec{
-				RBACRules: []v1alpha1.RBACRule{
+				RBACRoleRules: []v1alpha1.RBACRoleRule{
 					{
-						Permissions: []v1alpha1.PermissionSet{
-							{
-								Scope:       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								DataActions: []v1alpha1.ActionStr{"things/*"},
-							},
-						},
-						PrincipalID: "p_id",
+						Name:            "rule-1",
+						PrincipalID:     "test-principal-id",
+						RoleAssignments: []v1alpha1.RoleAssignment{},
 					},
 				},
 			},
 		}
 
-		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring("DataActions cannot have wildcards")))
+		Expect(k8sClient.Create(ctx, val)).Should(MatchError(ContainSubstring(
+			"spec.rbacRoleRules[0].roleAssignments: Invalid value: 0: spec.rbacRoleRules[0].roleAssignments in body should have at least 1 items")))
 	})
 
 	It("Should create a ValidationResult and update its Status with a failed condition", func() {
@@ -144,15 +133,19 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 					Implicit:   false,
 					SecretName: "azure-creds",
 				},
-				RBACRules: []v1alpha1.RBACRule{
+				RBACRoleRules: []v1alpha1.RBACRoleRule{
 					{
-						Permissions: []v1alpha1.PermissionSet{
+						Name:        "rule-1",
+						PrincipalID: "test-principal-id",
+						RoleAssignments: []v1alpha1.RoleAssignment{
 							{
-								Scope:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Example-Storage-rg",
-								Actions: []v1alpha1.ActionStr{"action_1"},
+								Scope: "test-scope",
+								Role: v1alpha1.Role{
+									Name: "test-role-name",
+									Type: "test-role-type",
+								},
 							},
 						},
-						PrincipalID: "p_id",
 					},
 				},
 			},

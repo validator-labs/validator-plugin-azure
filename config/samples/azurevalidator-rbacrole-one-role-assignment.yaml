@@ -14,7 +14,7 @@ spec:
       role:
         name: MyCustomRole
         type: CustomRole
-        permissions:
+        permission:
           actions:
           - Microsoft.Compute/virtualMachines/write
           dataActions: []
