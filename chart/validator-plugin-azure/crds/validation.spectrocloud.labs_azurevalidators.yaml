@@ -72,11 +72,9 @@ spec:
                         location:
                           description: Location is the location of the community gallery
                             (e.g. "westus").
-                          maxLength: 50
                           type: string
                         name:
                           description: Name is the name of the community gallery.
-                          maxLength: 200
                           type: string
                       required:
                       - location
@@ -128,7 +126,6 @@ spec:
                       description: |-
                         PrincipalID is the security principal being validated. This can be any type of principal -
                         Device, ForeignGroup, Group, ServicePrincipal, or User.
-                      maxLength: 200
                       type: string
                     roleAssignments:
                       description: RoleAssignments are combinations of scope and role
@@ -143,7 +140,6 @@ spec:
                               name:
                                 description: Name is the role name property of the
                                   role definition.
-                                maxLength: 200
                                 type: string
                               permissions:
                                 description: Permission is the permissions data of
@@ -206,7 +202,6 @@ spec:
                           scope:
                             description: Scope is the exact scope the role is assigned
                               to the security principal at.
-                            maxLength: 200
                             type: string
                         required:
                         - role

@@ -78,10 +78,8 @@ type CommunityGalleryImageRule struct {
 // CommunityGallery is a community gallery in a particular location.
 type CommunityGallery struct {
 	// Location is the location of the community gallery (e.g. "westus").
-	// +kubebuilder:validation:MaxLength=50
 	Location string `json:"location" yaml:"location"`
 	// Name is the name of the community gallery.
-	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 }
 
@@ -94,7 +92,6 @@ type RBACRoleRule struct {
 	Name string `json:"name" yaml:"name"`
 	// PrincipalID is the security principal being validated. This can be any type of principal -
 	// Device, ForeignGroup, Group, ServicePrincipal, or User.
-	// +kubebuilder:validation:MaxLength=200
 	PrincipalID string `json:"principalId" yaml:"principalId"`
 	// RoleAssignments are combinations of scope and role data.
 	// +kubebuilder:validation:MinItems=1
@@ -104,7 +101,6 @@ type RBACRoleRule struct {
 // RoleAssignment is a combination of scope and role data.
 type RoleAssignment struct {
 	// Scope is the exact scope the role is assigned to the security principal at.
-	// +kubebuilder:validation:MaxLength=200
 	Scope string `json:"scope" yaml:"scope"`
 	// Role is the role data.
 	Role Role `json:"role" yaml:"role"`
@@ -113,7 +109,6 @@ type RoleAssignment struct {
 // Role is role data in a role assignment. Is it a subset of a role definition.
 type Role struct {
 	// Name is the role name property of the role definition.
-	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 	// Type is the role type property of the role definition. Must be "BuiltInRole" or "Custom".
 	// Required to disambiguate built in roles and custom roles with the same name.
