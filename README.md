@@ -26,7 +26,7 @@ See the [samples](https://github.com/validator-labs/validator-plugin-azure/tree/
 
 This rule compares the Azure RBAC permissions associated with a [security principal](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview#security-principal) against an expected permission set.
 
-It checks if an Azure security principal (e.g., users, service principals) has the required Azure RBAC permissions. In Azure RBAC, permissions are applied to principals by a role assignment being created that links a role (which can be a BuiltInRole or a CustomRole) to the principal at a particular scope. API operations at that scope or lower (e.g. operations against a subscription or to a resource group within the subscription) are permitted but operations outside of that scope are not.
+It checks if an Azure security principal (e.g., users, service principals) has the required Azure RBAC permissions. In Azure RBAC, permissions are applied to principals by a role assignment being created that links a role (which can be a BuiltInRole or a CustomRole) to the principal at a particular scope. API operations at that scope or lower (e.g. operations against a subscription or against a resource group within the subscription) are permitted but operations outside of that scope are not.
 
 Validation is successful if the principal has the necessary permissions, either from one role assignment or a combination of role assignments.
 
