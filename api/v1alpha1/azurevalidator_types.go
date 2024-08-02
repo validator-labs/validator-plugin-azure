@@ -53,7 +53,11 @@ type RBACRule struct {
 	//+kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
 	Permissions []PermissionSet `json:"permissionSets" yaml:"permissionSets"`
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
-	// Group, ServicePrincipal, or User.
+	// Group, ServicePrincipal, or User. If using a service principal, this is the "application
+	// object ID". In the Azure portal, this can be found by navigating to Entra ID, selecting the
+	// application registration of the service principal, navigating from that page to the managed
+	// application page, and copying the "object ID". This ID is different from the tenant ID,
+	// client ID, and object ID of the application registration.
 	PrincipalID string `json:"principalId" yaml:"principalId"`
 }
 
@@ -77,10 +81,8 @@ type CommunityGalleryImageRule struct {
 // CommunityGallery is a community gallery in a particular location.
 type CommunityGallery struct {
 	// Location is the location of the community gallery (e.g. "westus").
-	// +kubebuilder:validation:MaxLength=50
 	Location string `json:"location" yaml:"location"`
 	// Name is the name of the community gallery.
-	// +kubebuilder:validation:MaxLength=200
 	Name string `json:"name" yaml:"name"`
 }
 

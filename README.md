@@ -20,6 +20,34 @@ Each `AzureValidator` CR is (re)-processed every two minutes to continuously ens
 
 See the [samples](https://github.com/validator-labs/validator-plugin-azure/tree/main/config/samples) directory for example `AzureValidator` configurations. Some samples require you to add data to the rules configured in them such as the Azure subscription to use.
 
+### Rules
+
+#### RBAC rule
+
+This rule compares the Azure RBAC permissions associated with a [security principal](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview#security-principal) against an expected permission set.
+
+It checks if an Azure security principal (e.g., users, service principals) has the required Azure RBAC permissions. In Azure RBAC, permissions are applied to principals by a role assignment being created that links a role (which can be a BuiltInRole or a CustomRole) to the principal at a particular scope. API operations at that scope or lower (e.g. operations against a subscription or against a resource group within the subscription) are permitted but operations outside of that scope are not.
+
+Validation is successful if the principal has the necessary permissions, either from one role assignment or a combination of role assignments.
+
+The list of permissions defined in the spec cannot have an action or data action with a wildcard. However, the roles that provide the permissions (via role assignments) may have wildcards in their actions and data actions.
+
+Note that you must use the correct ID when configuring the `principalId` in the spec for the principal. For a service principal, this is the "application object ID" found in the Azure portal under Entra ID > application registration > managed application page > "object ID". Note that this is different from the tenant ID, client ID, and object ID of the application registration.
+
+Service principal example:
+
+![3](https://github.com/user-attachments/assets/59b54214-10f6-4c7c-9ec5-eeeadfada35e)
+
+![4](https://github.com/user-attachments/assets/560acda5-2515-4c87-a1e3-1f400492f4ad)
+
+See [azurevalidator-rbac-one-permission-set-all-actions-permitted-by-one-role.yaml](config/samples/azurevalidator-rbac-one-permission-set-all-actions-permitted-by-one-role.yaml`) for an example rule spec.
+
+#### Community image gallery rule
+
+This rule verifies that images in [community image galleries](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-community) exist.
+
+See [azurevalidator-communitygalleryimages-one-image.yaml](config/samples/azurevalidator-communitygalleryimages-one-image.yaml) for an example rule spec.
+
 ## Authn & Authz
 
 Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
