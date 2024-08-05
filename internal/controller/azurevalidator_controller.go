@@ -35,9 +35,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/validator-labs/validator-plugin-azure/internal/constants"
-	azure_utils "github.com/validator-labs/validator-plugin-azure/internal/utils/azure"
-	"github.com/validator-labs/validator-plugin-azure/internal/validators"
+	"github.com/validator-labs/validator-plugin-azure/pkg/azure"
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
+	utils "github.com/validator-labs/validator-plugin-azure/pkg/utils/azure"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	"github.com/validator-labs/validator/pkg/types"
 	"github.com/validator-labs/validator/pkg/util"
@@ -114,24 +114,24 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		ValidationRuleErrors:  make([]error, 0, vr.Spec.ExpectedResults),
 	}
 
-	azureAPI, err := azure_utils.NewAzureAPI()
+	azureAPI, err := utils.NewAzureAPI()
 	if err != nil {
 		l.Error(err, "failed to create Azure API object")
 	} else {
 		azureCtx := context.WithoutCancel(ctx)
 		if os.Getenv("IS_TEST") == "true" {
 			var cancel context.CancelFunc
-			azureCtx, cancel = context.WithDeadline(ctx, time.Now().Add(azure_utils.TestClientTimeout))
+			azureCtx, cancel = context.WithDeadline(ctx, time.Now().Add(utils.TestClientTimeout))
 			defer cancel()
 		}
 
-		daClient := azure_utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
-		raClient := azure_utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
-		rdClient := azure_utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
-		cgiClient := azure_utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
+		daClient := utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
+		raClient := utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
+		rdClient := utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
+		cgiClient := utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
 
 		// RBAC rules
-		rbacSvc := validators.NewRBACRuleService(daClient, raClient, rdClient)
+		rbacSvc := azure.NewRBACRuleService(daClient, raClient, rdClient)
 		for _, rule := range validator.Spec.RBACRules {
 			vrr, err := rbacSvc.ReconcileRBACRule(rule)
 			if err != nil {
@@ -141,7 +141,7 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 
 		// Community gallery image rules
-		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
+		cgiSvc := azure.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
 		for _, rule := range validator.Spec.CommunityGalleryImageRules {
 			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
 			if err != nil {

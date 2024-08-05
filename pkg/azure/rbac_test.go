@@ -1,4 +1,4 @@
-package validators
+package azure
 
 import (
 	"errors"
