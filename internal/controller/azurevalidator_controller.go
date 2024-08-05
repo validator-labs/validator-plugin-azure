@@ -33,10 +33,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/validator-labs/validator-plugin-azure/pkg/azure"
-	utils "github.com/validator-labs/validator-plugin-azure/pkg/utils/azure"
+	"github.com/validator-labs/validator-plugin-azure/pkg/validate"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
-	"github.com/validator-labs/validator/pkg/types"
 	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
@@ -105,47 +103,8 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Always update the expected result count in case the validator's rules have changed
 	vr.Spec.ExpectedResults = validator.Spec.ResultCount()
 
-	resp := types.ValidationResponse{
-		ValidationRuleResults: make([]*types.ValidationRuleResult, 0, vr.Spec.ExpectedResults),
-		ValidationRuleErrors:  make([]error, 0, vr.Spec.ExpectedResults),
-	}
-
-	azureAPI, err := utils.NewAzureAPI()
-	if err != nil {
-		l.Error(err, "failed to create Azure API object")
-	} else {
-		azureCtx := context.WithoutCancel(ctx)
-		if os.Getenv("IS_TEST") == "true" {
-			var cancel context.CancelFunc
-			azureCtx, cancel = context.WithDeadline(ctx, time.Now().Add(utils.TestClientTimeout))
-			defer cancel()
-		}
-
-		daClient := utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
-		raClient := utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
-		rdClient := utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
-		cgiClient := utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
-
-		// RBAC rules
-		rbacSvc := azure.NewRBACRuleService(daClient, raClient, rdClient)
-		for _, rule := range validator.Spec.RBACRules {
-			vrr, err := rbacSvc.ReconcileRBACRule(rule)
-			if err != nil {
-				l.Error(err, "failed to reconcile RBAC rule")
-			}
-			resp.AddResult(vrr, err)
-		}
-
-		// Community gallery image rules
-		cgiSvc := azure.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
-		for _, rule := range validator.Spec.CommunityGalleryImageRules {
-			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
-			if err != nil {
-				l.Error(err, "failed to reconcile community gallery image rule")
-			}
-			resp.AddResult(vrr, err)
-		}
-	}
+	// Validate the rules
+	resp := validate.Validate(validator.Spec, r.Log)
 
 	// Patch the ValidationResult with the latest ValidationRuleResults
 	if err := vres.SafeUpdate(ctx, p, vr, resp, r.Log); err != nil {
