@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,6 +32,11 @@ type AzureValidatorSpec struct {
 	// gallery.
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
 	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
+}
+
+// PluginCode returns the Azure validator's plugin code.
+func (s AzureValidatorSpec) PluginCode() string {
+	return constants.PluginCode
 }
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
@@ -137,6 +143,16 @@ type AzureValidator struct {
 
 	Spec   AzureValidatorSpec   `json:"spec,omitempty"`
 	Status AzureValidatorStatus `json:"status,omitempty"`
+}
+
+// PluginCode returns the Azure validator's plugin code.
+func (v AzureValidator) PluginCode() string {
+	return v.Spec.PluginCode()
+}
+
+// ResultCount returns the number of validation results expected for an AzureValidator.
+func (v AzureValidator) ResultCount() int {
+	return v.Spec.ResultCount()
 }
 
 //+kubebuilder:object:root=true
