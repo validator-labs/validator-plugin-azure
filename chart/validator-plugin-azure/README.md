@@ -37,7 +37,6 @@ The following table lists the configurable parameters of the Validator-plugin-az
 | `kubernetesClusterDomain` |  | `"cluster.local"` |
 | `metricsService.ports` |  | `[{"name": "https", "port": 8443, "protocol": "TCP", "targetPort": "https"}]` |
 | `metricsService.type` |  | `"ClusterIP"` |
-| `auth.secret` |  | `{}` |
 | `auth.serviceAccountName` |  | `""` |
 
 
