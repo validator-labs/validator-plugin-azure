@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	vres "github.com/validator-labs/validator/pkg/validationresult"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -159,7 +160,7 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 		}
 
 		vr := &vapi.ValidationResult{}
-		vrKey := types.NamespacedName{Name: validationResultName(val), Namespace: validatorNamespace}
+		vrKey := types.NamespacedName{Name: vres.Name(val), Namespace: validatorNamespace}
 
 		valEmptySecretName := val.DeepCopy()
 		valEmptySecretName.Name = fmt.Sprintf("%s-empty-secret-name", azureValidatorName)

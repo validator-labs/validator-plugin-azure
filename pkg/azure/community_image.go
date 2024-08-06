@@ -1,5 +1,5 @@
-// Package validators contains services that reconcile the validation rules supported by the plugin.
-package validators
+// Package azure contains services that reconcile the validation rules supported by the plugin.
+package azure
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/validator-labs/validator-plugin-azure/internal/constants"
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"

@@ -1,4 +1,4 @@
-package validators
+package azure
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"golang.org/x/exp/maps"
 
-	map_utils "github.com/validator-labs/validator-plugin-azure/internal/utils/maps"
+	map_utils "github.com/validator-labs/validator-plugin-azure/pkg/utils/maps"
 )
 
 const (

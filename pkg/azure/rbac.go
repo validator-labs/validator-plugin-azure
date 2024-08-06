@@ -1,4 +1,4 @@
-package validators
+package azure
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/validator-labs/validator-plugin-azure/internal/constants"
-	azerr "github.com/validator-labs/validator-plugin-azure/internal/utils/azureerrors"
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
+	azerr "github.com/validator-labs/validator-plugin-azure/pkg/utils/azureerrors"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"

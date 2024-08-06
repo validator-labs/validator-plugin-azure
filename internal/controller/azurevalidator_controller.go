@@ -20,14 +20,12 @@ package controller
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ktypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/cluster-api/util/patch"
@@ -35,12 +33,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
-	"github.com/validator-labs/validator-plugin-azure/internal/constants"
-	azure_utils "github.com/validator-labs/validator-plugin-azure/internal/utils/azure"
-	"github.com/validator-labs/validator-plugin-azure/internal/validators"
+	"github.com/validator-labs/validator-plugin-azure/pkg/validate"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
-	"github.com/validator-labs/validator/pkg/types"
-	"github.com/validator-labs/validator/pkg/util"
 	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
@@ -91,16 +85,16 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 	nn := ktypes.NamespacedName{
-		Name:      validationResultName(validator),
+		Name:      vres.Name(validator),
 		Namespace: req.Namespace,
 	}
 	if err := r.Get(ctx, nn, vr); err == nil {
-		vres.HandleExistingValidationResult(vr, r.Log)
+		vres.HandleExisting(vr, r.Log)
 	} else {
 		if !apierrs.IsNotFound(err) {
 			l.Error(err, "unexpected error getting ValidationResult")
 		}
-		if err := vres.HandleNewValidationResult(ctx, r.Client, p, buildValidationResult(validator), r.Log); err != nil {
+		if err := vres.HandleNew(ctx, r.Client, p, vres.Build(validator), r.Log); err != nil {
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{RequeueAfter: time.Millisecond}, nil
@@ -109,50 +103,11 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Always update the expected result count in case the validator's rules have changed
 	vr.Spec.ExpectedResults = validator.Spec.ResultCount()
 
-	resp := types.ValidationResponse{
-		ValidationRuleResults: make([]*types.ValidationRuleResult, 0, vr.Spec.ExpectedResults),
-		ValidationRuleErrors:  make([]error, 0, vr.Spec.ExpectedResults),
-	}
-
-	azureAPI, err := azure_utils.NewAzureAPI()
-	if err != nil {
-		l.Error(err, "failed to create Azure API object")
-	} else {
-		azureCtx := context.WithoutCancel(ctx)
-		if os.Getenv("IS_TEST") == "true" {
-			var cancel context.CancelFunc
-			azureCtx, cancel = context.WithDeadline(ctx, time.Now().Add(azure_utils.TestClientTimeout))
-			defer cancel()
-		}
-
-		daClient := azure_utils.NewDenyAssignmentsClient(azureCtx, azureAPI.DenyAssignmentsClient)
-		raClient := azure_utils.NewRoleAssignmentsClient(azureCtx, azureAPI.RoleAssignmentsClient)
-		rdClient := azure_utils.NewRoleDefinitionsClient(azureCtx, azureAPI.RoleDefinitionsClient)
-		cgiClient := azure_utils.NewCommunityGalleryImagesClient(azureCtx, azureAPI.CommunityGalleryImagesClientProducer)
-
-		// RBAC rules
-		rbacSvc := validators.NewRBACRuleService(daClient, raClient, rdClient)
-		for _, rule := range validator.Spec.RBACRules {
-			vrr, err := rbacSvc.ReconcileRBACRule(rule)
-			if err != nil {
-				l.Error(err, "failed to reconcile RBAC rule")
-			}
-			resp.AddResult(vrr, err)
-		}
-
-		// Community gallery image rules
-		cgiSvc := validators.NewCommunityGalleryImageRuleService(cgiClient, r.Log)
-		for _, rule := range validator.Spec.CommunityGalleryImageRules {
-			vrr, err := cgiSvc.ReconcileCommunityGalleryImageRule(rule)
-			if err != nil {
-				l.Error(err, "failed to reconcile community gallery image rule")
-			}
-			resp.AddResult(vrr, err)
-		}
-	}
+	// Validate the rules
+	resp := validate.Validate(validator.Spec, r.Log)
 
 	// Patch the ValidationResult with the latest ValidationRuleResults
-	if err := vres.SafeUpdateValidationResult(ctx, p, vr, resp, r.Log); err != nil {
+	if err := vres.SafeUpdate(ctx, p, vr, resp, r.Log); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -184,30 +139,4 @@ func (r *AzureValidatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.AzureValidator{}).
 		Complete(r)
-}
-
-func buildValidationResult(validator *v1alpha1.AzureValidator) *vapi.ValidationResult {
-	return &vapi.ValidationResult{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      validationResultName(validator),
-			Namespace: validator.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion: validator.APIVersion,
-					Kind:       validator.Kind,
-					Name:       validator.Name,
-					UID:        validator.UID,
-					Controller: util.Ptr(true),
-				},
-			},
-		},
-		Spec: vapi.ValidationResultSpec{
-			Plugin:          constants.PluginCode,
-			ExpectedResults: validator.Spec.ResultCount(),
-		},
-	}
-}
-
-func validationResultName(validator *v1alpha1.AzureValidator) string {
-	return fmt.Sprintf("validator-plugin-azure-%s", validator.Name)
 }
