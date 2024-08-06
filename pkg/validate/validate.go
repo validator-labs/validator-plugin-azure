@@ -8,15 +8,18 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	vconstants "github.com/validator-labs/validator/pkg/constants"
 	"github.com/validator-labs/validator/pkg/types"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	"github.com/validator-labs/validator-plugin-azure/pkg/azure"
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 	utils "github.com/validator-labs/validator-plugin-azure/pkg/utils/azure"
 )
 
 // Validate validates the AzureValidatorSpec and returns a ValidationResponse.
-func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Logger) (types.ValidationResponse, error) {
+func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Logger) types.ValidationResponse {
 	resp := types.ValidationResponse{
 		ValidationRuleResults: make([]*types.ValidationRuleResult, 0, spec.ResultCount()),
 		ValidationRuleErrors:  make([]error, 0, spec.ResultCount()),
@@ -24,7 +27,9 @@ func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Lo
 
 	azureAPI, err := utils.NewAzureAPI()
 	if err != nil {
-		return resp, fmt.Errorf("failed to create Azure API object: %w", err)
+		vrr := buildValidationResult()
+		resp.AddResult(vrr, fmt.Errorf("failed to create Azure API object: %w", err))
+		return resp
 	}
 
 	ctx = context.WithoutCancel(ctx)
@@ -59,5 +64,15 @@ func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Lo
 		resp.AddResult(vrr, err)
 	}
 
-	return resp, nil
+	return resp
+}
+
+func buildValidationResult() *types.ValidationRuleResult {
+	state := vapi.ValidationSucceeded
+	latestCondition := vapi.DefaultValidationCondition()
+	latestCondition.Message = "Initialization succeeded"
+	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vconstants.ValidationRulePrefix, constants.PluginCode)
+	latestCondition.ValidationType = constants.PluginCode
+
+	return &types.ValidationRuleResult{Condition: &latestCondition, State: &state}
 }
