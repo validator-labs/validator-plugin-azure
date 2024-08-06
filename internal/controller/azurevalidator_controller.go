@@ -104,7 +104,10 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	vr.Spec.ExpectedResults = validator.Spec.ResultCount()
 
 	// Validate the rules
-	resp := validate.Validate(validator.Spec, r.Log)
+	resp, err := validate.Validate(ctx, validator.Spec, r.Log)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	// Patch the ValidationResult with the latest ValidationRuleResults
 	if err := vres.SafeUpdate(ctx, p, vr, resp, r.Log); err != nil {

@@ -3,6 +3,7 @@ package validate
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 )
 
 // Validate validates the AzureValidatorSpec and returns a ValidationResponse.
-func Validate(spec v1alpha1.AzureValidatorSpec, log logr.Logger) types.ValidationResponse {
+func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Logger) (types.ValidationResponse, error) {
 	resp := types.ValidationResponse{
 		ValidationRuleResults: make([]*types.ValidationRuleResult, 0, spec.ResultCount()),
 		ValidationRuleErrors:  make([]error, 0, spec.ResultCount()),
@@ -23,11 +24,10 @@ func Validate(spec v1alpha1.AzureValidatorSpec, log logr.Logger) types.Validatio
 
 	azureAPI, err := utils.NewAzureAPI()
 	if err != nil {
-		log.Error(err, "failed to create Azure API object")
-		return resp
+		return resp, fmt.Errorf("failed to create Azure API object: %w", err)
 	}
 
-	ctx := context.Background()
+	ctx = context.WithoutCancel(ctx)
 	if os.Getenv("IS_TEST") == "true" {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithDeadline(ctx, time.Now().Add(utils.TestClientTimeout))
@@ -59,5 +59,5 @@ func Validate(spec v1alpha1.AzureValidatorSpec, log logr.Logger) types.Validatio
 		resp.AddResult(vrr, err)
 	}
 
-	return resp
+	return resp, nil
 }
