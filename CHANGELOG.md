@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.15](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.14...v0.0.15) (2024-08-06)
+
+
+### Other
+
+* add hook to install validator crds in devspace ([#221](https://github.com/validator-labs/validator-plugin-azure/issues/221)) ([8982a0d](https://github.com/validator-labs/validator-plugin-azure/commit/8982a0d04b854dec657cd4a5bf70e03f9a0a88ee))
+* remove unused helm value ([#223](https://github.com/validator-labs/validator-plugin-azure/issues/223)) ([1651b8e](https://github.com/validator-labs/validator-plugin-azure/commit/1651b8e66c0efacc191e24b56f0cf266c5d84c4d))
+
+
+### Docs
+
+* principal ID and rules in readme ([#222](https://github.com/validator-labs/validator-plugin-azure/issues/222)) ([db29a62](https://github.com/validator-labs/validator-plugin-azure/commit/db29a62cbee92959d458a48b7ed08caee3d4ead7))
+
+
+### Dependency Updates
+
+* **deps:** update module github.com/onsi/gomega to v1.34.1 ([#217](https://github.com/validator-labs/validator-plugin-azure/issues/217)) ([4c5d239](https://github.com/validator-labs/validator-plugin-azure/commit/4c5d239ca2d13cf78e5f1dc957e63bac696602f6))
+* **deps:** update module github.com/validator-labs/validator to v0.0.51 ([#216](https://github.com/validator-labs/validator-plugin-azure/issues/216)) ([be40010](https://github.com/validator-labs/validator-plugin-azure/commit/be40010628da7df6e593c69b132effeccb95d856))
+* **deps:** update module github.com/validator-labs/validator to v0.1.0 ([#220](https://github.com/validator-labs/validator-plugin-azure/issues/220)) ([57205c6](https://github.com/validator-labs/validator-plugin-azure/commit/57205c6620ad218c0972ada0353b4c537e0bbc97))
+
+
+### Refactoring
+
+* return error from validate, accept context ([#226](https://github.com/validator-labs/validator-plugin-azure/issues/226)) ([58989c0](https://github.com/validator-labs/validator-plugin-azure/commit/58989c04eb1e91d27d4d4212fb0e6e6345de7176))
+* support direct rule evaluation ([#225](https://github.com/validator-labs/validator-plugin-azure/issues/225)) ([bec4a0b](https://github.com/validator-labs/validator-plugin-azure/commit/bec4a0b50fbc15ad5af1e5720fda1b115355d476))
+
 ## [0.0.14](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.13...v0.0.14) (2024-07-26)
 
 
