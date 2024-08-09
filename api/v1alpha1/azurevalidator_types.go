@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"reflect"
+
 	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -143,6 +145,11 @@ type AzureValidator struct {
 
 	Spec   AzureValidatorSpec   `json:"spec,omitempty"`
 	Status AzureValidatorStatus `json:"status,omitempty"`
+}
+
+// GetKind returns the Azure validator's kind.
+func (v AzureValidator) GetKind() string {
+	return reflect.TypeOf(v).Name()
 }
 
 // PluginCode returns the Azure validator's plugin code.
