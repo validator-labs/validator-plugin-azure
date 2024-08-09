@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.16](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.15...v0.0.16) (2024-08-09)
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 0cdaa3a ([#232](https://github.com/validator-labs/validator-plugin-azure/issues/232)) ([5a6a019](https://github.com/validator-labs/validator-plugin-azure/commit/5a6a019ecb30fe9c3f9aa15a57e038b67647e300))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/azcore to v1.14.0 ([#231](https://github.com/validator-labs/validator-plugin-azure/issues/231)) ([862db62](https://github.com/validator-labs/validator-plugin-azure/commit/862db625b587d5461ab96abaede275e9ecba5e8a))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.20.0 ([#230](https://github.com/validator-labs/validator-plugin-azure/issues/230)) ([b299bf3](https://github.com/validator-labs/validator-plugin-azure/commit/b299bf3f5e2eda1c3c4ab565a7d1d4eb7cb3be21))
+* **deps:** update module github.com/validator-labs/validator to v0.1.2 ([#224](https://github.com/validator-labs/validator-plugin-azure/issues/224)) ([b4687e5](https://github.com/validator-labs/validator-plugin-azure/commit/b4687e5f1cec753c219cfd8201d80b9a159cbadf))
+
+
+### Refactoring
+
+* do not return an error from Validate ([#228](https://github.com/validator-labs/validator-plugin-azure/issues/228)) ([ba947e3](https://github.com/validator-labs/validator-plugin-azure/commit/ba947e3262ec34a761d7e5b2be1894779c380fe2))
+
 ## [0.0.15](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.14...v0.0.15) (2024-08-06)
 
 
