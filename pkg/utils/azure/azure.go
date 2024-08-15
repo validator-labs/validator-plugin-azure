@@ -11,6 +11,7 @@ import (
 	"time"
 
 	armpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
@@ -40,10 +41,11 @@ func NewAzureAPI() (*API, error) {
 		return nil, fmt.Errorf("failed to prepare default Azure credential: %w", err)
 	}
 
-	// Minimize retries/timeouts for tests
+	// Minimize retries/timeouts for tests and ensure the correct Azure cloud is connected to.
 	opts := &armpolicy.ClientOptions{
 		ClientOptions: policy.ClientOptions{
 			Retry: policy.RetryOptions{},
+			Cloud: azureCloudFromEnv(),
 		},
 	}
 	if os.Getenv("IS_TEST") == "true" {
@@ -261,5 +263,19 @@ func (c *CommunityGalleryImagesClient) GetImagesForGallery(location, name, subsc
 		return images, err
 	case <-c.ctx.Done():
 		return images, fmt.Errorf("context cancelled")
+	}
+}
+
+// azureCloudFromEnv returns the Azure cloud to use based on the AZURE_ENVIRONMENT environment
+// variable.
+func azureCloudFromEnv() cloud.Configuration {
+	switch os.Getenv("AZURE_ENVIRONMENT") {
+	case "AzureUSGovernment":
+		return cloud.AzureGovernment
+	case "AzureChinaCloud":
+		return cloud.AzureChina
+	default:
+		// Includes the env var being unset and it being set to "AzureCloud" or any other value.
+		return cloud.AzurePublic
 	}
 }
