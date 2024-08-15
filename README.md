@@ -81,6 +81,16 @@ Create a custom role with the permission `Microsoft.Compute/locations/communityG
 
 If you prefer to use a built-in role, the [Virtual Machine Contributor role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor) includes the necessary permissions to read community gallery images. However, be aware that this role also grants permissions to modify and delete virtual machines and other compute resources. If you only need read-only access, consider creating a custom role as described above.
 
+## Connecting to Azure Government or Azure in China
+
+By default, the plugin connects the Azure SDK to the public Azure cloud. Override `azureEnvironment` to change which cloud is connected to, using the following values.
+
+|`azureEnvironment` value|Cloud|
+|------------------------|-----|
+|AzureCloud|public Azure cloud|
+|AzureUSGovernment|[Azure Government](https://learn.microsoft.com/en-us/azure/azure-government/documentation-government-welcome)|
+|AzureChinaCloud|[Azure in China](https://learn.microsoft.com/en-us/azure/china/overview-operations)|
+
 ## Installation
 
 The Azure validator plugin is meant to be [installed by validator](https://github.com/validator-labs/validator/tree/gh_pages#installation) (via a ValidatorConfig), but it can also be installed directly as follows:
