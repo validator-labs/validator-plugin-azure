@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.17](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.16...v0.0.17) (2024-08-16)
+
+
+### Features
+
+* add support for connecting to Azure Government and Azure in China ([#245](https://github.com/validator-labs/validator-plugin-azure/issues/245)) ([965bbac](https://github.com/validator-labs/validator-plugin-azure/commit/965bbacf9095448998d5e94ff7a2e82c7a507e2e))
+
+
+### Dependency Updates
+
+* **deps:** update golang docker tag to v1.23 ([#241](https://github.com/validator-labs/validator-plugin-azure/issues/241)) ([f9eb93c](https://github.com/validator-labs/validator-plugin-azure/commit/f9eb93cd52411f585f72c36d62fc1829f27825da))
+* **deps:** update module github.com/validator-labs/validator to v0.1.5 ([#238](https://github.com/validator-labs/validator-plugin-azure/issues/238)) ([617869d](https://github.com/validator-labs/validator-plugin-azure/commit/617869dcf167ca7e93b5c1a5107b5881e451e9e7))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.19.0 ([#244](https://github.com/validator-labs/validator-plugin-azure/issues/244)) ([cb04981](https://github.com/validator-labs/validator-plugin-azure/commit/cb0498179caf96fb59a16753a63be2641c1e7e2f))
+
 ## [0.0.16](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.15...v0.0.16) (2024-08-12)
 
 
