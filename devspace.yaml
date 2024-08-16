@@ -64,3 +64,7 @@ dev:
         - '!/go.sum'
         - '!/main.go'
         - 'Makefile'
+    # Uncomment to test the plugin connecting to Azure Government instead of Azure public cloud.
+    # env:
+    # - name: AZURE_ENVIRONMENT
+    #   value: AzureUSGovernment

@@ -62,3 +62,6 @@ auth:
   # Override the service account used by Azure validator (optional, could be used for WorkloadIdentityCredentials on AKS)
   # WARNING: the chosen service account must include all RBAC privileges found in templates/manager-rbac.yaml
   serviceAccountName: ""
+# Optionally specify the Azure environment to use. Defaults to "AzureCloud" for public Azure cloud.
+# Other acceptable values are "AzureUSGovernment" and "AzureChinaCloud".
+azureEnvironment: "AzureCloud"
