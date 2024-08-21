@@ -19,8 +19,11 @@ package v1alpha1
 import (
 	"reflect"
 
-	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/validator-labs/validator/pkg/validationrule"
+
+	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
 )
 
 // AzureValidatorSpec defines the desired state of AzureValidator
@@ -49,9 +52,11 @@ func (s AzureValidatorSpec) ResultCount() int {
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
 // assignments deny the permissions.
 type RBACRule struct {
+	validationrule.ManuallyNamed `json:",inline"`
+
 	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
 	// each other.
-	Name string `json:"name" yaml:"name"`
+	RuleName string `json:"name" yaml:"name"`
 	// The permissions that the principal must have. If the principal has permissions less than
 	// this, validation will fail. If the principal has permissions equal to or more than this
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
@@ -67,6 +72,18 @@ type RBACRule struct {
 	// application page, and copying the "object ID". This ID is different from the tenant ID,
 	// client ID, and object ID of the application registration.
 	PrincipalID string `json:"principalId" yaml:"principalId"`
+}
+
+var _ validationrule.Interface = (*RBACRule)(nil)
+
+// Name returns the name of the RBAC rule.
+func (r RBACRule) Name() string {
+	return r.RuleName
+}
+
+// SetName sets the name of the RBAC rule.
+func (r *RBACRule) SetName(name string) {
+	r.RuleName = name
 }
 
 // CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are

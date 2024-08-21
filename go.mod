@@ -2,6 +2,8 @@ module github.com/validator-labs/validator-plugin-azure
 
 go 1.22.5
 
+replace github.com/validator-labs/validator => /home/matt/code/github.com/validator-labs/validator
+
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
