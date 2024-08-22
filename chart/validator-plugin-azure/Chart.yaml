@@ -4,5 +4,5 @@ description: >-
   Perform various Azure validations (Principal RBAC, AAD Application API
   permissions, and Service Quotas)
 type: application
-version: 0.0.17
+version: 0.0.18
 appVersion: 0.0.2
