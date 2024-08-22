@@ -2,8 +2,6 @@ module github.com/validator-labs/validator-plugin-azure
 
 go 1.22.5
 
-replace github.com/validator-labs/validator => /home/matt/code/github.com/validator-labs/validator
-
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
@@ -12,7 +10,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.20.1
 	github.com/onsi/gomega v1.34.1
-	github.com/validator-labs/validator v0.1.6
+	github.com/validator-labs/validator v0.1.7
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
@@ -86,3 +84,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+// replace github.com/validator-labs/validator => ../validator

@@ -52,7 +52,7 @@ func (s AzureValidatorSpec) ResultCount() int {
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
 // assignments deny the permissions.
 type RBACRule struct {
-	validationrule.ManuallyNamed `json:",inline"`
+	validationrule.ManuallyNamed `json:"-"`
 
 	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
 	// each other.
@@ -89,10 +89,12 @@ func (r *RBACRule) SetName(name string) {
 // CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
 // accessible by a particular subscription.
 type CommunityGalleryImageRule struct {
-	// Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
-	// overwrite each other.
+	validationrule.ManuallyNamed `json:"-"`
+
+	// RuleName is a unique identifier for the rule in the validator. Used to ensure conditions do
+	// not overwrite each other.
 	// +kubebuilder:validation:MaxLength=200
-	Name string `json:"name" yaml:"name"`
+	RuleName string `json:"name" yaml:"name"`
 	// Gallery is the community gallery.
 	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
 	// Images is a list of image names.
@@ -101,6 +103,18 @@ type CommunityGalleryImageRule struct {
 	Images []string `json:"images" yaml:"images"`
 	// SubscriptionID is the ID of the subscription.
 	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
+}
+
+var _ validationrule.Interface = (*CommunityGalleryImageRule)(nil)
+
+// Name returns the name of the community gallery image rule.
+func (r CommunityGalleryImageRule) Name() string {
+	return r.RuleName
+}
+
+// SetName sets the name of the community gallery image rule.
+func (r *CommunityGalleryImageRule) SetName(name string) {
+	r.RuleName = name
 }
 
 // CommunityGallery is a community gallery in a particular location.

@@ -89,8 +89,8 @@ spec:
                       type: array
                     name:
                       description: |-
-                        Name is a unique identifier for the rule in the validator. Used to ensure conditions do not
-                        overwrite each other.
+                        RuleName is a unique identifier for the rule in the validator. Used to ensure conditions do
+                        not overwrite each other.
                       maxLength: 200
                       type: string
                     subscriptionID:
