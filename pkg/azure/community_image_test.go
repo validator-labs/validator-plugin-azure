@@ -36,7 +36,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 		{
 			name: "Pass (required images present in community gallery - 1 image)",
 			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Gallery: v1alpha1.CommunityGallery{
 					Location: "location1",
 					Name:     "gallery1",
@@ -67,7 +67,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 		{
 			name: "Pass (required images present in community gallery - 2 images)",
 			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Gallery: v1alpha1.CommunityGallery{
 					Location: "location1",
 					Name:     "gallery1",
@@ -104,7 +104,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 		{
 			name: "Pass (does not stop validating when image name in API response is nil)",
 			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Gallery: v1alpha1.CommunityGallery{
 					Location: "location1",
 					Name:     "gallery1",
@@ -140,7 +140,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 		{
 			name: "Fail (required image is not present in community gallery)",
 			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Gallery: v1alpha1.CommunityGallery{
 					Location: "location1",
 					Name:     "gallery1",
@@ -173,7 +173,7 @@ func TestCommunityGalleryImageRuleService_ReconcileCommunityGalleryImageRule(t *
 		{
 			name: "Fail (gallery does not exist or is not accessible using subscription) - validation result remains passing, code returned to interprets error and changes result",
 			rule: v1alpha1.CommunityGalleryImageRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Gallery: v1alpha1.CommunityGallery{
 					Location: "location1",
 					Name:     "gallery1",

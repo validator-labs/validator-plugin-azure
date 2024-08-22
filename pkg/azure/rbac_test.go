@@ -71,7 +71,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Pass (required actions and data actions provided by role assignments and not denied by deny assignments)",
 			rule: v1alpha1.RBACRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []v1alpha1.ActionStr{"a"},
@@ -128,7 +128,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Fail (required actions and data actions provided by role assignments but denied by deny assignments)",
 			rule: v1alpha1.RBACRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []v1alpha1.ActionStr{"a"},
@@ -202,7 +202,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 		{
 			name: "Fail (required actions and data actions not provided by role assignments)",
 			rule: v1alpha1.RBACRule{
-				Name: "rule-1",
+				RuleName: "rule-1",
 				Permissions: []v1alpha1.PermissionSet{
 					{
 						Actions:     []v1alpha1.ActionStr{"a"},
