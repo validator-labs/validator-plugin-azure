@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.18](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.17...v0.0.18) (2024-08-22)
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 778ce7b ([#251](https://github.com/validator-labs/validator-plugin-azure/issues/251)) ([89231b0](https://github.com/validator-labs/validator-plugin-azure/commit/89231b0055a6cb98269e8ea5a834ed151bef6db8))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6 to v6.1.0 ([#248](https://github.com/validator-labs/validator-plugin-azure/issues/248)) ([063565e](https://github.com/validator-labs/validator-plugin-azure/commit/063565e99fd71d2810b1f060aa5db34924d17957))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.20.1 ([#249](https://github.com/validator-labs/validator-plugin-azure/issues/249)) ([c98746c](https://github.com/validator-labs/validator-plugin-azure/commit/c98746ca15463d9ae4374406efbbad9247bc049d))
+* **deps:** update module github.com/validator-labs/validator to v0.1.6 ([#246](https://github.com/validator-labs/validator-plugin-azure/issues/246)) ([9d518e3](https://github.com/validator-labs/validator-plugin-azure/commit/9d518e33184c8c6b2a52f6b85996b7dc984b2e62))
+
+
+### Refactoring
+
+* make each rule implement `validationrule.Interface` ([#250](https://github.com/validator-labs/validator-plugin-azure/issues/250)) ([69deca7](https://github.com/validator-labs/validator-plugin-azure/commit/69deca77c30700365141ff64fe2b4c2a4e211ff1))
+
 ## [0.0.17](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.16...v0.0.17) (2024-08-16)
 
 
