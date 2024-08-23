@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.19](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.18...v0.0.19) (2024-08-23)
+
+
+### Bug Fixes
+
+* embedding structs related to `validationrule.Interface` ([#256](https://github.com/validator-labs/validator-plugin-azure/issues/256)) ([96c4be8](https://github.com/validator-labs/validator-plugin-azure/commit/96c4be8d62243c135eb4337c34c2e6b1f6e482e0))
+
+
+### Other
+
+* assert that PluginSpec is implemented ([#254](https://github.com/validator-labs/validator-plugin-azure/issues/254)) ([a28b5fe](https://github.com/validator-labs/validator-plugin-azure/commit/a28b5fe13b46c5e639538be187ffd6d256458112))
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 9b4947d ([#253](https://github.com/validator-labs/validator-plugin-azure/issues/253)) ([36a7298](https://github.com/validator-labs/validator-plugin-azure/commit/36a7298904f897442c71d2b02f04f440bfd2b750))
+
 ## [0.0.18](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.17...v0.0.18) (2024-08-22)
 
 
