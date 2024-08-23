@@ -21,6 +21,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/validator-labs/validator/pkg/plugins"
 	"github.com/validator-labs/validator/pkg/validationrule"
 
 	"github.com/validator-labs/validator-plugin-azure/pkg/constants"
@@ -38,6 +39,8 @@ type AzureValidatorSpec struct {
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
 	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
 }
+
+var _ plugins.PluginSpec = (*AzureValidatorSpec)(nil)
 
 // PluginCode returns the Azure validator's plugin code.
 func (s AzureValidatorSpec) PluginCode() string {
