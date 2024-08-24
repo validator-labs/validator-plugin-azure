@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.20](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.19...v0.0.20) (2024-08-24)
+
+
+### Bug Fixes
+
+* YAML rendering of structs embedded in rules ([#260](https://github.com/validator-labs/validator-plugin-azure/issues/260)) ([71e6931](https://github.com/validator-labs/validator-plugin-azure/commit/71e693104ee4c25385db89496b30cdc2c2a6cf07))
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 9b4947d ([#258](https://github.com/validator-labs/validator-plugin-azure/issues/258)) ([06cd79d](https://github.com/validator-labs/validator-plugin-azure/commit/06cd79d6a01738c154b5be17129119470c803db8))
+
 ## [0.0.19](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.18...v0.0.19) (2024-08-23)
 
 
