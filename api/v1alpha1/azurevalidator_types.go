@@ -55,7 +55,7 @@ func (s AzureValidatorSpec) ResultCount() int {
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
 // assignments deny the permissions.
 type RBACRule struct {
-	validationrule.ManuallyNamed `json:",inline"`
+	validationrule.ManuallyNamed `json:",inline" yaml:",omitempty"`
 
 	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
 	// each other.
@@ -92,7 +92,7 @@ func (r *RBACRule) SetName(name string) {
 // CommunityGalleryImageRule verifies that one or more images in a community gallery exist and are
 // accessible by a particular subscription.
 type CommunityGalleryImageRule struct {
-	validationrule.ManuallyNamed `json:",inline"`
+	validationrule.ManuallyNamed `json:",inline" yaml:",omitempty"`
 
 	// RuleName is a unique identifier for the rule in the validator. Used to ensure conditions do
 	// not overwrite each other.
