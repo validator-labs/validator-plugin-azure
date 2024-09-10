@@ -36,8 +36,15 @@ type AzureValidatorSpec struct {
 	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
 	// Rules for validating that images exist in an Azure Compute Gallery published as a community
 	// gallery.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="CommunityGalleryImageRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
-	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
+	// Rules for validating that current usage falls within current quota limits, including a
+	// a buffer.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="QuotaRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
+	QuotaRules []QuotaRule `json:"quotaRules,omitempty" yaml:"quotaRules,omitempty"`
+	Auth       AzureAuth   `json:"auth" yaml:"auth"`
 }
 
 var _ plugins.PluginSpec = (*AzureValidatorSpec)(nil)

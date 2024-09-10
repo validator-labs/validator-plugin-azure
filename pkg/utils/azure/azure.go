@@ -30,6 +30,8 @@ type API struct {
 	// Subscription ID is needed per API call for this client, so the client can't be created until
 	// right before it's used while reconciling a rule.
 	CommunityGalleryImagesClientProducer func(string) (*armcompute.CommunityGalleryImagesClient, error)
+	QuotaLimitsClient                    *armquota.Client
+	UsagesClient                         *armquota.UsagesClient
 }
 
 // NewAzureAPI creates an AzureAPI.
@@ -83,11 +85,22 @@ func NewAzureAPI() (*API, error) {
 		return armcompute.NewCommunityGalleryImagesClient(subscriptionID, cred, opts)
 	}
 
+	quotaLimitsClient, err := armquota.NewClient(cred, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Azure quota limits client: %w", err)
+	}
+	usagesClient, err := armquota.NewUsagesClient(cred, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Azure usages client: %w", err)
+	}
+
 	return &API{
 		DenyAssignmentsClient:                daClient,
 		RoleAssignmentsClient:                raClient,
 		RoleDefinitionsClient:                rdClient,
 		CommunityGalleryImagesClientProducer: cgiClientProducer,
+		QuotaLimitsClient:                    quotaLimitsClient,
+		UsagesClient:                         usagesClient,
 	}, err
 }
 
