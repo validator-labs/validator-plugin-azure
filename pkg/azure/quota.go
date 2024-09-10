@@ -107,7 +107,7 @@ func (s *QuotaRuleService) processResourceSet(set v1alpha1.ResourceSet, failures
 
 		quota, ok := quotaMap[name]
 		if !ok {
-			*failures = append(*failures, fmt.Sprintf("Quota for resource '%s' not found in API response from Azure. Verify that a valid scope was used for this resource.", name))
+			*failures = append(*failures, fmt.Sprintf("Quota for resource '%s' not found. Verify that a valid scope was used for this resource.", name))
 			continue
 		}
 		if quota.Properties == nil || quota.Properties.Limit == nil {
@@ -129,8 +129,11 @@ func (s *QuotaRuleService) processResourceSet(set v1alpha1.ResourceSet, failures
 
 		usage, ok := usageMap[name]
 		if !ok {
-			*failures = append(*failures, fmt.Sprintf("Usage for resource '%s' not found.", name))
-			continue
+			// If a user specifies a quota that isn't found, that's a user error (they likely used
+			// the wrong scope), but if a usage isn't found for that quota, that's likely an issue
+			// on Azure's side, because the Azure usages API is supposed to return a usage for every
+			// quota.
+			return fmt.Errorf("usage for resource %s not found", name)
 		}
 		if usage.Properties == nil || usage.Properties.Usages == nil || usage.Properties.Usages.Value == nil {
 			return fmt.Errorf("properties in usages API response were nil")
