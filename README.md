@@ -48,6 +48,42 @@ This rule verifies that images in [community image galleries](https://learn.micr
 
 See [azurevalidator-communitygalleryimages-one-image.yaml](config/samples/azurevalidator-communitygalleryimages-one-image.yaml) for an example rule spec.
 
+#### Quota rule
+
+This rule verifies that quota limits are set to a high enough level that current usage plus a buffer you configure isn't higher than the quota. This helps you ensure quotas stay high enough for your expected usage.
+
+See [azurevalidator-quota-one-resource-set-one-resource.yaml](config/samples/azurevalidator-quota-one-resource-set-one-resource.yaml) for an example rule spec.
+
+This is powered by Azure's [Quota Service API](https://learn.microsoft.com/en-us/rest/api/quota). The API uses scope and resource name to specify the quota limit or and usage. Scopes include the resource provider of the quota limit or usage. Each resource provider supports certain resource names. Putting this all together, this means an example of a correct scope for the `availabilitySets` resource is: `subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/{azure location}`. Azure's website has more detailed [examples](https://learn.microsoft.com/en-us/rest/api/quota/#quota-api-put-call-and-scope) of which resource providers are available and which scopes are valid for them.
+
+At time of writing, the website does not contain a complete list of which resources are available for each resource provider. To determine this, you must make your own [Quota - List](https://learn.microsoft.com/en-us/rest/api/quota/quota/list?view=rest-quota-2023-02-01&tabs=HTTP) API call to each resource provider to get a list of which quota limits exist in your account. Each quota limit will contain a resource name you can use when defining quota rules. See [Quotas_listQuotaLimitsForCompute](https://learn.microsoft.com/en-us/rest/api/quota/quota/list?view=rest-quota-2023-02-01&tabs=HTTP#quotas_listquotalimitsforcompute) for an example request and response on Azure's website for this endpoint.
+
+Example quota limit from this API call:
+
+```json
+{
+  "id": "/subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/westus/providers/Microsoft.Quota/quotas/availabilitySets",
+  "name": "availabilitySets",
+  "properties": {
+    "isQuotaApplicable": false,
+    "limit": {
+      "limitObjectType": "LimitValue",
+      "limitType": "Independent",
+      "value": 2500
+    },
+    "name": {
+      "localizedValue": "Availability Sets",
+      "value": "availabilitySets"
+    },
+    "properties": {},
+    "unit": "Count"
+  },
+  "type": "Microsoft.Quota/Quotas"
+},
+```
+
+The resource name is `availabilitySets` and the scope is `/subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/westus`. You would use these values when defining a quota rule.
+
 ## Authn & Authz
 
 Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
