@@ -40,7 +40,7 @@ func NewCommunityGalleryImageRuleService(api communityGalleryImageAPI, log logr.
 // ReconcileCommunityGalleryImageRule reconciles a community gallery image rule.
 func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(rule v1alpha1.CommunityGalleryImageRule) (*vapitypes.ValidationRuleResult, error) {
 
-	log := s.log.WithValues("rule", rule.Name(), "image", rule.Images, "gallery", rule.Gallery.Name, "location", rule.Gallery.Location, "subscription", rule.SubscriptionID)
+	log := s.log.WithValues("rule", rule.Name(), "images", rule.Images, "gallery", rule.Gallery.Name, "location", rule.Gallery.Location, "subscription", rule.SubscriptionID)
 
 	// Build the default ValidationResult for this rule.
 	state := vapi.ValidationSucceeded

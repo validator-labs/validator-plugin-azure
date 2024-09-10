@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/quota/armquota"
 )
 
 // TestClientTimeout is the timeout used for Azure clients during tests.
@@ -263,6 +264,82 @@ func (c *CommunityGalleryImagesClient) GetImagesForGallery(location, name, subsc
 		return images, err
 	case <-c.ctx.Done():
 		return images, fmt.Errorf("context cancelled")
+	}
+}
+
+// QuotasClient is a facade over the Azure quotas client role definitions client.
+// Exists to make our code easier to test (it handles paging).
+type QuotasClient struct {
+	ctx          context.Context
+	quotasClient *armquota.Client
+	usagesClient *armquota.UsagesClient
+}
+
+// NewQuotasClient creates a new QuotasClient (our facade client) from a client from the Azure SDK.
+func NewQuotasClient(ctx context.Context, azQuotasClient *armquota.Client, azUsagesCient *armquota.UsagesClient) *QuotasClient {
+	return &QuotasClient{
+		ctx:          ctx,
+		quotasClient: azQuotasClient,
+		usagesClient: azUsagesCient,
+	}
+}
+
+// GetQuotasForScope gets the quota limits for a particular scope. Each quota limit describes a
+// resource name and a currently set quota.
+func (c *QuotasClient) GetQuotasForScope(scope string) ([]*armquota.CurrentQuotaLimitBase, error) {
+	var quotaLimits []*armquota.CurrentQuotaLimitBase
+	pager := c.quotasClient.NewListPager(scope, nil)
+
+	ch := make(chan error)
+	go func() {
+		defer close(ch)
+		for pager.More() {
+			nextResult, err := pager.NextPage(c.ctx)
+			if err != nil {
+				ch <- fmt.Errorf("failed to get next page of results: %w", err)
+			}
+			if nextResult.Value != nil {
+				quotaLimits = append(quotaLimits, nextResult.Value...)
+			}
+		}
+		ch <- nil
+	}()
+
+	select {
+	case err := <-ch:
+		return quotaLimits, err
+	case <-c.ctx.Done():
+		return quotaLimits, fmt.Errorf("context cancelled")
+	}
+}
+
+// GetUsagesForScope gets the quota usages for a particular scope. Each quota usage describes a
+// resource name and the currently used amount. There is usually a 1-to-1 pairing of quota limit and
+// quota usage that can be retrieved.
+func (c *QuotasClient) GetUsagesForScope(scope string) ([]*armquota.CurrentUsagesBase, error) {
+	var quotaUsages []*armquota.CurrentUsagesBase
+	pager := c.usagesClient.NewListPager(scope, nil)
+
+	ch := make(chan error)
+	go func() {
+		defer close(ch)
+		for pager.More() {
+			nextResult, err := pager.NextPage(c.ctx)
+			if err != nil {
+				ch <- fmt.Errorf("failed to get next page of results: %w", err)
+			}
+			if nextResult.Value != nil {
+				quotaUsages = append(quotaUsages, nextResult.Value...)
+			}
+		}
+		ch <- nil
+	}()
+
+	select {
+	case err := <-ch:
+		return quotaUsages, err
+	case <-c.ctx.Done():
+		return quotaUsages, fmt.Errorf("context cancelled")
 	}
 }
 

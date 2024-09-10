@@ -10,4 +10,7 @@ const (
 
 	// ValidationTypeCommunityGalleryImages is the validation type for community gallery image rules.
 	ValidationTypeCommunityGalleryImages string = "azure-community-gallery-image"
+
+	// ValidationTypeQuota is the validation type for quota rules.
+	ValidationTypeQuota string = "azure-quota"
 )

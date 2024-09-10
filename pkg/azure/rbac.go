@@ -16,6 +16,14 @@ import (
 	"github.com/validator-labs/validator/pkg/util"
 )
 
+var (
+	rbacRulePermissions = []string{
+		"Microsoft.Authorization/roleAssignments/read",
+		"Microsoft.Authorization/denyAssignments/read",
+		"Microsoft.Authorization/roleDefinitions/read",
+	}
+)
+
 // denyAssignmentAPI contains methods that allow getting all deny assignments for a scope and
 // optional filter.
 type denyAssignmentAPI interface {
@@ -89,7 +97,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	daFilter := util.Ptr(fmt.Sprintf("principalId eq '%s'", principalID))
 	denyAssignments, err := s.daAPI.GetDenyAssignmentsForScope(set.Scope, daFilter)
 	if err != nil {
-		return fmt.Errorf("failed to get deny assignments: %w", azerr.AsAugmented(err))
+		return fmt.Errorf("failed to get deny assignments: %w", azerr.AsAugmented(err, rbacRulePermissions))
 	}
 	// Note that Azure's Go SDK for their API has a bug where it doesn't escape the filter string
 	// for the role assignments call we do here, so we manually escape it ourselves.
@@ -97,7 +105,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 	raFilter := util.Ptr(url.QueryEscape(fmt.Sprintf("principalId eq '%s'", principalID)))
 	roleAssignments, err := s.raAPI.GetRoleAssignmentsForScope(set.Scope, raFilter)
 	if err != nil {
-		return fmt.Errorf("failed to get role assignments: %w", azerr.AsAugmented(err))
+		return fmt.Errorf("failed to get role assignments: %w", azerr.AsAugmented(err, rbacRulePermissions))
 	}
 
 	// For each role assignment found, get its role definition, because that's what we actually need
@@ -115,7 +123,7 @@ func (s *RBACRuleService) processPermissionSet(set v1alpha1.PermissionSet, princ
 		// ID", but in the role definitions API, it is called "role ID".
 		roleDefinition, err := s.rdAPI.GetByID(rdID)
 		if err != nil {
-			return fmt.Errorf("failed to get role definition using role definition ID of role assignment: %w", azerr.AsAugmented(err))
+			return fmt.Errorf("failed to get role definition using role definition ID of role assignment: %w", azerr.AsAugmented(err, rbacRulePermissions))
 		}
 		roleDefinitions = append(roleDefinitions, roleDefinition)
 	}
