@@ -56,7 +56,7 @@ func (s AzureValidatorSpec) PluginCode() string {
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules) + len(s.QuotaRules)
 }
 
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny

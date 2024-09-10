@@ -65,21 +65,32 @@ Authentication details for the Azure validator controller are provided within ea
 
 For validation to succeed, certain Azure RBAC permissions must be assigned to the principal used via role assignments. The minimal required [operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) that must be listed under `Actions` in the role assignments, by rule, are as follows.
 
+We recommend creating custom roles with the permissions noted here and assigning them instead of assigning built-in roles, but built-in roles that can be used too are listed here under each rule type.
+
 #### RBAC rule
 
 Create a custom role with the following permissions:
 
-    Microsoft.Authorization/denyAssignments/read
-    Microsoft.Authorization/roleAssignments/read
-    Microsoft.Authorization/roleDefinitions/read
+* Microsoft.Authorization/denyAssignments/read
+* Microsoft.Authorization/roleAssignments/read
+* Microsoft.Authorization/roleDefinitions/read
 
-Alternatively, you can use the built-in [Managed Identity Operator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator), which includes these permissions.
+Alternative built-in role: [Managed Identity Operator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator)
 
 #### Community gallery image rule
 
 Create a custom role with the permission `Microsoft.Compute/locations/communityGalleries/images/read`.
 
-If you prefer to use a built-in role, the [Virtual Machine Contributor role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor) includes the necessary permissions to read community gallery images. However, be aware that this role also grants permissions to modify and delete virtual machines and other compute resources. If you only need read-only access, consider creating a custom role as described above.
+Alternative built-in role: [Virtual Machine Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor)
+
+#### Quota rule
+
+Create a custom role with the following permissions:
+
+* Microsoft.Quota/quotas/read
+* Microsoft.Quota/usages/read
+
+Alternative built-in role: [Quota Request Operator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/management-and-governance#quota-request-operator)
 
 ## Connecting to Azure Government or Azure in China
 
