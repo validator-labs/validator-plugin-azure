@@ -131,10 +131,12 @@ type QuotaRule struct {
 
 var _ validationrule.Interface = (*QuotaRule)(nil)
 
+// Name returns the name of the quota rule.
 func (r *QuotaRule) Name() string {
 	return r.RuleName
 }
 
+// SetName sets the name of the quota rule.
 func (r *QuotaRule) SetName(name string) {
 	r.RuleName = name
 }

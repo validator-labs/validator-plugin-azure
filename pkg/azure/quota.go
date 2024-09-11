@@ -40,6 +40,7 @@ func NewQuotaRuleService(api quotasAndUsagesAPI) *QuotaRuleService {
 	}
 }
 
+// ReconcileQuotaRule reconciles a quota rule.
 func (s *QuotaRuleService) ReconcileQuotaRule(rule v1alpha1.QuotaRule) (*vapitypes.ValidationRuleResult, error) {
 
 	// Build the default ValidationResult for this rule.
