@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.21](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.20...v0.0.21) (2024-09-11)
+
+
+### Features
+
+* quota rule ([#271](https://github.com/validator-labs/validator-plugin-azure/issues/271)) ([6e9ef37](https://github.com/validator-labs/validator-plugin-azure/commit/6e9ef37e716246475361240b938c3187507ced94))
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to e7e105d ([#265](https://github.com/validator-labs/validator-plugin-azure/issues/265)) ([9ea97ef](https://github.com/validator-labs/validator-plugin-azure/commit/9ea97ef7a51cbb1e9341ea3c7b03cd4930ac1d2a))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.20.2 ([#263](https://github.com/validator-labs/validator-plugin-azure/issues/263)) ([721d67d](https://github.com/validator-labs/validator-plugin-azure/commit/721d67df599d1882601c287ba3e6924fb4fabbab))
+* **deps:** update module github.com/onsi/gomega to v1.34.2 ([#264](https://github.com/validator-labs/validator-plugin-azure/issues/264)) ([88713c9](https://github.com/validator-labs/validator-plugin-azure/commit/88713c942a15895c3bfede7cc534433f65a4cc15))
+* **deps:** update module github.com/validator-labs/validator to v0.1.10 ([#266](https://github.com/validator-labs/validator-plugin-azure/issues/266)) ([3d532f0](https://github.com/validator-labs/validator-plugin-azure/commit/3d532f037959236d6c5ec28a6f0034c9c78c17ba))
+* **deps:** update module github.com/validator-labs/validator to v0.1.9 ([#257](https://github.com/validator-labs/validator-plugin-azure/issues/257)) ([dd9a895](https://github.com/validator-labs/validator-plugin-azure/commit/dd9a8950c48e612edfddca48dc0f88825d987535))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.8.2 ([#267](https://github.com/validator-labs/validator-plugin-azure/issues/267)) ([2fd21e0](https://github.com/validator-labs/validator-plugin-azure/commit/2fd21e055ac1412400d4c919e4f7cdfb372f989e))
+
 ## [0.0.20](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.19...v0.0.20) (2024-08-24)
 
 
