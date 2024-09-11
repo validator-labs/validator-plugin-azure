@@ -43,6 +43,7 @@ func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Lo
 	raClient := utils.NewRoleAssignmentsClient(ctx, azureAPI.RoleAssignmentsClient)
 	rdClient := utils.NewRoleDefinitionsClient(ctx, azureAPI.RoleDefinitionsClient)
 	cgiClient := utils.NewCommunityGalleryImagesClient(ctx, azureAPI.CommunityGalleryImagesClientProducer)
+	qClient := utils.NewQuotasClient(ctx, azureAPI.QuotaLimitsClient, azureAPI.UsagesClient)
 
 	// RBAC rules
 	rbacSvc := azure.NewRBACRuleService(daClient, raClient, rdClient)
@@ -64,6 +65,16 @@ func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Lo
 		resp.AddResult(vrr, err)
 	}
 
+	// Quota rules
+	qSvc := azure.NewQuotaRuleService(qClient)
+	for _, rule := range spec.QuotaRules {
+		vrr, err := qSvc.ReconcileQuotaRule(rule)
+		if err != nil {
+			log.Error(err, "failed to reconcile quota rule")
+		}
+		resp.AddResult(vrr, err)
+	}
+
 	return resp
 }
 
@@ -71,7 +82,10 @@ func buildValidationResult() *types.ValidationRuleResult {
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Message = "Initialization succeeded"
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vconstants.ValidationRulePrefix, constants.PluginCode)
+	latestCondition.ValidationRule = fmt.Sprintf(
+		"%s-%s",
+		vconstants.ValidationRulePrefix, constants.PluginCode,
+	)
 	latestCondition.ValidationType = constants.PluginCode
 
 	return &types.ValidationRuleResult{Condition: &latestCondition, State: &state}

@@ -41,9 +41,12 @@ func authFailed(err error) bool {
 
 // AsAugmented checks whether an error returned by the Azure SDK matched some known Azure errors. If
 // the error matches, it produces a new, augmented error by adding information we think will help
-// the user use the plugin correctly. If it didn't match, it returns the error as is.//
+// the user use the plugin correctly. If it didn't match, it returns the error as is.
 //   - err: An error returned by the Azure SDK.
-func AsAugmented(err error) error {
+//   - permissionsNeeded: The permissions the Azure client needed to have in order for the operation
+//     it just performed to be successful. Used to form a good error message for the user, whichever
+//     operation was being attempted.
+func AsAugmented(err error, permissionsNeeded []string) error {
 	// This is the order Azure returns various errors in. We check them in that order.
 	if defaultAzureCredential(err) {
 		return fmt.Errorf("DefaultAzureCredential error; %s: %w", authHelpMsg, err)
@@ -52,7 +55,7 @@ func AsAugmented(err error) error {
 		return fmt.Errorf("invalid client secret provided for client ID; %s: %w", authHelpMsg, err)
 	}
 	if authFailed(err) {
-		return fmt.Errorf("plugin authenticated as service principal successfully but principal was unauthorized; ensure principal has permissions for operations Microsoft.Authorization/roleAssignments/read, Microsoft.Authorization/denyAssignments/read, and Microsoft.Authorization/roleDefinitions/read via role assignments and that no deny assignments forbid them: %w", err)
+		return fmt.Errorf("plugin authenticated as service principal successfully but principal was unauthorized; ensure principal has permissions %s via role assignments and that no deny assignments forbid them: %w", permissionsNeeded, err)
 	}
 
 	return err

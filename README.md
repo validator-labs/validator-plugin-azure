@@ -48,6 +48,42 @@ This rule verifies that images in [community image galleries](https://learn.micr
 
 See [azurevalidator-communitygalleryimages-one-image.yaml](config/samples/azurevalidator-communitygalleryimages-one-image.yaml) for an example rule spec.
 
+#### Quota rule
+
+This rule verifies that quota limits are set to a high enough level that current usage plus a buffer you configure isn't higher than the quota. This helps you ensure quotas stay high enough for your expected usage.
+
+See [azurevalidator-quota-one-resource-set-one-resource.yaml](config/samples/azurevalidator-quota-one-resource-set-one-resource.yaml) for an example rule spec.
+
+This is powered by Azure's [Quota Service API](https://learn.microsoft.com/en-us/rest/api/quota). The API uses scope and resource name to specify the quota limit or and usage. Scopes include the resource provider of the quota limit or usage. Each resource provider supports certain resource names. Putting this all together, this means an example of a correct scope for the `availabilitySets` resource is: `subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/{azure location}`. Azure's website has more detailed [examples](https://learn.microsoft.com/en-us/rest/api/quota/#quota-api-put-call-and-scope) of which resource providers are available and which scopes are valid for them.
+
+At time of writing, the website does not contain a complete list of which resources are available for each resource provider. To determine this, you must make your own [Quota - List](https://learn.microsoft.com/en-us/rest/api/quota/quota/list?view=rest-quota-2023-02-01&tabs=HTTP) API call to each resource provider to get a list of which quota limits exist in your account. Each quota limit will contain a resource name you can use when defining quota rules. See [Quotas_listQuotaLimitsForCompute](https://learn.microsoft.com/en-us/rest/api/quota/quota/list?view=rest-quota-2023-02-01&tabs=HTTP#quotas_listquotalimitsforcompute) for an example request and response on Azure's website for this endpoint.
+
+Example quota limit from this API call:
+
+```json
+{
+  "id": "/subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/westus/providers/Microsoft.Quota/quotas/availabilitySets",
+  "name": "availabilitySets",
+  "properties": {
+    "isQuotaApplicable": false,
+    "limit": {
+      "limitObjectType": "LimitValue",
+      "limitType": "Independent",
+      "value": 2500
+    },
+    "name": {
+      "localizedValue": "Availability Sets",
+      "value": "availabilitySets"
+    },
+    "properties": {},
+    "unit": "Count"
+  },
+  "type": "Microsoft.Quota/Quotas"
+},
+```
+
+The resource name is `availabilitySets` and the scope is `/subscriptions/{subscriptionId}/providers/Microsoft.Compute/locations/westus`. You would use these values when defining a quota rule.
+
 ## Authn & Authz
 
 Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
@@ -65,21 +101,32 @@ Authentication details for the Azure validator controller are provided within ea
 
 For validation to succeed, certain Azure RBAC permissions must be assigned to the principal used via role assignments. The minimal required [operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) that must be listed under `Actions` in the role assignments, by rule, are as follows.
 
+We recommend creating custom roles with the permissions noted here and assigning them instead of assigning built-in roles, but built-in roles that can be used too are listed here under each rule type.
+
 #### RBAC rule
 
 Create a custom role with the following permissions:
 
-    Microsoft.Authorization/denyAssignments/read
-    Microsoft.Authorization/roleAssignments/read
-    Microsoft.Authorization/roleDefinitions/read
+* Microsoft.Authorization/denyAssignments/read
+* Microsoft.Authorization/roleAssignments/read
+* Microsoft.Authorization/roleDefinitions/read
 
-Alternatively, you can use the built-in [Managed Identity Operator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator), which includes these permissions.
+Alternative built-in role: [Managed Identity Operator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-operator)
 
 #### Community gallery image rule
 
 Create a custom role with the permission `Microsoft.Compute/locations/communityGalleries/images/read`.
 
-If you prefer to use a built-in role, the [Virtual Machine Contributor role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor) includes the necessary permissions to read community gallery images. However, be aware that this role also grants permissions to modify and delete virtual machines and other compute resources. If you only need read-only access, consider creating a custom role as described above.
+Alternative built-in role: [Virtual Machine Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/compute#virtual-machine-contributor)
+
+#### Quota rule
+
+Create a custom role with the following permissions:
+
+* Microsoft.Quota/quotas/read
+* Microsoft.Quota/usages/read
+
+Alternative built-in role: [Quota Request Operator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/management-and-governance#quota-request-operator)
 
 ## Connecting to Azure Government or Azure in China
 

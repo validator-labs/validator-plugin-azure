@@ -36,8 +36,15 @@ type AzureValidatorSpec struct {
 	RBACRules []RBACRule `json:"rbacRules,omitempty" yaml:"rbacRules,omitempty"`
 	// Rules for validating that images exist in an Azure Compute Gallery published as a community
 	// gallery.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="CommunityGalleryImageRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
 	CommunityGalleryImageRules []CommunityGalleryImageRule `json:"communityGalleryImageRules,omitempty" yaml:"communityGalleryImageRules,omitempty"`
-	Auth                       AzureAuth                   `json:"auth" yaml:"auth"`
+	// Rules for validating that current usage falls within current quota limits, including a
+	// a buffer.
+	// +kubebuilder:validation:MaxItems=5
+	// +kubebuilder:validation:XValidation:message="QuotaRules must have unique names",rule="self.all(e, size(self.filter(x, x.name == e.name)) == 1)"
+	QuotaRules []QuotaRule `json:"quotaRules,omitempty" yaml:"quotaRules,omitempty"`
+	Auth       AzureAuth   `json:"auth" yaml:"auth"`
 }
 
 var _ plugins.PluginSpec = (*AzureValidatorSpec)(nil)
@@ -49,7 +56,7 @@ func (s AzureValidatorSpec) PluginCode() string {
 
 // ResultCount returns the number of validation results expected for an AzureValidatorSpec.
 func (s AzureValidatorSpec) ResultCount() int {
-	return len(s.RBACRules) + len(s.CommunityGalleryImageRules)
+	return len(s.RBACRules) + len(s.CommunityGalleryImageRules) + len(s.QuotaRules)
 }
 
 // RBACRule verifies that a security principal has permissions via role assignments and that no deny
@@ -109,6 +116,57 @@ type CommunityGalleryImageRule struct {
 }
 
 var _ validationrule.Interface = (*CommunityGalleryImageRule)(nil)
+
+// QuotaRule ensures that Azure quotas are within a particular threshold.
+type QuotaRule struct {
+	validationrule.ManuallyNamed `json:",inline" yaml:",omitempty"`
+
+	// Unique identifier for the rule in the validator. Used to ensure conditions do not overwrite
+	// each other.
+	RuleName string `json:"name" yaml:"name"`
+	// The resource sets in the rule, where each set is a scope with one or more resources
+	// associated with it.
+	ResourceSets []ResourceSet `json:"resourceSets" yaml:"resourceSets"`
+}
+
+var _ validationrule.Interface = (*QuotaRule)(nil)
+
+// Name returns the name of the quota rule.
+func (r *QuotaRule) Name() string {
+	return r.RuleName
+}
+
+// SetName sets the name of the quota rule.
+func (r *QuotaRule) SetName(name string) {
+	r.RuleName = name
+}
+
+// ResourceSet defines a scope that can be used to check current quota and current usage data for
+// one or more resources.
+type ResourceSet struct {
+	// The scope of the resources. Used to determine which type of quota and usage is checked. For
+	// example, the scope "subscriptions/ec9aff0b-8346-4a49-ad2d-d006a12dfbfe/providers/Microsoft.Compute/locations/westus"
+	// checks info for Compute type quotas and usages in the "westus" location.
+	Scope string `json:"scope" yaml:"scope"`
+	// The resources in the resource set.
+	Resources []Resource `json:"resources" yaml:"resources"`
+}
+
+// Resource defines a quota and expected buffer (quota minus usage) for a particular Azure resource
+// name.
+type Resource struct {
+	// The name of the resource. This is a Microsoft.Quota resource name. Valid values depend on
+	// which scope is used to check the resource. If a name invalid for the configured scope is
+	// used, it will be skipped. For example, the resource names "virtualMachines" and
+	// "standardDFamily" can be used when paired with a scope like "subscriptions/ec9aff0b-8346-4a49-ad2d-d006a12dfbfe/providers/Microsoft.Compute/locations/westus"
+	// because these resource names are used with Microsoft.Compute scopes.
+	Name string `json:"name" yaml:"name"`
+	// The buffer of the resource. The amount that the current usage must be less than the current
+	// by for validation to succeed for the rule. For example, if current quota was 3, current usage
+	// was 2, and the buffer was set to 1, validation would succeed. However, if the buffer was set
+	// to 2 instead of 1, validation would fail.
+	Buffer int32 `json:"buffer" yaml:"buffer"`
+}
 
 // Name returns the name of the community gallery image rule.
 func (r CommunityGalleryImageRule) Name() string {

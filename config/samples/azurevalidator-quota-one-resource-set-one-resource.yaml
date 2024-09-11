@@ -1,0 +1,15 @@
+apiVersion: validation.spectrocloud.labs/v1alpha1
+kind: AzureValidator
+metadata:
+  name: azurevalidator-quota-one-resource-set-one-resource
+spec:
+  auth:
+    implicit: false
+    secretName: azure-creds
+  quotaRules:
+  - name: rule-1
+    resourceSets:
+    - scope: /subscriptions/5f6df17d-dc8f-45e0-ba9f-0d5601c70df8/providers/Microsoft.Compute/locations/westus
+      resources:
+      - name: availabilitySets # defaults to a quota limit of 2500 in new Azure subscriptions
+        buffer: 1000
