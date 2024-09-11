@@ -47,7 +47,7 @@ func (s *QuotaRuleService) ReconcileQuotaRule(rule v1alpha1.QuotaRule) (*vapityp
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
-	latestCondition.Message = "All quotas acceptable. Current usages plus buffers fall within current quota limits."
+	latestCondition.Message = "All quota limits high enough. For each resource, current usage plus buffer falls within current quota limit."
 	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name())
 	latestCondition.ValidationType = constants.ValidationTypeQuota
 	validationResult := &vapitypes.ValidationRuleResult{Condition: &latestCondition, State: &state}
@@ -70,7 +70,7 @@ func (s *QuotaRuleService) ReconcileQuotaRule(rule v1alpha1.QuotaRule) (*vapityp
 
 }
 
-func (s *QuotaRuleService) processResourceSet(set v1alpha1.ResourceSet, failures *[]string, details *[]string) error {
+func (s *QuotaRuleService) processResourceSet(set v1alpha1.ResourceSet, failures, details *[]string) error {
 
 	// Get all quotas for the scope. This will get quotas for a certain set of resources depending
 	// on what kind of scope the user indicated. It will exclude resources for other types of
