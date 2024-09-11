@@ -83,7 +83,7 @@ func TestQuotaRuleService_ReconcileQuotaRule(t *testing.T) {
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-quota",
 					ValidationRule: "validation-rule-1",
-					Message:        "All quotas acceptable. Current usages plus buffers fall within current quota limits.",
+					Message:        "All quota limits high enough. For each resource, current usage plus buffer falls within current quota limit.",
 					Details:        []string{"scope1/resource1: quota limit: 3, buffer: 1, usage: 2"},
 					Failures:       []string{},
 					Status:         corev1.ConditionTrue,
@@ -158,7 +158,7 @@ func TestQuotaRuleService_ReconcileQuotaRule(t *testing.T) {
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-quota",
 					ValidationRule: "validation-rule-1",
-					Message:        "All quotas acceptable. Current usages plus buffers fall within current quota limits.",
+					Message:        "All quota limits high enough. For each resource, current usage plus buffer falls within current quota limit.",
 					Details: []string{
 						"scope1/resource1: quota limit: 3, buffer: 1, usage: 2",
 						"scope1/resource2: quota limit: 3, buffer: 1, usage: 2",
@@ -245,7 +245,7 @@ func TestQuotaRuleService_ReconcileQuotaRule(t *testing.T) {
 				Condition: &vapi.ValidationCondition{
 					ValidationType: "azure-quota",
 					ValidationRule: "validation-rule-1",
-					Message:        "All quotas acceptable. Current usages plus buffers fall within current quota limits.",
+					Message:        "All quota limits high enough. For each resource, current usage plus buffer falls within current quota limit.",
 					Details: []string{
 						"scope1/resource1: quota limit: 3, buffer: 1, usage: 2",
 						"scope2/resource2: quota limit: 3, buffer: 1, usage: 2",
