@@ -12,6 +12,7 @@ import (
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
+	"github.com/validator-labs/validator/pkg/util"
 )
 
 var (
@@ -48,7 +49,10 @@ func (s *QuotaRuleService) ReconcileQuotaRule(rule v1alpha1.QuotaRule) (*vapityp
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
 	latestCondition.Message = "All quota limits high enough. For each resource, current usage plus buffer falls within current quota limit."
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name())
+	latestCondition.ValidationRule = fmt.Sprintf(
+		"%s-%s",
+		vapiconstants.ValidationRulePrefix, util.Sanitize(rule.Name()),
+	)
 	latestCondition.ValidationType = constants.ValidationTypeQuota
 	validationResult := &vapitypes.ValidationRuleResult{Condition: &latestCondition, State: &state}
 

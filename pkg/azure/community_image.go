@@ -14,6 +14,7 @@ import (
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vapiconstants "github.com/validator-labs/validator/pkg/constants"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
+	"github.com/validator-labs/validator/pkg/util"
 )
 
 // communityGalleryImageAPI contains methods that allow getting all the information we need for
@@ -47,7 +48,10 @@ func (s *CommunityGalleryImageRuleService) ReconcileCommunityGalleryImageRule(ru
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Failures = []string{}
 	latestCondition.Message = "All required images present in community gallery."
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vapiconstants.ValidationRulePrefix, rule.Name())
+	latestCondition.ValidationRule = fmt.Sprintf(
+		"%s-%s",
+		vapiconstants.ValidationRulePrefix, util.Sanitize(rule.Name()),
+	)
 	latestCondition.ValidationType = constants.ValidationTypeCommunityGalleryImages
 	validationResult := &vapitypes.ValidationRuleResult{Condition: &latestCondition, State: &state}
 

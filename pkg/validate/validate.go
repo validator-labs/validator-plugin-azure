@@ -82,7 +82,10 @@ func buildValidationResult() *types.ValidationRuleResult {
 	state := vapi.ValidationSucceeded
 	latestCondition := vapi.DefaultValidationCondition()
 	latestCondition.Message = "Initialization succeeded"
-	latestCondition.ValidationRule = fmt.Sprintf("%s-%s", vconstants.ValidationRulePrefix, constants.PluginCode)
+	latestCondition.ValidationRule = fmt.Sprintf(
+		"%s-%s",
+		vconstants.ValidationRulePrefix, constants.PluginCode,
+	)
 	latestCondition.ValidationType = constants.PluginCode
 
 	return &types.ValidationRuleResult{Condition: &latestCondition, State: &state}
