@@ -13,9 +13,9 @@ require (
 	github.com/onsi/gomega v1.34.2
 	github.com/validator-labs/validator v0.1.10
 	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e
-	k8s.io/api v0.31.0
-	k8s.io/apimachinery v0.31.0
-	k8s.io/client-go v0.31.0
+	k8s.io/api v0.31.1
+	k8s.io/apimachinery v0.31.1
+	k8s.io/client-go v0.31.1
 	sigs.k8s.io/cluster-api v1.8.3
 	sigs.k8s.io/controller-runtime v0.19.0
 )
