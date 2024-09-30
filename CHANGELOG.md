@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.22](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.21...v0.0.22) (2024-09-30)
+
+
+### Dependency Updates
+
+* **deps:** update golang.org/x/exp digest to 701f63a ([#269](https://github.com/validator-labs/validator-plugin-azure/issues/269)) ([ce1c963](https://github.com/validator-labs/validator-plugin-azure/commit/ce1c963649a7b2366b8e4271f4fa17f572d1948e))
+* **deps:** update kubernetes packages to v0.31.1 ([#273](https://github.com/validator-labs/validator-plugin-azure/issues/273)) ([90e4333](https://github.com/validator-labs/validator-plugin-azure/commit/90e4333f0214c142e7d75f4cb49e749963cd3ce2))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.8.3 ([#270](https://github.com/validator-labs/validator-plugin-azure/issues/270)) ([f9619b2](https://github.com/validator-labs/validator-plugin-azure/commit/f9619b2351312c0ef4333508d2bb3a4c5d6e5b0c))
+
 ## [0.0.21](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.20...v0.0.21) (2024-09-11)
 
 
