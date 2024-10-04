@@ -11,7 +11,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
-	github.com/validator-labs/validator v0.1.10
+	github.com/validator-labs/validator v0.1.12
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	k8s.io/api v0.31.1
 	k8s.io/apimachinery v0.31.1
