@@ -9,6 +9,7 @@ import (
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	"github.com/validator-labs/validator/pkg/test"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
 	"github.com/validator-labs/validator/pkg/util"
 )
@@ -263,7 +264,7 @@ func TestRBACRuleService_ReconcileRBACRule(t *testing.T) {
 	for _, tc := range testCases {
 		svc := NewRBACRuleService(tc.daAPIMock, tc.raAPIMock, tc.rdAPIMock)
 		result, err := svc.ReconcileRBACRule(tc.rule)
-		util.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
+		test.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
 	}
 }
 
