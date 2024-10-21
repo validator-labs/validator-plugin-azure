@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/quota/armquota"
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
+	"github.com/validator-labs/validator/pkg/test"
 	vapitypes "github.com/validator-labs/validator/pkg/types"
 	"github.com/validator-labs/validator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -371,6 +372,6 @@ func TestQuotaRuleService_ReconcileQuotaRule(t *testing.T) {
 	for _, tc := range testCases {
 		svc := NewQuotaRuleService(tc.apiMock)
 		result, err := svc.ReconcileQuotaRule(tc.rule)
-		util.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
+		test.CheckTestCase(t, result, tc.expectedResult, err, tc.expectedError)
 	}
 }
