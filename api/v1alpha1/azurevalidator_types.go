@@ -189,16 +189,20 @@ type CommunityGallery struct {
 // AzureAuth defines authentication configuration for an AzureValidator.
 type AzureAuth struct {
 	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
-	// Set to true if using WorkloadIdentityCredentials. If set to false, the plugin falls back to the Credentials
-	// field and then the SecretName field.
+	// Set to true if using WorkloadIdentityCredentials. If set to false, the plugin falls back to
+	// the SecretName field.
 	Implicit bool `json:"implicit" yaml:"implicit"`
-	// The credentials for the service principal used to authenticate the plugin. If not provided, the plugin falls
-	// back to the SecretName field.
-	Credentials *ServicePrincipalCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
 	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
 	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
 	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
+	// For each AZURE_ key not found in the secret, the plugin falls back to the Credentials field.
+	// If not provided, the plugin falls back to the Credentials field.
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
+	// The credentials for the service principal used to authenticate the plugin if not using
+	// implicit auth and if secret name was not provided. If secret name was provided, but one or
+	// more AZURE_ keys are missing from the secret's data, this field is used for each key missing
+	// from the secret data.
+	Credentials *ServicePrincipalCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
 }
 
 // ServicePrincipalCredentials are the credentials used to authenticate as a service principal.
