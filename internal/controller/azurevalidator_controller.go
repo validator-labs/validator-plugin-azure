@@ -33,13 +33,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
+	"github.com/validator-labs/validator-plugin-azure/pkg/utils/strings"
 	"github.com/validator-labs/validator-plugin-azure/pkg/validate"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
-// ErrSecretNameRequired is returned when the auth.secretName field is empty.
-var ErrSecretNameRequired = errors.New("auth.secretName is required")
+var errSecretNameRequired = errors.New("auth.secretName is required")
+var errInvalidTenantID = errors.New("auth.credentials.tenantId is invalid, must be a v4 uuid")
+var errInvalidClientID = errors.New("auth.credentials.clientId is invalid, must be a v4 uuid")
+var errInvalidClientSecret = errors.New("auth.credentials.clientSecret is invalid, must be a non-empty string")
 
 // AzureValidatorReconciler reconciles an AzureValidator object
 type AzureValidatorReconciler struct {
@@ -65,15 +68,40 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Configure Azure environment variable credentials from a secret, if applicable
+	// If using implicit auth, assume the Azure auth env vars are already set. Otherwise, check
+	// each auth source in order, and set env vars manually using values from them.
+	// 1 - Inline creds
+	// 2 - Kubernetes secret name
 	if !validator.Spec.Auth.Implicit {
-		if validator.Spec.Auth.SecretName == "" {
-			l.Error(ErrSecretNameRequired, "failed to reconcile AzureValidator with empty auth.secretName")
-			return ctrl.Result{}, ErrSecretNameRequired
-		}
-		if err := r.envFromSecret(validator.Spec.Auth.SecretName, req.Namespace); err != nil {
-			l.Error(err, "failed to configure environment from secret")
-			return ctrl.Result{}, err
+		if validator.Spec.Auth.Credentials != nil {
+			creds := *validator.Spec.Auth.Credentials
+			if !strings.IsValidUUID(creds.TenantID) {
+				l.Error(errInvalidTenantID, "failed to reconcile AzureValidator with invalid auth.credentials.tenantId")
+				return ctrl.Result{}, errInvalidTenantID
+			}
+			if !strings.IsValidUUID(creds.ClientID) {
+				l.Error(errInvalidClientID, "failed to reconcile AzureValidator with invalid auth.credentials.clientId")
+				return ctrl.Result{}, errInvalidClientID
+			}
+			if creds.ClientSecret == "" {
+				l.Error(errInvalidClientSecret, "failed to reconcile AzureValidator with invalid auth.credentials.clientSecret")
+				return ctrl.Result{}, errInvalidClientSecret
+			}
+
+			if err := r.envFromInline(creds); err != nil {
+				l.Error(err, "failed to configure environment from inline credentials")
+				return ctrl.Result{}, err
+			}
+		} else {
+			if validator.Spec.Auth.SecretName == "" {
+				l.Error(errSecretNameRequired, "failed to reconcile AzureValidator with empty auth.secretName")
+				return ctrl.Result{}, errSecretNameRequired
+			}
+
+			if err := r.envFromSecret(validator.Spec.Auth.SecretName, req.Namespace); err != nil {
+				l.Error(err, "failed to configure environment from secret")
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
@@ -113,6 +141,25 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	l.Info("Requeuing for re-validation in two minutes.")
 	return ctrl.Result{RequeueAfter: time.Second * 120}, nil
+}
+
+// envFromInline sets environment variables from inline credentials to configure Azure credentials
+func (r *AzureValidatorReconciler) envFromInline(creds v1alpha1.ServicePrincipalCredentials) error {
+	r.Log.Info("Configuring environment from inline credentials")
+
+	data := map[string]string{
+		"AZURE_TENANT_ID":     creds.TenantID,
+		"AZURE_CLIENT_ID":     creds.ClientID,
+		"AZURE_CLIENT_SECRET": creds.ClientSecret,
+	}
+
+	for k, v := range data {
+		if err := os.Setenv(k, v); err != nil {
+			return err
+		}
+		r.Log.Info("Set environment variable", "key", k)
+	}
+	return nil
 }
 
 // envFromSecret sets environment variables from a secret to configure Azure credentials

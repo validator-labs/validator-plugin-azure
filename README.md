@@ -91,7 +91,10 @@ Authentication details for the Azure validator controller are provided within ea
 * Implicit (`AzureValidator.auth.implicit == true`)
   * [Workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
     * In this scenario, a valid ServiceAccount must be specified during plugin installation. See [values.yaml](chart/validator-plugin-azure/values.yaml) for details.
-* Explicit (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
+* Explicit - Inline (`AzureValidator.auth.implicit == false && AzureValidator.auth.credentials != {}`)
+  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication#-option-1-define-environment-variables)
+  * This allows the plugin to directly execute the validation rules, outside of a Kubernetes environment, using validatorctl. See [Commands - check](https://validator-labs.github.io/docs/validatorctl/commands#check) for more info.
+* Explicit - Kubernetes Secret (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
   * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication#-option-1-define-environment-variables)
 
 > [!NOTE]

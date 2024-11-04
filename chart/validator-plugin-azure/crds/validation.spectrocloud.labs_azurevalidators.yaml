@@ -43,10 +43,37 @@ spec:
                 description: AzureAuth defines authentication configuration for an
                   AzureValidator.
                 properties:
+                  credentials:
+                    description: |-
+                      The credentials for the service principal used to authenticate the plugin. If not provided, the plugin falls
+                      back to the SecretName field.
+                    properties:
+                      clientId:
+                        description: The client ID associated with the service principal.
+                        maxLength: 36
+                        minLength: 1
+                        type: string
+                      clientSecret:
+                        description: The client secret associated with the service
+                          principal.
+                        maxLength: 36
+                        minLength: 1
+                        type: string
+                      tenantId:
+                        description: The tenant ID associated with the service principal.
+                        maxLength: 36
+                        minLength: 1
+                        type: string
+                    required:
+                    - clientId
+                    - clientSecret
+                    - tenantId
+                    type: object
                   implicit:
                     description: |-
                       If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
-                      Set to true if using WorkloadIdentityCredentials.
+                      Set to true if using WorkloadIdentityCredentials. If set to false, the plugin falls back to the Credentials
+                      field and then the SecretName field.
                     type: boolean
                   secretName:
                     description: |-

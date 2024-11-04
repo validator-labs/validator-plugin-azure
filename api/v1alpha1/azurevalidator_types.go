@@ -189,12 +189,32 @@ type CommunityGallery struct {
 // AzureAuth defines authentication configuration for an AzureValidator.
 type AzureAuth struct {
 	// If true, the AzureValidator will use the Azure SDK's default credential chain to authenticate.
-	// Set to true if using WorkloadIdentityCredentials.
+	// Set to true if using WorkloadIdentityCredentials. If set to false, the plugin falls back to the Credentials
+	// field and then the SecretName field.
 	Implicit bool `json:"implicit" yaml:"implicit"`
+	// The credentials for the service principal used to authenticate the plugin. If not provided, the plugin falls
+	// back to the SecretName field.
+	Credentials *ServicePrincipalCredentials `json:"credentials,omitempty" yaml:"credentials"`
 	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
 	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
 	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
 	SecretName string `json:"secretName,omitempty" yaml:"secretName,omitempty"`
+}
+
+// ServicePrincipalCredentials are the credentials used to authenticate as a service principal.
+type ServicePrincipalCredentials struct {
+	// The tenant ID associated with the service principal.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=36
+	TenantID string `json:"tenantId" yaml:"tenantId"`
+	// The client ID associated with the service principal.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=36
+	ClientID string `json:"clientId" yaml:"clientId"`
+	// The client secret associated with the service principal.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=36
+	ClientSecret string `json:"clientSecret" yaml:"clientSecret"`
 }
 
 // ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable
