@@ -58,6 +58,15 @@ spec:
                           principal.
                         minLength: 1
                         type: string
+                      environment:
+                        description: |-
+                          The Azure environment to connect to. Can be "AzureCloud" (for the normal public cloud), "AzureUSGovernment", or
+                          "AzureChinaCloud". If not provided, the Azure SDKS default to connecting to the normal public cloud.
+                        enum:
+                        - AzureCloud
+                        - AzureUSGovernment
+                        - AzureChinaCloud
+                        type: string
                       tenantId:
                         description: The tenant ID associated with the service principal.
                         maxLength: 36

@@ -214,6 +214,10 @@ type ServicePrincipalCredentials struct {
 	// The client secret associated with the service principal.
 	// +kubebuilder:validation:MinLength=1
 	ClientSecret string `json:"clientSecret" yaml:"clientSecret"`
+	// The Azure environment to connect to. Can be "AzureCloud" (for the normal public cloud), "AzureUSGovernment", or
+	// "AzureChinaCloud". If not provided, the Azure SDKS default to connecting to the normal public cloud.
+	// +kubebuilder:validation:Enum=AzureCloud;AzureUSGovernment;AzureChinaCloud
+	Environment string `json:"environment,omitempty" yaml:"environment,omitempty"`
 }
 
 // ActionStr is a type used for Action strings and DataAction strings. Alias exists to enable

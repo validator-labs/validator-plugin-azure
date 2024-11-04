@@ -20,6 +20,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -39,10 +40,9 @@ import (
 	vres "github.com/validator-labs/validator/pkg/validationresult"
 )
 
-var errSecretNameRequired = errors.New("auth.secretName is required")
-var errInvalidTenantID = errors.New("auth.credentials.tenantId is invalid, must be a v4 uuid")
-var errInvalidClientID = errors.New("auth.credentials.clientId is invalid, must be a v4 uuid")
-var errInvalidClientSecret = errors.New("auth.credentials.clientSecret is invalid, must be a non-empty string")
+var errInvalidTenantID = errors.New("tenant ID is invalid, must be a v4 uuid")
+var errInvalidClientID = errors.New("client ID is invalid, must be a v4 uuid")
+var errInvalidClientSecret = errors.New("client secret is invalid, must be a non-empty string")
 
 // AzureValidatorReconciler reconciles an AzureValidator object
 type AzureValidatorReconciler struct {
@@ -68,41 +68,9 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// If using implicit auth, assume the Azure auth env vars are already set. Otherwise, check
-	// each auth source in order, and set env vars manually using values from them.
-	// 1 - Inline creds
-	// 2 - Kubernetes secret name
-	if !validator.Spec.Auth.Implicit {
-		if validator.Spec.Auth.Credentials != nil {
-			creds := *validator.Spec.Auth.Credentials
-			if !strings.IsValidUUID(creds.TenantID) {
-				l.Error(errInvalidTenantID, "failed to reconcile AzureValidator with invalid auth.credentials.tenantId")
-				return ctrl.Result{}, errInvalidTenantID
-			}
-			if !strings.IsValidUUID(creds.ClientID) {
-				l.Error(errInvalidClientID, "failed to reconcile AzureValidator with invalid auth.credentials.clientId")
-				return ctrl.Result{}, errInvalidClientID
-			}
-			if creds.ClientSecret == "" {
-				l.Error(errInvalidClientSecret, "failed to reconcile AzureValidator with invalid auth.credentials.clientSecret")
-				return ctrl.Result{}, errInvalidClientSecret
-			}
-
-			if err := r.envFromInline(creds); err != nil {
-				l.Error(err, "failed to configure environment from inline credentials")
-				return ctrl.Result{}, err
-			}
-		} else {
-			if validator.Spec.Auth.SecretName == "" {
-				l.Error(errSecretNameRequired, "failed to reconcile AzureValidator with empty auth.secretName")
-				return ctrl.Result{}, errSecretNameRequired
-			}
-
-			if err := r.envFromSecret(validator.Spec.Auth.SecretName, req.Namespace); err != nil {
-				l.Error(err, "failed to configure environment from secret")
-				return ctrl.Result{}, err
-			}
-		}
+	// Ensure all four Azure env vars are set.
+	if err := r.configureAzureAuth(validator.Spec.Auth, req.Namespace, l); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to set Azure auth env vars: %w", err)
 	}
 
 	// Get the active validator's validation result
@@ -143,41 +111,86 @@ func (r *AzureValidatorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	return ctrl.Result{RequeueAfter: time.Second * 120}, nil
 }
 
-// envFromInline sets environment variables from inline credentials to configure Azure credentials
-func (r *AzureValidatorReconciler) envFromInline(creds v1alpha1.ServicePrincipalCredentials) error {
-	r.Log.Info("Configuring environment from inline credentials")
-
-	data := map[string]string{
-		"AZURE_TENANT_ID":     creds.TenantID,
-		"AZURE_CLIENT_ID":     creds.ClientID,
-		"AZURE_CLIENT_SECRET": creds.ClientSecret,
+// configureAzureAuth sets environment variables used to control which Azure cloud environment is
+// used and which credentials to use for authenticating with Azure. Order or precedence for source:
+// 1 - Kubernetes Secret
+// 2 - Specified inline in spec
+// Validates each value, regardless of its source, and returns an error if env vars couldn't be
+// set for any reason.
+func (r *AzureValidatorReconciler) configureAzureAuth(auth v1alpha1.AzureAuth, reqNamespace string, l logr.Logger) error {
+	if auth.Implicit {
+		l.Info("auth.implicit set to true. Skipping setting AZURE_ env vars.")
+		return nil
 	}
 
+	if auth.Credentials == nil {
+		auth.Credentials = &v1alpha1.ServicePrincipalCredentials{}
+	}
+
+	// If Secret name provided, override any AZURE_ values with values from its data.
+	if auth.SecretName != "" {
+		l.Info("auth.secretName provided. Using Secret as source for any AZURE_ env vars defined in its data.", "secretName", auth.SecretName, "secretNamespace", reqNamespace)
+		nn := ktypes.NamespacedName{Name: auth.SecretName, Namespace: reqNamespace}
+		secret := &corev1.Secret{}
+		if err := r.Get(context.Background(), nn, secret); err != nil {
+			return fmt.Errorf("failed to get Secret: %w", err)
+		}
+		if tenantID, ok := secret.Data["AZURE_TENANT_ID"]; ok {
+			l.Info("Using tenant ID from Secret.")
+			auth.Credentials.TenantID = string(tenantID)
+		}
+		if clientID, ok := secret.Data["AZURE_CLIENT_ID"]; ok {
+			l.Info("Using client ID from Secret.")
+			auth.Credentials.ClientID = string(clientID)
+		}
+		if clientSecret, ok := secret.Data["AZURE_CLIENT_SECRET"]; ok {
+			l.Info("Using client secret from Secret.")
+			auth.Credentials.ClientSecret = string(clientSecret)
+		}
+		if environment, ok := secret.Data["AZURE_ENVIRONMENT"]; ok {
+			l.Info("Using Azure environment from Secret.")
+			auth.Credentials.Environment = string(environment)
+		}
+	}
+
+	// Validate values collected from inline config and/or Secret. We can't rely on CRD validation
+	// for this because some of the values may have come from a Secret, and there is no way for the
+	// Kube API to validate content in its data.
+	//
+	// Note that there is no step to validate environment because an empty string is valid. The
+	// Azure SDKs will handle that by defaulting to the public Azure cloud.
+	if !strings.IsValidUUID(auth.Credentials.TenantID) {
+		return errInvalidTenantID
+	}
+	if !strings.IsValidUUID(auth.Credentials.ClientID) {
+		return errInvalidClientID
+	}
+	if auth.Credentials.ClientSecret == "" {
+		return errInvalidClientSecret
+	}
+
+	// Log non-secret data for help with debugging. Don't log the client secret.
+	nonSecretData := map[string]string{
+		"tenantId":         auth.Credentials.TenantID,
+		"clientId":         auth.Credentials.ClientID,
+		"azureEnvironment": auth.Credentials.Environment,
+	}
+	l.Info("Determined Azure auth data.", "nonSecretData", nonSecretData)
+
+	// Use collected and validated values to set env vars.
+	data := map[string]string{
+		"AZURE_TENANT_ID":     auth.Credentials.TenantID,
+		"AZURE_CLIENT_ID":     auth.Credentials.ClientID,
+		"AZURE_CLIENT_SECRET": auth.Credentials.ClientSecret,
+		"AZURE_ENVIRONMENT":   auth.Credentials.Environment,
+	}
 	for k, v := range data {
 		if err := os.Setenv(k, v); err != nil {
 			return err
 		}
-		r.Log.Info("Set environment variable", "key", k)
-	}
-	return nil
-}
-
-// envFromSecret sets environment variables from a secret to configure Azure credentials
-func (r *AzureValidatorReconciler) envFromSecret(name, namespace string) error {
-	r.Log.Info("Configuring environment from secret", "name", name, "namespace", namespace)
-
-	nn := ktypes.NamespacedName{Name: name, Namespace: namespace}
-	secret := &corev1.Secret{}
-	if err := r.Get(context.Background(), nn, secret); err != nil {
-		return err
+		r.Log.Info("Set environment variable", "envVar", k)
 	}
 
-	for k, v := range secret.Data {
-		if err := os.Setenv(k, string(v)); err != nil {
-			return err
-		}
-		r.Log.Info("Set environment variable", "key", k)
-	}
 	return nil
 }
 
