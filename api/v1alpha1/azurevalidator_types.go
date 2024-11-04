@@ -194,7 +194,7 @@ type AzureAuth struct {
 	Implicit bool `json:"implicit" yaml:"implicit"`
 	// The credentials for the service principal used to authenticate the plugin. If not provided, the plugin falls
 	// back to the SecretName field.
-	Credentials *ServicePrincipalCredentials `json:"credentials,omitempty" yaml:"credentials"`
+	Credentials *ServicePrincipalCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
 	// Name of a Secret in the same namespace as the AzureValidator that contains Azure credentials.
 	// The secret data's keys and values are expected to align with valid Azure environment variable credentials,
 	// per the options defined in https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#readme-environment-variables.
