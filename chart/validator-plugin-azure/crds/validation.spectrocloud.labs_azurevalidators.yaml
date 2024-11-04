@@ -56,7 +56,6 @@ spec:
                       clientSecret:
                         description: The client secret associated with the service
                           principal.
-                        maxLength: 36
                         minLength: 1
                         type: string
                       tenantId:

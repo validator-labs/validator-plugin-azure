@@ -213,7 +213,6 @@ type ServicePrincipalCredentials struct {
 	ClientID string `json:"clientId" yaml:"clientId"`
 	// The client secret associated with the service principal.
 	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=36
 	ClientSecret string `json:"clientSecret" yaml:"clientSecret"`
 }
 
