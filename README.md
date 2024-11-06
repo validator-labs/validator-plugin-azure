@@ -86,13 +86,23 @@ The resource name is `availabilitySets` and the scope is `/subscriptions/{subscr
 
 ## Authn & Authz
 
-Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication can be configured either implicitly or explicitly:
+Authentication details for the Azure validator controller are provided within each `AzureValidator` custom resource. Azure authentication includes the following env vars:
+
+* `AZURE_TENANT_ID` - Controls which Entra ID tenant is used.
+* `AZURE_CLIENT_ID` - Controls which client/service principal is used.
+* `AZURE_CLIENT_SECRET` - The secret for that client.
+* `AZURE_ENVIRONMENT` - The Azure environment to connect to (e.g. public cloud vs. Azure Government).
+
+Azure authentication can be configured either implicitly or explicitly:
 
 * Implicit (`AzureValidator.auth.implicit == true`)
   * [Workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
     * In this scenario, a valid ServiceAccount must be specified during plugin installation. See [values.yaml](chart/validator-plugin-azure/values.yaml) for details.
-* Explicit (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
+* Explicit - Kubernetes Secret (`AzureValidator.auth.implicit == false && AzureValidator.auth.secretName != ""`)
   * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication#-option-1-define-environment-variables)
+* Explicit - Inline (`AzureValidator.auth.implicit == false && AzureValidator.auth.credentials != {}`)
+  * [Environment variables](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication#-option-1-define-environment-variables)
+  * This allows the plugin to directly execute the validation rules, outside of a Kubernetes environment, using validatorctl. See [Commands - check](https://validator-labs.github.io/docs/validatorctl/commands#check) for more info.
 
 > [!NOTE]
 > See [values.yaml](chart/validator-plugin-azure/values.yaml) for additional configuration details for each authentication option.
@@ -128,9 +138,9 @@ Create a custom role with the following permissions:
 
 Alternative built-in role: [Quota Request Operator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/management-and-governance#quota-request-operator)
 
-## Connecting to Azure Government or Azure in China
+## Azure environments
 
-By default, the plugin connects the Azure SDK to the public Azure cloud. Override `azureEnvironment` to change which cloud is connected to, using the following values.
+By default, the plugin connects to the public Azure cloud. To change which Azure environment is connected to, specify the environment in the auth config using a Kubernetes secret name or by specifying the config inline.
 
 |`azureEnvironment` value|Cloud|
 |------------------------|-----|

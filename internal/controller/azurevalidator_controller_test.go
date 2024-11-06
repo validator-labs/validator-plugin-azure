@@ -15,7 +15,10 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-const azureValidatorName = "azure-validator"
+const (
+	azureValidatorName = "azure-validator"
+	testUUID           = "07207036-b574-4b0c-aa6b-587106eab479"
+)
 
 var _ = Describe("AzureValidator controller", Ordered, func() {
 
@@ -129,8 +132,8 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 				Namespace: validatorNamespace,
 			},
 			Data: map[string][]byte{
-				"AZURE_CLIENT_ID":     []byte("client_id"),
-				"AZURE_TENANT_ID":     []byte("tenant_id"),
+				"AZURE_CLIENT_ID":     []byte(testUUID),
+				"AZURE_TENANT_ID":     []byte(testUUID),
 				"AZURE_CLIENT_SECRET": []byte("client_secret"),
 			},
 		}

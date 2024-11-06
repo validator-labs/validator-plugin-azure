@@ -44,8 +44,6 @@ spec:
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
-          name: AZURE_ENVIRONMENT
-          value: {{ quote .Values.azureEnvironment }}
         volumeMounts: {{- toYaml .Values.controllerManager.manager.volumeMounts | nindent 10 }}
         image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.AppVersion }}
         livenessProbe:
