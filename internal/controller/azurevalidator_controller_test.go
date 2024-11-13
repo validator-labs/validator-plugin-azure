@@ -1,8 +1,11 @@
 package controller
 
+//nolint:gci
 import (
 	"context"
 	"fmt"
+	"maps"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -339,11 +342,11 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 // 	}
 // }
 
-// func checkEnvVars(expected map[string]string) error {
-// 	for k := range maps.Keys(expected) {
-// 		if v := os.Getenv(k); v != expected[k] {
-// 			return fmt.Errorf("env var %s = %s; expected %s", k, v, expected[k])
-// 		}
-// 	}
-// 	return nil
-// }
+func checkEnvVars(expected map[string]string) error {
+	for k := range maps.Keys(expected) {
+		if v := os.Getenv(k); v != expected[k] {
+			return fmt.Errorf("env var %s = %s; expected %s", k, v, expected[k])
+		}
+	}
+	return nil
+}
