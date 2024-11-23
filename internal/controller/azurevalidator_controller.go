@@ -38,10 +38,10 @@ import (
 )
 
 const (
-	secretKeyTenantID     = "AZURE_TENANT_ID"
-	secretKeyClientID     = "AZURE_CLIENT_ID"
-	secretKeyClientSecret = "AZURE_CLIENT_SECRET"
-	secretKeyEnvironment  = "AZURE_ENVIRONMENT"
+	scrtKeyTenantID     = "AZURE_TENANT_ID"
+	scrtKeyClientID     = "AZURE_CLIENT_ID"
+	scrtKeyClientSecret = "AZURE_CLIENT_SECRET"
+	scrtKeyEnvironment  = "AZURE_ENVIRONMENT"
 )
 
 // AzureValidatorReconciler reconciles an AzureValidator object
@@ -139,25 +139,25 @@ func (r *AzureValidatorReconciler) authFromSecret(auth v1alpha1.AzureAuth, reqNa
 		return auth, fmt.Errorf("failed to get Secret: %w", err)
 	}
 
-	tenantID, ok := secret.Data[secretKeyTenantID]
+	tenantID, ok := secret.Data[scrtKeyTenantID]
 	if !ok {
-		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", secretKeyTenantID)
+		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", scrtKeyTenantID)
 	}
 	auth.Credentials.TenantID = string(tenantID)
 
-	clientID, ok := secret.Data[secretKeyClientID]
+	clientID, ok := secret.Data[scrtKeyClientID]
 	if !ok {
-		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", secretKeyClientID)
+		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", scrtKeyClientID)
 	}
 	auth.Credentials.ClientID = string(clientID)
 
-	clientSecret, ok := secret.Data[secretKeyClientSecret]
+	clientSecret, ok := secret.Data[scrtKeyClientSecret]
 	if !ok {
-		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", secretKeyClientSecret)
+		return v1alpha1.AzureAuth{}, fmt.Errorf("Key %s missing from Secret", scrtKeyClientSecret)
 	}
 	auth.Credentials.ClientSecret = string(clientSecret)
 
-	if environment, ok := secret.Data[secretKeyEnvironment]; !ok {
+	if environment, ok := secret.Data[scrtKeyEnvironment]; !ok {
 		l.Info("Azure environment not specified in secret. Using default environment.")
 	} else {
 		auth.Credentials.Environment = string(environment)
