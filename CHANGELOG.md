@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.0.23](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.22...v0.0.23) (2024-11-23)
+
+
+### Bug Fixes
+
+* make inline auth work in direct mode too ([#302](https://github.com/validator-labs/validator-plugin-azure/issues/302)) ([ef08cc3](https://github.com/validator-labs/validator-plugin-azure/commit/ef08cc3fa9d4ea80fa69c35e27cb85a311af2a67))
+
+
+### Other
+
+* make reviewable ([#290](https://github.com/validator-labs/validator-plugin-azure/issues/290)) ([6cf46a9](https://github.com/validator-labs/validator-plugin-azure/commit/6cf46a97a980adc8a3782fe0a417838afaa74d42))
+* update renovate.json ([032f2c5](https://github.com/validator-labs/validator-plugin-azure/commit/032f2c5da2354e56a2bb5506c666293f579f2fd2))
+
+
+### Dependency Updates
+
+* **deps:** update all non-major dependencies to v0.31.3 ([#299](https://github.com/validator-labs/validator-plugin-azure/issues/299)) ([c6734b2](https://github.com/validator-labs/validator-plugin-azure/commit/c6734b2f69db1a8b04d49f6c58d776b21b1736a3))
+* **deps:** update build digest to 3463b98 ([#294](https://github.com/validator-labs/validator-plugin-azure/issues/294)) ([0c3fda0](https://github.com/validator-labs/validator-plugin-azure/commit/0c3fda062aa997fc47f5f8dc94f4271ef5a7daa1))
+* **deps:** update build digest to 3840c9d ([#295](https://github.com/validator-labs/validator-plugin-azure/issues/295)) ([660378a](https://github.com/validator-labs/validator-plugin-azure/commit/660378a873bedec4a5ea5cfe98610dd5e0ab87ef))
+* **deps:** update build digest to 5ffe724 ([#298](https://github.com/validator-labs/validator-plugin-azure/issues/298)) ([af26809](https://github.com/validator-labs/validator-plugin-azure/commit/af2680972f653fc1cfeeb672e2c4a1fef12976a1))
+* **deps:** update build digest to 713df39 ([#296](https://github.com/validator-labs/validator-plugin-azure/issues/296)) ([9a4e7f7](https://github.com/validator-labs/validator-plugin-azure/commit/9a4e7f7c9491f71c46b5ea15e4f85f16097ff6f1))
+* **deps:** update build digest to a46a554 ([#304](https://github.com/validator-labs/validator-plugin-azure/issues/304)) ([5bf6140](https://github.com/validator-labs/validator-plugin-azure/commit/5bf6140c5129825668e874f6f5a1849549e8896d))
+* **deps:** update build digest to db64f63 ([#292](https://github.com/validator-labs/validator-plugin-azure/issues/292)) ([ea6f1e5](https://github.com/validator-labs/validator-plugin-azure/commit/ea6f1e53a25dad9b2614f8db0349ac6e63544265))
+* **deps:** update build digest to dd09b58 ([#303](https://github.com/validator-labs/validator-plugin-azure/issues/303)) ([f665a82](https://github.com/validator-labs/validator-plugin-azure/commit/f665a82b470fd0a9a30b36658e98515d6794c485))
+* **deps:** update golang.org/x/exp digest to 2d47ceb ([#289](https://github.com/validator-labs/validator-plugin-azure/issues/289)) ([14ae96f](https://github.com/validator-labs/validator-plugin-azure/commit/14ae96faee9724c0e5dfa898546df1ccfcae7164))
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.22.0 ([#297](https://github.com/validator-labs/validator-plugin-azure/issues/297)) ([25c3169](https://github.com/validator-labs/validator-plugin-azure/commit/25c3169fefebec480ef450fc7ea7f00a263dcc25))
+* **deps:** update module github.com/validator-labs/validator to v0.1.13 ([#305](https://github.com/validator-labs/validator-plugin-azure/issues/305)) ([e576352](https://github.com/validator-labs/validator-plugin-azure/commit/e5763524cf489a41930853fd56cee3243a2ad45c))
+* **deps:** update module sigs.k8s.io/controller-runtime to v0.19.2 ([#301](https://github.com/validator-labs/validator-plugin-azure/issues/301)) ([3db6d5b](https://github.com/validator-labs/validator-plugin-azure/commit/3db6d5b6a80465dc4338fa475552eac5b2431bc0))
+
 ## [0.0.22](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.21...v0.0.22) (2024-11-06)
 
 
