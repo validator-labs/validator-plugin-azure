@@ -3,20 +3,22 @@ package controller
 import (
 	"context"
 	"fmt"
-	"maps"
-	"os"
 	"testing"
 
 	"github.com/go-logr/logr"
-	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/validator-labs/validator-plugin-azure/api/v1alpha1"
 	vapi "github.com/validator-labs/validator/api/v1alpha1"
 	vres "github.com/validator-labs/validator/pkg/validationresult"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -194,161 +196,155 @@ var _ = Describe("AzureValidator controller", Ordered, func() {
 	})
 })
 
-func Test_AzureValidatorReconciler_configureAzureAuth(t *testing.T) {
-	tenID := uuid.New().String()
-	cliID := uuid.New().String()
+func Test_AzureValidatorReconciler_authFromSecret(t *testing.T) {
+	logger := logr.Logger{}
+	scheme := runtime.NewScheme()
+	_ = corev1.AddToScheme(scheme) // Add corev1 scheme for fake client
 
-	type args struct {
-		auth         v1alpha1.AzureAuth
-		reqNamespace string
-		l            logr.Logger
-	}
 	tests := []struct {
-		name        string
-		m           *AzureValidatorReconciler
-		args        args
-		wantErr     bool
-		wantEnvVars map[string]string
+		name           string
+		auth           v1alpha1.AzureAuth
+		secret         *corev1.Secret
+		expectedAuth   v1alpha1.AzureAuth
+		expectedError  error
+		expectOverride bool
 	}{
 		{
-			name: "Sets env vars given inline auth config",
-			m:    &AzureValidatorReconciler{},
-			args: args{
-				auth: v1alpha1.AzureAuth{
-					Credentials: &v1alpha1.ServicePrincipalCredentials{
-						TenantID:     tenID,
-						ClientID:     cliID,
-						ClientSecret: "c",
-						Environment:  "d",
-					},
-				},
-			},
-			wantErr: false,
-			wantEnvVars: map[string]string{
-				"AZURE_TENANT_ID":     tenID,
-				"AZURE_CLIENT_ID":     cliID,
-				"AZURE_CLIENT_SECRET": "c",
-				"AZURE_ENVIRONMENT":   "d",
+			name: "Skips looking for Secret and overriding inline config when implicit auth is enabled",
+			auth: v1alpha1.AzureAuth{Implicit: true},
+			expectedAuth: v1alpha1.AzureAuth{
+				Implicit: true,
 			},
 		},
 		{
-			name: "Error for invalid tenant ID",
-			m:    &AzureValidatorReconciler{},
-			args: args{
-				auth: v1alpha1.AzureAuth{
-					Credentials: &v1alpha1.ServicePrincipalCredentials{
-						TenantID:     "",
-						ClientID:     cliID,
-						ClientSecret: "c",
-						Environment:  "d",
-					},
-				},
-			},
-			wantErr: true,
-			wantEnvVars: map[string]string{
-				"AZURE_TENANT_ID":     "",
-				"AZURE_CLIENT_ID":     "",
-				"AZURE_CLIENT_SECRET": "",
-				"AZURE_ENVIRONMENT":   "",
-			},
+			name:         "Skips looking for Secret and overriding inline config when no secret name is specified",
+			auth:         v1alpha1.AzureAuth{},
+			expectedAuth: v1alpha1.AzureAuth{},
 		},
 		{
-			name: "Error for invalid client ID",
-			m:    &AzureValidatorReconciler{},
-			args: args{
-				auth: v1alpha1.AzureAuth{
-					Credentials: &v1alpha1.ServicePrincipalCredentials{
-						TenantID:     tenID,
-						ClientID:     "",
-						ClientSecret: "c",
-						Environment:  "d",
-					},
-				},
+			name: "Returns an error when Secret is not found",
+			auth: v1alpha1.AzureAuth{
+				SecretName: "nonexistent-secret",
 			},
-			wantErr: true,
-			wantEnvVars: map[string]string{
-				"AZURE_TENANT_ID":     "",
-				"AZURE_CLIENT_ID":     "",
-				"AZURE_CLIENT_SECRET": "",
-				"AZURE_ENVIRONMENT":   "",
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "nonexistent-secret",
 			},
+			expectedError: fmt.Errorf("failed to get Secret: secrets \"nonexistent-secret\" not found"),
 		},
 		{
-			name: "Error for invalid client secret",
-			m:    &AzureValidatorReconciler{},
-			args: args{
-				auth: v1alpha1.AzureAuth{
-					Credentials: &v1alpha1.ServicePrincipalCredentials{
-						TenantID:     tenID,
-						ClientID:     cliID,
-						ClientSecret: "",
-						Environment:  "d",
-					},
-				},
+			name: "Returns an error when Secret is missing key for tenant ID",
+			auth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
 			},
-			wantErr: true,
-			wantEnvVars: map[string]string{
-				"AZURE_TENANT_ID":     "",
-				"AZURE_CLIENT_ID":     "",
-				"AZURE_CLIENT_SECRET": "",
-				"AZURE_ENVIRONMENT":   "",
+			secret: &corev1.Secret{
+				Data: map[string][]byte{},
 			},
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+			},
+			expectedError: fmt.Errorf("Key AZURE_TENANT_ID missing from Secret"),
 		},
 		{
-			name: "No error for missing environment",
-			m:    &AzureValidatorReconciler{},
-			args: args{
-				auth: v1alpha1.AzureAuth{
-					Credentials: &v1alpha1.ServicePrincipalCredentials{
-						TenantID:     tenID,
-						ClientID:     cliID,
-						ClientSecret: "c",
-					},
+			name: "Returns an error when Secret is missing key for client ID",
+			auth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+			},
+			secret: &corev1.Secret{
+				Data: map[string][]byte{
+					"AZURE_TENANT_ID": []byte("tenant-id"),
 				},
 			},
-			wantErr: false,
-			wantEnvVars: map[string]string{
-				"AZURE_TENANT_ID":     tenID,
-				"AZURE_CLIENT_ID":     cliID,
-				"AZURE_CLIENT_SECRET": "c",
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+				Credentials: &v1alpha1.ServicePrincipalCredentials{
+					TenantID: "tenant-id",
+				},
+			},
+			expectedError: fmt.Errorf("Key AZURE_CLIENT_ID missing from Secret"),
+		},
+		{
+			name: "Returns an error when Secret is missing key for client secret",
+			auth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+			},
+			secret: &corev1.Secret{
+				Data: map[string][]byte{
+					"AZURE_TENANT_ID": []byte("tenant-id"),
+					"AZURE_CLIENT_ID": []byte("client-id"),
+				},
+			},
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+				Credentials: &v1alpha1.ServicePrincipalCredentials{
+					TenantID: "tenant-id",
+					ClientID: "client-id",
+				},
+			},
+			expectedError: fmt.Errorf("Key AZURE_CLIENT_SECRET missing from Secret"),
+		},
+		{
+			name: "Does not return an error when key for Azure environment is missing",
+			auth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+			},
+			secret: &corev1.Secret{
+				Data: map[string][]byte{},
+			},
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+				Credentials: &v1alpha1.ServicePrincipalCredentials{
+					TenantID:     "tenant-id",
+					ClientID:     "client-id",
+					ClientSecret: "client-secret",
+				},
+			},
+			expectedError: fmt.Errorf("Key AZURE_TENANT_ID missing from Secret"),
+		},
+		{
+			name: "Overrides inline config when implicit auth is not enabled, a secret name is specified, the Secret is found, and the Secret contains all required auth data",
+			auth: v1alpha1.AzureAuth{SecretName: "azure-secret"},
+			secret: &corev1.Secret{
+				Data: map[string][]byte{
+					"AZURE_TENANT_ID":     []byte("tenant-id"),
+					"AZURE_CLIENT_ID":     []byte("client-id"),
+					"AZURE_CLIENT_SECRET": []byte("client-secret"),
+					"AZURE_ENVIRONMENT":   []byte("azure-environment"),
+				},
+			},
+			expectedAuth: v1alpha1.AzureAuth{
+				SecretName: "azure-secret",
+				Credentials: &v1alpha1.ServicePrincipalCredentials{
+					TenantID:     "tenant-id",
+					ClientID:     "client-id",
+					ClientSecret: "client-secret",
+					Environment:  "azure-environment",
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Save the current environment variables to restore them later
-			originalEnv := make(map[string]string)
-			for k := range tt.wantEnvVars {
-				originalEnv[k] = os.Getenv(k)
+			// Set up fake client and reconciler
+			objects := []runtime.Object{}
+			if tt.secret != nil {
+				tt.secret.ObjectMeta.Name = tt.auth.SecretName
+				tt.secret.ObjectMeta.Namespace = "default"
+				objects = append(objects, tt.secret)
+			}
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(objects...).Build()
+			reconciler := AzureValidatorReconciler{
+				Client: client,
 			}
 
-			// Clean up and reset environment variables after the test
-			defer func() {
-				for k, v := range originalEnv {
-					if v == "" {
-						os.Unsetenv(k)
-					} else {
-						os.Setenv(k, v)
-					}
-				}
-			}()
-
-			r := &AzureValidatorReconciler{}
-			if err := r.configureAzureAuth(tt.args.auth, tt.args.reqNamespace, tt.args.l); (err != nil) != tt.wantErr {
-				t.Errorf("AzureValidatorReconciler.configureAzureAuth() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err := checkEnvVars(tt.wantEnvVars); err != nil {
-				t.Error(err)
+			// Assert auth data augmented by secret or not.
+			result, err := reconciler.authFromSecret(tt.auth, "default", logger)
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedAuth, result)
 			}
 		})
 	}
-}
-
-func checkEnvVars(expected map[string]string) error {
-	for k := range maps.Keys(expected) {
-		if v := os.Getenv(k); v != expected[k] {
-			return fmt.Errorf("env var %s = %s; expected %s", k, v, expected[k])
-		}
-	}
-	return nil
 }
