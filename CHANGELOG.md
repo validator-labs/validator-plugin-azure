@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.24](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.23...v0.0.24) (2024-11-27)
+
+
+### Bug Fixes
+
+* setting auth env vars ([#310](https://github.com/validator-labs/validator-plugin-azure/issues/310)) ([b0c491d](https://github.com/validator-labs/validator-plugin-azure/commit/b0c491d2e12c636e0576d214b7747dcb6d016bee))
+
+
+### Dependency Updates
+
+* **deps:** update build digest to d0ef938 ([#309](https://github.com/validator-labs/validator-plugin-azure/issues/309)) ([febfb77](https://github.com/validator-labs/validator-plugin-azure/commit/febfb77ac50b8ea38b09bde9b1f22bdb2a725adf))
+* **deps:** update module github.com/onsi/gomega to v1.36.0 ([#308](https://github.com/validator-labs/validator-plugin-azure/issues/308)) ([172adcb](https://github.com/validator-labs/validator-plugin-azure/commit/172adcbe683a4aa74d5f91b935943597a54a5c3f))
+* **deps:** update module github.com/stretchr/testify to v1.10.0 ([#306](https://github.com/validator-labs/validator-plugin-azure/issues/306)) ([b1c813d](https://github.com/validator-labs/validator-plugin-azure/commit/b1c813d5f4025c4ed0eea6cc9ab5f781509f6cb9))
+
 ## [0.0.23](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.22...v0.0.23) (2024-11-23)
 
 
