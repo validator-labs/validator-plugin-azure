@@ -20,15 +20,23 @@ import (
 	"github.com/validator-labs/validator-plugin-azure/pkg/utils/strings"
 )
 
-var errInvalidTenantID = errors.New("tenant ID is invalid, must be a v4 uuid")
-var errInvalidClientID = errors.New("client ID is invalid, must be a v4 uuid")
-var errInvalidClientSecret = errors.New("client secret is invalid, must be a non-empty string")
-
 // Validate validates the AzureValidatorSpec and returns a ValidationResponse.
 func Validate(ctx context.Context, spec v1alpha1.AzureValidatorSpec, log logr.Logger) types.ValidationResponse {
 	resp := types.ValidationResponse{
 		ValidationRuleResults: make([]*types.ValidationRuleResult, 0, spec.ResultCount()),
 		ValidationRuleErrors:  make([]error, 0, spec.ResultCount()),
+	}
+
+	vrr := buildValidationResult()
+
+	if err := validateAuth(spec.Auth); err != nil {
+		resp.AddResult(vrr, fmt.Errorf("Azure SDK auth data invalid: %w", err))
+		return resp
+	}
+
+	if err := configureAuth(spec.Auth, log); err != nil {
+		resp.AddResult(vrr, fmt.Errorf("failed to configure auth for Azure SDK: %w", err))
+		return resp
 	}
 
 	azureAPI, err := utils.NewAzureAPI()
@@ -107,13 +115,13 @@ func validateAuth(auth v1alpha1.AzureAuth) error {
 	var validationErrors []error
 
 	if !strings.IsValidUUID(auth.Credentials.TenantID) {
-		validationErrors = append(validationErrors, errInvalidTenantID)
+		validationErrors = append(validationErrors, errors.New("tenant ID is invalid, must be a v4 uuid"))
 	}
 	if !strings.IsValidUUID(auth.Credentials.ClientID) {
-		validationErrors = append(validationErrors, errInvalidClientID)
+		validationErrors = append(validationErrors, errors.New("client ID is invalid, must be a v4 uuid"))
 	}
 	if auth.Credentials.ClientSecret == "" {
-		validationErrors = append(validationErrors, errInvalidClientSecret)
+		validationErrors = append(validationErrors, errors.New("client secret is invalid, must be a non-empty string"))
 	}
 
 	if len(validationErrors) > 0 {
