@@ -71,9 +71,9 @@ type RBACRule struct {
 	// this, validation will fail. If the principal has permissions equal to or more than this
 	// (e.g., inherited permissions from higher level scope, more roles than needed) validation
 	// will pass.
-	//+kubebuilder:validation:MinItems=1
-	//+kubebuilder:validation:MaxItems=20
-	//+kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
+	// +kubebuilder:validation:MinItems=1
+	// +kubebuilder:validation:MaxItems=20
+	// +kubebuilder:validation:XValidation:message="Each permission set must have Actions, DataActions, or both defined",rule="self.all(item, size(item.actions) > 0 || size(item.dataActions) > 0)"
 	Permissions []PermissionSet `json:"permissionSets" yaml:"permissionSets"`
 	// The principal being validated. This can be any type of principal - Device, ForeignGroup,
 	// Group, ServicePrincipal, or User. If using a service principal, this is the "application
@@ -108,8 +108,8 @@ type CommunityGalleryImageRule struct {
 	// Gallery is the community gallery.
 	Gallery CommunityGallery `json:"gallery" yaml:"gallery"`
 	// Images is a list of image names.
-	//+kubebuilder:validation:MinItems=1
-	//+kubebuilder:validation:MaxItems=1000
+	// +kubebuilder:validation:MinItems=1
+	// +kubebuilder:validation:MaxItems=1000
 	Images []string `json:"images" yaml:"images"`
 	// SubscriptionID is the ID of the subscription.
 	SubscriptionID string `json:"subscriptionID" yaml:"subscriptionID"`
@@ -236,14 +236,14 @@ type PermissionSet struct {
 	// Actions is a list of actions that the role must be able to perform. Must not contain any
 	// wildcards. If not specified, the role is assumed to already be able to perform all required
 	// actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	// +kubebuilder:validation:MaxItems=1000
+	// +kubebuilder:validation:XValidation:message="Actions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
 	Actions []ActionStr `json:"actions,omitempty" yaml:"actions,omitempty"`
 	// DataActions is a list of data actions that the role must be able to perform. Must not
 	// contain any wildcards. If not provided, the role is assumed to already be able to perform
 	// all required data actions.
-	//+kubebuilder:validation:MaxItems=1000
-	//+kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
+	// +kubebuilder:validation:MaxItems=1000
+	// +kubebuilder:validation:XValidation:message="DataActions cannot have wildcards.",rule="self.all(item, !item.contains('*'))"
 	DataActions []ActionStr `json:"dataActions,omitempty" yaml:"dataActions,omitempty"`
 	// Scope is the minimum scope of the role. Role assignments found at higher level scopes will
 	// satisfy this. For example, a role assignment found with subscription scope will satisfy a
@@ -254,8 +254,8 @@ type PermissionSet struct {
 // AzureValidatorStatus defines the observed state of AzureValidator
 type AzureValidatorStatus struct{}
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // AzureValidator is the Schema for the azurevalidators API
 type AzureValidator struct {
@@ -281,7 +281,7 @@ func (v AzureValidator) ResultCount() int {
 	return v.Spec.ResultCount()
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // AzureValidatorList contains a list of AzureValidator
 type AzureValidatorList struct {
