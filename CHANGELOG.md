@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.25](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.24...v0.0.25) (2024-12-10)
+
+
+### Dependency Updates
+
+* **deps:** update build digest to c847351 ([#317](https://github.com/validator-labs/validator-plugin-azure/issues/317)) ([131bf49](https://github.com/validator-labs/validator-plugin-azure/commit/131bf49dd476d9b9ffea3209506b8175e5e601e1))
+* **deps:** update build digest to de3e944 ([#316](https://github.com/validator-labs/validator-plugin-azure/issues/316)) ([3d35068](https://github.com/validator-labs/validator-plugin-azure/commit/3d35068e41ed8b167661200d7362c27a7f96b2f7))
+* **deps:** update golang.org/x/exp digest to 43b7b7c ([#314](https://github.com/validator-labs/validator-plugin-azure/issues/314)) ([0fd29c9](https://github.com/validator-labs/validator-plugin-azure/commit/0fd29c9e2521cf78306ada2fe1bdb817ecf158fd))
+* **deps:** update module github.com/validator-labs/validator to v0.1.14 ([#311](https://github.com/validator-labs/validator-plugin-azure/issues/311)) ([e06b4f7](https://github.com/validator-labs/validator-plugin-azure/commit/e06b4f74e12995185e088e8a03705734230be083))
+
 ## [0.0.24](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.23...v0.0.24) (2024-11-27)
 
 
