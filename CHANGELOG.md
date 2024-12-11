@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.26](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.25...v0.0.26) (2024-12-11)
+
+
+### Dependency Updates
+
+* **deps:** update all non-major dependencies ([#320](https://github.com/validator-labs/validator-plugin-azure/issues/320)) ([eb585cb](https://github.com/validator-labs/validator-plugin-azure/commit/eb585cb78686c89f46a31ca543047c3e7fd2eceb))
+* **deps:** update golang.org/x/exp digest to 1829a12 ([#321](https://github.com/validator-labs/validator-plugin-azure/issues/321)) ([c5469d9](https://github.com/validator-labs/validator-plugin-azure/commit/c5469d92a633c400378cf43f8dbf717887e68a16))
+
 ## [0.0.25](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.24...v0.0.25) (2024-12-10)
 
 
