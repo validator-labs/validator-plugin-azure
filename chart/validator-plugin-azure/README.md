@@ -26,7 +26,7 @@ The following table lists the configurable parameters of the Validator-plugin-az
 | `controllerManager.volumes` |  | `[]` |
 | `controllerManager.podLabels` |  | `{}` |
 | `kubernetesClusterDomain` |  | `"cluster.local"` |
-| `metricsService.ports` |  | `[{"name": "https", "port": 8443, "protocol": "TCP", "targetPort": "https"}]` |
+| `metricsService.ports` |  | `[{"name": "https", "port": 8443, "protocol": "TCP", "targetPort": 8443}]` |
 | `metricsService.type` |  | `"ClusterIP"` |
 | `auth.serviceAccountName` |  | `""` |
 | `azureEnvironment` |  | `"AzureCloud"` |
