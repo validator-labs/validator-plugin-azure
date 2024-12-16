@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.26](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.25...v0.0.26) (2024-12-16)
+
+
+### Bug Fixes
+
+* metrics targetPort https -&gt; 8443 ([#326](https://github.com/validator-labs/validator-plugin-azure/issues/326)) ([591c8bf](https://github.com/validator-labs/validator-plugin-azure/commit/591c8bfa6596ed5e0ed72db841787e4c640c0639))
+
+
+### Dependency Updates
+
+* **deps:** update all non-major dependencies ([#320](https://github.com/validator-labs/validator-plugin-azure/issues/320)) ([eb585cb](https://github.com/validator-labs/validator-plugin-azure/commit/eb585cb78686c89f46a31ca543047c3e7fd2eceb))
+* **deps:** update all non-major dependencies ([#324](https://github.com/validator-labs/validator-plugin-azure/issues/324)) ([a57b7c6](https://github.com/validator-labs/validator-plugin-azure/commit/a57b7c61bd2d0ba08f6f795dbcf80950b198fcda))
+* **deps:** update build digest to 5e4aaa9 ([#323](https://github.com/validator-labs/validator-plugin-azure/issues/323)) ([978f4bb](https://github.com/validator-labs/validator-plugin-azure/commit/978f4bbb2e004475ce427c6d6afe50185a7f8e08))
+* **deps:** update build digest to 9734871 ([#328](https://github.com/validator-labs/validator-plugin-azure/issues/328)) ([0c5d048](https://github.com/validator-labs/validator-plugin-azure/commit/0c5d0483a117b64956aecfe4cee25cf422d112ea))
+* **deps:** update golang.org/x/exp digest to 1829a12 ([#321](https://github.com/validator-labs/validator-plugin-azure/issues/321)) ([c5469d9](https://github.com/validator-labs/validator-plugin-azure/commit/c5469d92a633c400378cf43f8dbf717887e68a16))
+* **deps:** update golang.org/x/exp digest to 4a55095 ([#327](https://github.com/validator-labs/validator-plugin-azure/issues/327)) ([526f7a9](https://github.com/validator-labs/validator-plugin-azure/commit/526f7a991f2247edab4c35ae810801fa70db764c))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6 to v6.2.0 ([#325](https://github.com/validator-labs/validator-plugin-azure/issues/325)) ([f996d1f](https://github.com/validator-labs/validator-plugin-azure/commit/f996d1fcd28ea048ef00f39b6d14f362033152eb))
+
 ## [0.0.25](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.24...v0.0.25) (2024-12-10)
 
 
