@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.27](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.26...v0.0.27) (2024-12-19)
+
+
+### Dependency Updates
+
+* **deps:** update build digest to aa32dd3 ([#333](https://github.com/validator-labs/validator-plugin-azure/issues/333)) ([4bf7dee](https://github.com/validator-labs/validator-plugin-azure/commit/4bf7dee61b73e6369a555b7e8c828835c8e32243))
+* **deps:** update golang.org/x/exp digest to b2144cd ([#330](https://github.com/validator-labs/validator-plugin-azure/issues/330)) ([efcb1d2](https://github.com/validator-labs/validator-plugin-azure/commit/efcb1d28707ffa763541679f60014beb75839b67))
+* **deps:** update module github.com/validator-labs/validator to v0.1.16 ([#332](https://github.com/validator-labs/validator-plugin-azure/issues/332)) ([831300a](https://github.com/validator-labs/validator-plugin-azure/commit/831300afde674432130e4b05655abc2557c732b5))
+* **deps:** update module sigs.k8s.io/cluster-api to v1.9.1 ([#329](https://github.com/validator-labs/validator-plugin-azure/issues/329)) ([30c5126](https://github.com/validator-labs/validator-plugin-azure/commit/30c51260ae6aac08679974390de221f83a27e641))
+
 ## [0.0.26](https://github.com/validator-labs/validator-plugin-azure/compare/v0.0.25...v0.0.26) (2024-12-16)
 
 
