@@ -3,7 +3,7 @@ module github.com/validator-labs/validator-plugin-azure
 go 1.23.3
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2 v2.2.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6 v6.2.0
@@ -19,7 +19,7 @@ require (
 	k8s.io/apimachinery v0.32.0
 	k8s.io/client-go v0.32.0
 	sigs.k8s.io/cluster-api v1.9.3
-	sigs.k8s.io/controller-runtime v0.19.3
+	sigs.k8s.io/controller-runtime v0.19.4
 )
 
 require (
