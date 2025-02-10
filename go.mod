@@ -1,6 +1,6 @@
 module github.com/validator-labs/validator-plugin-azure
 
-go 1.23.3
+go 1.23.6
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
