@@ -3,23 +3,23 @@ module github.com/validator-labs/validator-plugin-azure
 go 1.23.6
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.2
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.2
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.11.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2 v2.2.0
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6 v6.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v6 v6.4.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/quota/armquota v1.1.0
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/google/uuid v1.6.0
-	github.com/onsi/ginkgo/v2 v2.22.2
-	github.com/onsi/gomega v1.36.2
+	github.com/onsi/ginkgo/v2 v2.23.4
+	github.com/onsi/gomega v1.38.0
 	github.com/stretchr/testify v1.10.0
 	github.com/validator-labs/validator v0.1.16
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
-	k8s.io/api v0.32.2
-	k8s.io/apimachinery v0.32.2
-	k8s.io/client-go v0.32.2
-	sigs.k8s.io/cluster-api v1.9.5
-	sigs.k8s.io/controller-runtime v0.20.2
+	k8s.io/api v0.33.3
+	k8s.io/apimachinery v0.33.3
+	k8s.io/client-go v0.33.3
+	sigs.k8s.io/cluster-api v1.10.4
+	sigs.k8s.io/controller-runtime v0.21.0
 )
 
 require (
